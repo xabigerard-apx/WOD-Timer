@@ -1,0 +1,2387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="WOD Timer">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0a">
+<title>WOD TIMER</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text x='50' y='58' font-size='52' font-family='Arial Black,sans-serif' font-weight='900' fill='%23e8ff00' text-anchor='middle'>⏱</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text x='50' y='58' font-size='52' font-family='Arial Black,sans-serif' font-weight='900' fill='%23e8ff00' text-anchor='middle'>⏱</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --accent: #e8ff00;
+    --accent2: #ff4d00;
+    --accent3: #00d4ff;
+    --text: #f0f0f0;
+    --muted: #666;
+    --danger: #ff3b30;
+    --success: #30d158;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* SCREENS */
+  .screen { display: none; min-height: 100vh; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* HOME */
+  #home {
+    padding: 0;
+    background: var(--bg);
+  }
+
+  .home-header {
+    padding: 48px 24px 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .logo span { color: var(--text); }
+
+  .tagline {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .mode-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 24px;
+  }
+
+  .mode-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 20px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mode-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--card-color, var(--accent));
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .mode-card:active { transform: scale(0.97); }
+  .mode-card:hover::before { opacity: 1; }
+
+  .mode-card.amrap { --card-color: var(--accent); }
+  .mode-card.emom { --card-color: var(--accent3); }
+  .mode-card.fortime { --card-color: var(--accent2); }
+  .mode-card.sets { --card-color: #30d158; }
+  .mode-card.history { --card-color: #ff9f0a; }
+  .mode-card.settings { --card-color: #8e8e93; }
+
+  /* HISTORY */
+  .filter-pill { flex-shrink:0; padding:6px 14px; border-radius:20px; border:1px solid var(--border); background:none; color:var(--muted); font-family:'DM Mono',monospace; font-size:11px; letter-spacing:1px; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+  .filter-pill.active { background:var(--surface2); color:var(--text); border-color:var(--text); }
+  .history-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 20px; cursor:pointer; transition:all 0.15s; }
+  .history-card:active { transform:scale(0.98); }
+  .history-card-top { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .history-mode-badge { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:1px; padding:3px 8px; border-radius:5px; text-transform:uppercase; }
+  .history-date { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); margin-left:auto; }
+  .history-time { font-family:'Bebas Neue',sans-serif; font-size:36px; letter-spacing:3px; line-height:1; margin-bottom:6px; }
+  .history-meta { font-size:12px; color:var(--muted); display:flex; gap:12px; flex-wrap:wrap; }
+  .history-splits-preview { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+  .split-pill { font-family:'DM Mono',monospace; font-size:10px; padding:3px 8px; background:var(--surface2); border-radius:5px; color:var(--muted); }
+  .split-pill.set-pill { color:#30d158; }
+  .split-pill.section-pill { color:var(--accent2); }
+  .detail-section { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:10px; }
+  .detail-label { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:8px; }
+  .detail-value { font-family:'Bebas Neue',sans-serif; font-size:42px; letter-spacing:3px; line-height:1; }
+  .detail-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
+  .detail-row:last-child { border-bottom:none; }
+  .detail-row-label { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+  .detail-row-val { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:2px; }
+  .mode-card.tabata { --card-color: #ff2d78; }
+  .mode-card.custom { --card-color: #bf5af2; }
+  .mode-card.saved { --card-color: var(--success); }
+
+  .mode-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .mode-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--text);
+    display: block;
+  }
+
+  .mode-desc {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  .mode-card.saved, .mode-card.custom {
+    grid-column: span 1;
+  }
+
+  /* SETUP SCREEN */
+  #setup {
+    background: var(--bg);
+  }
+
+  .screen-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 48px 24px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .back-btn {
+    width: 40px; height: 40px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .back-btn:active { transform: scale(0.95); background: var(--surface2); }
+
+  .screen-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 3px;
+  }
+
+  .mode-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
+
+  .setup-form {
+    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .form-group {
+    margin-bottom: 24px;
+  }
+
+  .form-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .num-input-wrap {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .num-btn {
+    width: 48px; height: 56px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 22px;
+    cursor: pointer;
+    transition: all 0.1s;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .num-btn:active { background: var(--surface2); color: var(--text); }
+
+  .num-val {
+    flex: 1;
+    text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 2px;
+    color: var(--text);
+    background: none;
+    border: none;
+    outline: none;
+    width: 100%;
+  }
+
+  .num-unit {
+    font-size: 11px;
+    color: var(--muted);
+    padding-right: 14px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .time-display {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-align: center;
+  }
+
+  /* Custom intervals */
+  .intervals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .interval-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .interval-color {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .interval-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .interval-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .interval-del {
+    width: 28px; height: 28px;
+    border: none;
+    background: none;
+    color: var(--danger);
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .add-interval-btn {
+    width: 100%;
+    padding: 14px;
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  .add-interval-btn:active { background: var(--surface); color: var(--text); }
+
+  /* Bottom action */
+  .bottom-action {
+    padding: 20px 24px 40px;
+    border-top: 1px solid var(--border);
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 18px;
+    background: var(--accent);
+    border: none;
+    border-radius: 14px;
+    color: #000;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .start-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+  .save-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .save-btn {
+    flex: 1;
+    padding: 14px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .save-btn:active { background: var(--surface); color: var(--text); }
+
+  /* TIMER SCREEN */
+  #timer {
+    background: var(--bg);
+    justify-content: space-between;
+  }
+
+  .timer-top {
+    padding: 48px 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .timer-mode-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .timer-round-info {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .timer-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .timer-phase {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    margin-bottom: 12px;
+    min-height: 24px;
+    text-align: center;
+  }
+
+  .timer-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(80px, 22vw, 120px);
+    letter-spacing: 4px;
+    line-height: 1;
+    text-align: center;
+    transition: color 0.3s;
+  }
+
+  .timer-display.warning { color: var(--accent2); }
+  .timer-display.critical { color: var(--danger); animation: pulse 0.5s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .timer-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 16px;
+    text-align: center;
+    min-height: 20px;
+  }
+
+  .progress-bar-wrap {
+    width: 100%;
+    padding: 0 24px;
+    margin-bottom: 8px;
+  }
+
+  .progress-bar-bg {
+    width: 100%;
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s linear;
+  }
+
+  .timer-controls {
+    padding: 20px 24px 48px;
+    display: flex;
+    gap: 12px;
+  }
+
+  .ctrl-btn {
+    flex: 1;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .ctrl-btn:active { transform: scale(0.97); background: var(--surface2); }
+  .ctrl-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); flex: 2; }
+  .ctrl-btn.primary:active { opacity: 0.9; }
+  .ctrl-btn.danger { color: var(--danger); border-color: var(--danger); }
+
+  /* ROUND BEEP overlay */
+  .beep-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(232, 255, 0, 0.15);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+    z-index: 100;
+  }
+  .beep-overlay.flash { opacity: 1; }
+
+  /* SAVED SCREEN */
+  #saved {
+    background: var(--bg);
+  }
+
+  .saved-list {
+    padding: 16px 24px;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .saved-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .saved-card:active { transform: scale(0.98); }
+
+  .saved-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .saved-info { flex: 1; }
+
+  .saved-name {
+    font-weight: 500;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  .saved-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .saved-del {
+    width: 36px; height: 36px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .saved-del:active { color: var(--danger); background: rgba(255,59,48,0.1); }
+
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    gap: 12px;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .empty-icon { font-size: 48px; }
+  .empty-text { font-size: 14px; line-height: 1.6; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    width: 100%;
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 24px 24px 48px;
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+
+  .text-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    outline: none;
+    margin-bottom: 16px;
+  }
+
+  .text-input:focus { border-color: var(--accent); }
+
+  .modal-btns { display: flex; gap: 10px; }
+
+  .modal-btn {
+    flex: 1;
+    padding: 16px;
+    border-radius: 12px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+  }
+
+  .modal-btn.confirm { background: var(--accent); color: #000; }
+  .modal-btn.cancel { background: var(--surface2); color: var(--text); }
+
+  /* ADD INTERVAL MODAL */
+  .color-picker { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+
+  .color-opt {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .color-opt.selected { border-color: var(--text); transform: scale(1.1); }
+
+  /* DONE SCREEN */
+  #done {
+    background: var(--bg);
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 24px;
+  }
+
+  .done-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 72px;
+    letter-spacing: 6px;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .done-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-bottom: 48px;
+  }
+
+  .done-stats {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 40px;
+  }
+
+  .done-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .done-stat:last-child { border-bottom: none; }
+
+  .done-stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .done-stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+  }
+
+  .home-btn {
+    padding: 18px 48px;
+    background: var(--accent);
+    border: none;
+    border-radius: 14px;
+    color: #000;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    cursor: pointer;
+  }
+
+  /* Countdown overlay */
+  .countdown-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 300;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .countdown-overlay.active { display: flex; }
+
+  .countdown-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 160px;
+    letter-spacing: 8px;
+    color: var(--accent);
+    line-height: 1;
+    animation: countPop 1s ease;
+  }
+
+  @keyframes countPop {
+    0% { transform: scale(1.4); opacity: 0; }
+    20% { opacity: 1; }
+    80% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0.8); opacity: 0; }
+  }
+
+  .countdown-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* SETS TIMER */
+  #setsTimer { background: var(--bg); justify-content: space-between; }
+  .sets-center { flex:1; display:flex; flex-direction:column; align-items:center; padding:12px 24px; overflow-y:auto; }
+  .sets-phase { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:4px; color:#30d158; margin-bottom:8px; text-align:center; }
+  .sets-display { font-family:'Bebas Neue',sans-serif; font-size:clamp(64px,18vw,100px); letter-spacing:4px; line-height:1; text-align:center; color:var(--text); margin-bottom:8px; }
+  .sets-display.rest-phase { color:#00d4ff; }
+  .sets-sub { font-family:'DM Mono',monospace; font-size:13px; color:var(--muted); margin-bottom:20px; text-align:center; min-height:18px; }
+  .sets-lap-list { width:100%; display:flex; flex-direction:column; gap:8px; max-height:240px; overflow-y:auto; }
+  .lap-item { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 16px; display:flex; align-items:center; gap:12px; animation:lapIn 0.2s ease; }
+  @keyframes lapIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+  .lap-num { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); width:48px; }
+  .lap-label { flex:1; font-size:13px; font-weight:500; }
+  .lap-time { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:2px; color:#30d158; }
+  .lap-time.rest-time { color:#00d4ff; }
+  .sets-controls { padding:16px 24px 48px; display:flex; gap:12px; }
+  .sets-lap-btn { flex:2; padding:22px; background:#30d158; border:none; border-radius:14px; color:#000; font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:3px; cursor:pointer; transition:all 0.1s; }
+  .sets-lap-btn:active { transform:scale(0.97); opacity:0.9; }
+  .sets-lap-btn.rest-btn { background:#00d4ff; }
+
+  /* FINISH message */
+  .finish-banner {
+    position: fixed;
+    inset: 0;
+    background: rgba(232,255,0,0.08);
+    border: 2px solid var(--accent);
+    z-index: 150;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .finish-banner.active { display: flex; }
+  .finish-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 64px;
+    letter-spacing: 6px;
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(232,255,0,0.6);
+  }
+</style>
+</head>
+<body>
+
+<!-- BEEP OVERLAY -->
+<div class="beep-overlay" id="beepOverlay"></div>
+
+<!-- COUNTDOWN -->
+<div class="countdown-overlay" id="countdownOverlay">
+  <div class="countdown-num" id="countdownNum">3</div>
+  <div class="countdown-label">GET READY</div>
+</div>
+
+<!-- FINISH BANNER -->
+<div class="finish-banner" id="finishBanner">
+  <div class="finish-text">TIME!</div>
+</div>
+
+<!-- SAVE MODAL -->
+<div class="modal-overlay" id="saveModal">
+  <div class="modal">
+    <div class="modal-title">SAVE WORKOUT</div>
+    <input type="text" class="text-input" id="saveNameInput" placeholder="Workout name..." maxlength="30">
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeSaveModal()">CANCEL</button>
+      <button class="modal-btn confirm" onclick="confirmSave()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD INTERVAL MODAL -->
+<div class="modal-overlay" id="intervalModal">
+  <div class="modal">
+    <div class="modal-title">ADD INTERVAL</div>
+    <input type="text" class="text-input" id="intervalNameInput" placeholder="Interval name (e.g. Work, Rest, Row...)">
+    <div class="form-label">DURATION</div>
+    <div class="form-row" style="margin-bottom:20px">
+      <div class="num-input-wrap">
+        <button class="num-btn" onclick="adjInterval('min',-1)">−</button>
+        <span class="num-val" id="intMinVal">0</span>
+        <span class="num-unit">MIN</span>
+        <button class="num-btn" onclick="adjInterval('min',1)">+</button>
+      </div>
+      <div class="num-input-wrap">
+        <button class="num-btn" onclick="adjInterval('sec',-10)">−</button>
+        <span class="num-val" id="intSecVal">30</span>
+        <span class="num-unit">SEC</span>
+        <button class="num-btn" onclick="adjInterval('sec',10)">+</button>
+      </div>
+    </div>
+    <div class="form-label">COLOR</div>
+    <div class="color-picker" id="colorPicker">
+      <div class="color-opt selected" data-color="#e8ff00" style="background:#e8ff00"></div>
+      <div class="color-opt" data-color="#00d4ff" style="background:#00d4ff"></div>
+      <div class="color-opt" data-color="#ff4d00" style="background:#ff4d00"></div>
+      <div class="color-opt" data-color="#30d158" style="background:#30d158"></div>
+      <div class="color-opt" data-color="#ff2d78" style="background:#ff2d78"></div>
+      <div class="color-opt" data-color="#bf5af2" style="background:#bf5af2"></div>
+      <div class="color-opt" data-color="#ff9f0a" style="background:#ff9f0a"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeIntervalModal()">CANCEL</button>
+      <button class="modal-btn confirm" onclick="confirmInterval()">ADD</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HOME ===== -->
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="logo">WOD<span>TIMER</span></div>
+    <div class="tagline">Build · Train · Suffer</div>
+  </div>
+  <div class="mode-grid">
+    <div class="mode-card amrap" onclick="goSetup('amrap')">
+      <span class="mode-icon">⏱</span>
+      <span class="mode-name">AMRAP</span>
+      <div class="mode-desc">As many rounds as possible in a set time</div>
+    </div>
+    <div class="mode-card emom" onclick="goSetup('emom')">
+      <span class="mode-icon">🔁</span>
+      <span class="mode-name">EMOM</span>
+      <div class="mode-desc">Every minute on the minute</div>
+    </div>
+    <div class="mode-card fortime" onclick="goSetup('fortime')">
+      <span class="mode-icon">🏁</span>
+      <span class="mode-name">FOR TIME</span>
+      <div class="mode-desc">Count up with optional time cap</div>
+    </div>
+    <div class="mode-card tabata" onclick="goSetup('tabata')">
+      <span class="mode-icon">🔥</span>
+      <span class="mode-name">TABATA</span>
+      <div class="mode-desc">20s work / 10s rest intervals</div>
+    </div>
+    <div class="mode-card custom" onclick="goSetup('custom')">
+      <span class="mode-icon">⚡</span>
+      <span class="mode-name">CUSTOM</span>
+      <div class="mode-desc">Build your own interval sequence</div>
+    </div>
+    <div class="mode-card sets" onclick="goSetup('sets')">
+      <span class="mode-icon">💪</span>
+      <span class="mode-name">SETS</span>
+      <div class="mode-desc">Lap timer per set with rest between</div>
+    </div>
+    <div class="mode-card saved" onclick="showSaved()">
+      <span class="mode-icon">📋</span>
+      <span class="mode-name">SAVED</span>
+      <div class="mode-desc">Your saved workouts</div>
+    </div>
+    <div class="mode-card history" onclick="showHistory()">
+      <span class="mode-icon">📈</span>
+      <span class="mode-name">HISTORY</span>
+      <div class="mode-desc">Past workouts & splits log</div>
+    </div>
+    <div class="mode-card settings" onclick="showSettings()">
+      <span class="mode-icon">⚙️</span>
+      <span class="mode-name">SETTINGS</span>
+      <div class="mode-desc">Countdown, preferences</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SETUP ===== -->
+<div class="screen" id="setup">
+  <div class="screen-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="screen-title" id="setupTitle">AMRAP</div>
+    <div class="mode-badge" id="modeBadge"></div>
+  </div>
+  <div class="setup-form" id="setupForm"></div>
+  <div class="bottom-action">
+    <button class="start-btn" onclick="beginCountdown()">START WORKOUT</button>
+    <div class="save-row">
+      <button class="save-btn" onclick="openSaveModal()">💾 SAVE WORKOUT</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HISTORY ===== -->
+<div class="screen" id="history">
+  <div class="screen-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="screen-title">HISTORY</div>
+    <button onclick="confirmClearHistory()" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;padding:6px 12px;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:1px">CLEAR</button>
+  </div>
+  <div id="historyFilters" style="padding:0 24px 0;display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-top:16px"></div>
+  <div class="saved-list" id="historyList"></div>
+</div>
+
+<!-- ===== HISTORY DETAIL ===== -->
+<div class="screen" id="historyDetail">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showHistory()">←</button>
+    <div class="screen-title" id="detailTitle">DETAIL</div>
+  </div>
+  <div class="saved-list" id="detailContent"></div>
+</div>
+
+<!-- ===== SAVED ===== -->
+<div class="screen" id="saved">
+  <div class="screen-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="screen-title">SAVED</div>
+  </div>
+  <div class="saved-list" id="savedList"></div>
+</div>
+
+<!-- ===== SETS TIMER ===== -->
+<div class="screen" id="setsTimer">
+  <div class="timer-top">
+    <div class="timer-mode-label">SETS</div>
+    <div class="timer-round-info" id="setsRoundInfo">SET 1 / 5</div>
+  </div>
+  <div class="sets-center">
+    <div class="sets-phase" id="setsPhase">SET 1</div>
+    <div class="sets-display" id="setsDisplay">00:00</div>
+    <div class="sets-sub" id="setsSub"></div>
+    <div class="sets-lap-list" id="setsLapList"></div>
+  </div>
+  <div class="sets-controls">
+    <button class="ctrl-btn danger" onclick="stopSets()">STOP</button>
+    <button class="sets-lap-btn" id="setsLapBtn" onclick="completeSet()">DONE SET</button>
+  </div>
+</div>
+
+<!-- ===== SETS SCREEN ===== -->
+<div class="screen" id="timer">
+  <div class="timer-top">
+    <div class="timer-mode-label" id="timerModeLabel">AMRAP</div>
+    <div class="timer-round-info" id="timerRoundInfo"></div>
+  </div>
+  <div class="timer-center">
+    <div class="timer-phase" id="timerPhase"></div>
+    <div class="timer-display" id="timerDisplay">00:00</div>
+    <div class="timer-sub" id="timerSub"></div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="timer-controls">
+    <button class="ctrl-btn danger" onclick="stopTimer()">STOP</button>
+    <button class="ctrl-btn" id="splitBtn" onclick="recordSplit()" style="display:none;border-color:var(--accent2);color:var(--accent2)">SPLIT</button>
+    <button class="ctrl-btn" id="roundBtn" onclick="recordAmrapRound()" style="display:none;background:#30d158;border-color:#30d158;color:#000">ROUND</button>
+    <button class="ctrl-btn primary" id="pauseBtn" onclick="togglePause()">PAUSE</button>
+  </div>
+</div>
+
+<!-- ===== SETTINGS ===== -->
+<div class="screen" id="settings">
+  <div class="screen-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="screen-title">SETTINGS</div>
+  </div>
+  <div class="setup-form" style="padding:24px">
+
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:16px;text-transform:uppercase">Countdown</div>
+
+    <div class="form-group">
+      <label class="form-label">COUNTDOWN DURATION</label>
+      <div class="num-input-wrap">
+        <button class="num-btn" onclick="adjSetting('countdown',-1,0,10)">−</button>
+        <span class="num-val" id="settingCountdown">3</span>
+        <span class="num-unit">SEC</span>
+        <button class="num-btn" onclick="adjSetting('countdown',1,0,10)">+</button>
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:var(--muted)">Set to 0 to skip countdown entirely</div>
+    </div>
+
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--muted);margin:24px 0 16px;text-transform:uppercase">Audio</div>
+
+    <div class="form-group">
+      <label class="form-label" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
+        <span>BEEP SOUNDS</span>
+        <div onclick="toggleSetting('beep')" id="beepToggle" style="width:44px;height:26px;border-radius:13px;border:1px solid var(--border);cursor:pointer;position:relative;transition:all 0.2s;background:var(--accent)">
+          <div id="beepThumb" style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:#000;transition:all 0.2s"></div>
+        </div>
+      </label>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
+        <span>SCREEN FLASH ON INTERVAL</span>
+        <div onclick="toggleSetting('flash')" id="flashToggle" style="width:44px;height:26px;border-radius:13px;border:1px solid var(--border);cursor:pointer;position:relative;transition:all 0.2s;background:var(--accent)">
+          <div id="flashThumb" style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:#000;transition:all 0.2s"></div>
+        </div>
+      </label>
+    </div>
+
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--muted);margin:24px 0 16px;text-transform:uppercase">Warning Threshold</div>
+
+    <div class="form-group">
+      <label class="form-label">WARN WHEN TIME REMAINING</label>
+      <div class="num-input-wrap">
+        <button class="num-btn" onclick="adjSetting('warnAt',-5,5,60)">−</button>
+        <span class="num-val" id="settingWarnAt">10</span>
+        <span class="num-unit">SEC</span>
+        <button class="num-btn" onclick="adjSetting('warnAt',5,5,60)">+</button>
+      </div>
+    </div>
+
+  </div>
+  <div class="bottom-action">
+    <button class="start-btn" onclick="saveSettings()">SAVE SETTINGS</button>
+  </div>
+</div>
+
+<!-- ===== DONE ===== -->
+<div class="screen" id="done">
+  <div class="done-title">DONE!</div>
+  <div class="done-sub" id="doneSub">WORKOUT COMPLETE</div>
+  <div class="done-stats" id="doneStats"></div>
+  <button class="home-btn" onclick="goHome()">HOME</button>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let currentMode = 'amrap';
+let timerInterval = null;
+let isPaused = false;
+let startTime = 0;
+let elapsed = 0;
+let pausedAt = 0;
+let totalDuration = 0;
+let roundCount = 0;
+let currentRound = 0;
+let currentIntervalIdx = 0;
+let intervalElapsed = 0;
+let customIntervals = [];
+let selectedColor = '#e8ff00';
+let workoutConfig = {};
+let completedRounds = 0;
+let audioCtx = null;
+// Split tracking for For Time
+let ftSplits = [];
+let ftLastSplitTime = 0;
+let ftSectionNum = 1;
+// AMRAP round tracking
+let amrapRounds = [];
+let amrapLastRoundTime = 0;
+let amrapRoundNum = 0;
+
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function beep(freq = 880, dur = 0.1, vol = 0.3) {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+
+function tripleBeep() {
+  if (!getSettings().beep) return;
+  beep(880, 0.08, 0.3);
+  setTimeout(() => beep(880, 0.08, 0.3), 150);
+  setTimeout(() => beep(1100, 0.15, 0.4), 300);
+}
+
+function flashBeep() {
+  if (!getSettings().flash) return;
+  const overlay = document.getElementById('beepOverlay');
+  overlay.classList.add('flash');
+  setTimeout(() => overlay.classList.remove('flash'), 150);
+}
+
+// ─── SCREENS ─────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goHome() {
+  clearTimer();
+  if (setsInterval) { clearInterval(setsInterval); setsInterval = null; }
+  showScreen('home');
+}
+
+// ─── SETUP ───────────────────────────────────────────────────────────────────
+const modeColors = {
+  amrap: '#e8ff00', emom: '#00d4ff', fortime: '#ff4d00',
+  tabata: '#ff2d78', custom: '#bf5af2', sets: '#30d158'
+};
+
+const modeLabels = {
+  amrap: 'AMRAP', emom: 'EMOM', fortime: 'FOR TIME',
+  tabata: 'TABATA', custom: 'CUSTOM', sets: 'SETS'
+};
+
+function goSetup(mode, config = null) {
+  currentMode = mode;
+  if (config) workoutConfig = config;
+  else workoutConfig = {};
+  showScreen('setup');
+  document.getElementById('setupTitle').textContent = modeLabels[mode];
+  const badge = document.getElementById('modeBadge');
+  badge.textContent = mode.toUpperCase();
+  badge.style.background = modeColors[mode] + '22';
+  badge.style.color = modeColors[mode];
+  badge.style.border = '1px solid ' + modeColors[mode] + '44';
+  renderSetupForm(mode, config);
+}
+
+function renderSetupForm(mode, config) {
+  const form = document.getElementById('setupForm');
+  if (mode === 'amrap') {
+    const mins = config?.mins ?? 10;
+    form.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">DURATION</label>
+        <div class="form-row">
+          <div class="num-input-wrap">
+            <button class="num-btn" onclick="adj('amrapMins',-1,1,99)">−</button>
+            <span class="num-val" id="amrapMins">${mins}</span>
+            <span class="num-unit">MIN</span>
+            <button class="num-btn" onclick="adj('amrapMins',1,1,99)">+</button>
+          </div>
+        </div>
+      </div>`;
+  } else if (mode === 'emom') {
+    const mins = config?.mins ?? 10; const movs = config?.movs ?? 2;
+    form.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">DURATION</label>
+        <div class="num-input-wrap">
+          <button class="num-btn" onclick="adj('emomMins',-1,1,99)">−</button>
+          <span class="num-val" id="emomMins">${mins}</span>
+          <span class="num-unit">MIN</span>
+          <button class="num-btn" onclick="adj('emomMins',1,1,99)">+</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">MOVEMENTS PER MINUTE</label>
+        <div class="num-input-wrap">
+          <button class="num-btn" onclick="adj('emomMovs',-1,1,6)">−</button>
+          <span class="num-val" id="emomMovs">${movs}</span>
+          <span class="num-unit">MOV</span>
+          <button class="num-btn" onclick="adj('emomMovs',1,1,6)">+</button>
+        </div>
+      </div>`;
+  } else if (mode === 'fortime') {
+    const cap = config?.cap ?? 20;
+    const splits = config?.splits ?? true;
+    form.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">TIME CAP (OPTIONAL)</label>
+        <div class="num-input-wrap">
+          <button class="num-btn" onclick="adj('ftCap',-1,0,99)">−</button>
+          <span class="num-val" id="ftCap">${cap}</span>
+          <span class="num-unit">MIN</span>
+          <button class="num-btn" onclick="adj('ftCap',1,0,99)">+</button>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:var(--muted)">Set to 0 for no cap</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
+          <span>SECTION SPLITS</span>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <span id="splitsToggleLabel" style="font-size:11px;color:${splits?'var(--accent)':'var(--muted)'}">${splits?'ON':'OFF'}</span>
+            <div onclick="toggleSplits()" id="splitsToggleBtn" style="width:44px;height:26px;border-radius:13px;background:${splits?'var(--accent)':'var(--surface2)'};border:1px solid var(--border);cursor:pointer;position:relative;transition:all 0.2s">
+              <div style="position:absolute;top:3px;${splits?'right:3px':'left:3px'};width:18px;height:18px;border-radius:50%;background:${splits?'#000':'var(--muted)'};transition:all 0.2s"></div>
+            </div>
+          </label>
+        </label>
+        <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.7">
+          Adds a <b style="color:var(--text)">SPLIT</b> button during the workout.<br>
+          Tap it to mark each section of a chipper or multi-movement WOD.
+        </div>
+      </div>`;
+  } else if (mode === 'tabata') {
+    const rounds = config?.rounds ?? 8;
+    form.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">ROUNDS</label>
+        <div class="num-input-wrap">
+          <button class="num-btn" onclick="adj('tabRounds',-1,1,20)">−</button>
+          <span class="num-val" id="tabRounds">${rounds}</span>
+          <span class="num-unit">RDS</span>
+          <button class="num-btn" onclick="adj('tabRounds',1,1,20)">+</button>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:13px;color:var(--muted)">Work</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent)">20 SEC</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="font-size:13px;color:var(--muted)">Rest</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent3)">10 SEC</span>
+        </div>
+      </div>`;
+  } else if (mode === 'custom') {
+    if (config?.intervals) customIntervals = [...config.intervals];
+    renderCustomForm();
+  } else if (mode === 'sets') {
+    const sets = config?.sets ?? 5;
+    const restMin = config?.restMin ?? 2;
+    const restSec = config?.restSec ?? 0;
+    const hasRest = config?.hasRest ?? true;
+    form.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">NUMBER OF SETS</label>
+        <div class="num-input-wrap">
+          <button class="num-btn" onclick="adj('setsCount',-1,1,20)">−</button>
+          <span class="num-val" id="setsCount">${sets}</span>
+          <span class="num-unit">SETS</span>
+          <button class="num-btn" onclick="adj('setsCount',1,1,20)">+</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
+          <span>REST BETWEEN SETS</span>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <span id="restToggleLabel" style="font-size:11px;color:${hasRest?'var(--accent)':'var(--muted)'}">${hasRest?'ON':'OFF'}</span>
+            <div onclick="toggleRest()" id="restToggleBtn" style="width:44px;height:26px;border-radius:13px;background:${hasRest?'var(--accent)':'var(--surface2)'};border:1px solid var(--border);cursor:pointer;position:relative;transition:all 0.2s">
+              <div style="position:absolute;top:3px;${hasRest?'right:3px':'left:3px'};width:18px;height:18px;border-radius:50%;background:${hasRest?'#000':'var(--muted)'};transition:all 0.2s"></div>
+            </div>
+          </label>
+        </label>
+        <div id="restInputs" style="display:${hasRest?'flex':'none'};gap:12px;margin-top:12px">
+          <div class="num-input-wrap">
+            <button class="num-btn" onclick="adj('restMin',-1,0,59)">−</button>
+            <span class="num-val" id="restMin">${restMin}</span>
+            <span class="num-unit">MIN</span>
+            <button class="num-btn" onclick="adj('restMin',1,0,59)">+</button>
+          </div>
+          <div class="num-input-wrap">
+            <button class="num-btn" onclick="adj('restSec',-10,0,50)">−</button>
+            <span class="num-val" id="restSec">${restSec}</span>
+            <span class="num-unit">SEC</span>
+            <button class="num-btn" onclick="adj('restSec',10,0,50)">+</button>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-top:4px">
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">
+          ⏱ Timer counts UP during each set<br>
+          ✅ Tap <b style="color:var(--text)">DONE SET</b> when you finish a set<br>
+          💤 Rest timer counts DOWN between sets<br>
+          📊 All set times shown at the end
+        </div>
+      </div>`;
+  }
+}
+
+function renderCustomForm() {
+  const form = document.getElementById('setupForm');
+  const items = customIntervals.map((iv, i) => `
+    <div class="interval-item">
+      <div class="interval-color" style="background:${iv.color}"></div>
+      <div class="interval-name">${iv.name}</div>
+      <div class="interval-time">${fmtMs(iv.duration)}</div>
+      <button class="interval-del" onclick="removeInterval(${i})">×</button>
+    </div>`).join('');
+
+  const loops = workoutConfig.loops ?? 1;
+
+  form.innerHTML = `
+    <div class="form-group">
+      <label class="form-label">INTERVALS</label>
+      <div class="intervals-list">${items || '<div style="color:var(--muted);font-size:13px;padding:8px 0">No intervals yet</div>'}</div>
+      <button class="add-interval-btn" onclick="openIntervalModal()">+ ADD INTERVAL</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">LOOPS (repeat full sequence)</label>
+      <div class="num-input-wrap">
+        <button class="num-btn" onclick="adjLoops(-1)">−</button>
+        <span class="num-val" id="loopsVal">${loops}</span>
+        <span class="num-unit">×</span>
+        <button class="num-btn" onclick="adjLoops(1)">+</button>
+      </div>
+    </div>`;
+}
+
+function adjLoops(d) {
+  const cur = workoutConfig.loops ?? 1;
+  workoutConfig.loops = Math.max(1, Math.min(20, cur + d));
+  document.getElementById('loopsVal').textContent = workoutConfig.loops;
+}
+
+function adj(id, delta, min, max) {
+  const el = document.getElementById(id);
+  const val = Math.max(min, Math.min(max, parseInt(el.textContent) + delta));
+  el.textContent = val;
+}
+
+// ─── INTERVAL MODAL ──────────────────────────────────────────────────────────
+let intMin = 0, intSec = 30;
+
+function openIntervalModal() {
+  intMin = 0; intSec = 30;
+  document.getElementById('intMinVal').textContent = '0';
+  document.getElementById('intSecVal').textContent = '30';
+  document.getElementById('intervalNameInput').value = '';
+  selectedColor = '#e8ff00';
+  document.querySelectorAll('.color-opt').forEach(o => {
+    o.classList.toggle('selected', o.dataset.color === selectedColor);
+  });
+  document.getElementById('intervalModal').classList.add('active');
+}
+
+function closeIntervalModal() {
+  document.getElementById('intervalModal').classList.remove('active');
+}
+
+function adjInterval(type, d) {
+  if (type === 'min') {
+    intMin = Math.max(0, Math.min(59, intMin + d));
+    document.getElementById('intMinVal').textContent = intMin;
+  } else {
+    intSec = Math.max(0, Math.min(59, intSec + d));
+    document.getElementById('intSecVal').textContent = intSec;
+  }
+}
+
+document.getElementById('colorPicker').addEventListener('click', e => {
+  const opt = e.target.closest('.color-opt');
+  if (!opt) return;
+  selectedColor = opt.dataset.color;
+  document.querySelectorAll('.color-opt').forEach(o => o.classList.toggle('selected', o === opt));
+});
+
+function confirmInterval() {
+  const name = document.getElementById('intervalNameInput').value.trim() || 'Interval';
+  const duration = (intMin * 60 + intSec) * 1000;
+  if (duration <= 0) return;
+  customIntervals.push({ name, duration, color: selectedColor });
+  closeIntervalModal();
+  renderCustomForm();
+}
+
+function removeInterval(i) {
+  customIntervals.splice(i, 1);
+  renderCustomForm();
+}
+
+// ─── SAVE / LOAD ─────────────────────────────────────────────────────────────
+function getSaved() {
+  try { return JSON.parse(localStorage.getItem('wodtimerSaved') || '[]'); } catch { return []; }
+}
+
+function setSaved(arr) {
+  localStorage.setItem('wodtimerSaved', JSON.stringify(arr));
+}
+
+function openSaveModal() {
+  document.getElementById('saveNameInput').value = '';
+  document.getElementById('saveModal').classList.add('active');
+  setTimeout(() => document.getElementById('saveNameInput').focus(), 100);
+}
+
+function closeSaveModal() {
+  document.getElementById('saveModal').classList.remove('active');
+}
+
+function confirmSave() {
+  const name = document.getElementById('saveNameInput').value.trim();
+  if (!name) return;
+  const config = getConfig();
+  const saved = getSaved();
+  saved.unshift({ name, mode: currentMode, config, id: Date.now() });
+  setSaved(saved);
+  closeSaveModal();
+  showToast('Saved!');
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:10px 24px;border-radius:20px;font-family:Bebas Neue,sans-serif;font-size:18px;letter-spacing:2px;z-index:999;animation:fadeOut 1.5s forwards';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 1600);
+}
+
+const style = document.createElement('style');
+style.textContent = '@keyframes fadeOut{0%,60%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-20px)}}';
+document.head.appendChild(style);
+
+function showSaved() {
+  showScreen('saved');
+  renderSavedList();
+}
+
+function renderSavedList() {
+  const saved = getSaved();
+  const list = document.getElementById('savedList');
+  if (!saved.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No saved workouts yet.<br>Build one and tap Save!</div></div>`;
+    return;
+  }
+  list.innerHTML = saved.map(w => `
+    <div class="saved-card" onclick="loadSaved(${w.id})">
+      <div class="saved-dot" style="background:${modeColors[w.mode]}"></div>
+      <div class="saved-info">
+        <div class="saved-name">${w.name}</div>
+        <div class="saved-meta">${modeLabels[w.mode]} · ${savedMeta(w)}</div>
+      </div>
+      <button class="saved-del" onclick="deleteSaved(event,${w.id})">🗑</button>
+    </div>`).join('');
+}
+
+function toggleSplits() {
+  const label = document.getElementById('splitsToggleLabel');
+  const btn = document.getElementById('splitsToggleBtn');
+  const isOn = label.textContent === 'ON';
+  label.textContent = isOn ? 'OFF' : 'ON';
+  label.style.color = isOn ? 'var(--muted)' : 'var(--accent)';
+  btn.style.background = isOn ? 'var(--surface2)' : 'var(--accent)';
+  btn.innerHTML = `<div style="position:absolute;top:3px;${isOn?'left:3px':'right:3px'};width:18px;height:18px;border-radius:50%;background:${isOn?'var(--muted)':'#000'};transition:all 0.2s"></div>`;
+}
+
+function toggleRest() {
+  const inputs = document.getElementById('restInputs');
+  const label = document.getElementById('restToggleLabel');
+  const btn = document.getElementById('restToggleBtn');
+  const isOn = inputs.style.display !== 'none';
+  inputs.style.display = isOn ? 'none' : 'flex';
+  label.textContent = isOn ? 'OFF' : 'ON';
+  label.style.color = isOn ? 'var(--muted)' : 'var(--accent)';
+  btn.style.background = isOn ? 'var(--surface2)' : 'var(--accent)';
+  btn.innerHTML = `<div style="position:absolute;top:3px;${isOn?'left:3px':'right:3px'};width:18px;height:18px;border-radius:50%;background:${isOn?'var(--muted)':'#000'};transition:all 0.2s"></div>`;
+}
+
+// ─── SETS TIMER STATE ─────────────────────────────────────────────────────────
+let setsInterval = null;
+let setsState = 'work'; // 'work' | 'rest'
+let setsCurrentSet = 1;
+let setsSetStart = 0;
+let setsRestStart = 0;
+let setsLaps = [];
+let setsConfig = {};
+let setsPaused = false;
+let setsPausedAt = 0;
+let setsTimeOffset = 0;
+
+function startSetsTimer() {
+  setsConfig = workoutConfig;
+  setsState = 'work';
+  setsCurrentSet = 1;
+  setsLaps = [];
+  setsSetStart = Date.now();
+  setsTimeOffset = 0;
+  setsPaused = false;
+  showScreen('setsTimer');
+  updateSetsUI();
+  setsInterval = setInterval(tickSets, 100);
+}
+
+function tickSets() {
+  if (setsPaused) return;
+  const now = Date.now();
+  if (setsState === 'work') {
+    const elapsed = now - setsSetStart - setsTimeOffset;
+    document.getElementById('setsDisplay').textContent = fmtMs(elapsed);
+    document.getElementById('setsDisplay').classList.remove('rest-phase');
+  } else {
+    const cfg = setsConfig;
+    const restDur = (cfg.restMin * 60 + cfg.restSec) * 1000;
+    const restElapsed = now - setsRestStart - setsTimeOffset;
+    const remaining = restDur - restElapsed;
+    if (remaining <= 0) {
+      startNextSet();
+      return;
+    }
+    document.getElementById('setsDisplay').textContent = fmtSecs(Math.ceil(remaining / 1000));
+    document.getElementById('setsDisplay').classList.add('rest-phase');
+    if (Math.ceil(remaining/1000) <= 3) beep(660, 0.05, 0.15);
+  }
+}
+
+function updateSetsUI() {
+  const cfg = setsConfig;
+  document.getElementById('setsRoundInfo').textContent = `SET ${setsCurrentSet} / ${cfg.sets}`;
+  if (setsState === 'work') {
+    document.getElementById('setsPhase').textContent = `SET ${setsCurrentSet}`;
+    document.getElementById('setsPhase').style.color = '#30d158';
+    document.getElementById('setsSub').textContent = 'Tap DONE SET when finished';
+    const btn = document.getElementById('setsLapBtn');
+    btn.textContent = 'DONE SET';
+    btn.className = 'sets-lap-btn';
+  } else {
+    document.getElementById('setsPhase').textContent = 'REST';
+    document.getElementById('setsPhase').style.color = '#00d4ff';
+    document.getElementById('setsSub').textContent = `Set ${setsCurrentSet - 1} done — next up: Set ${setsCurrentSet}`;
+    const btn = document.getElementById('setsLapBtn');
+    btn.textContent = 'SKIP REST';
+    btn.className = 'sets-lap-btn rest-btn';
+  }
+  renderLapList();
+}
+
+function completeSet() {
+  if (setsState === 'work') {
+    const setTime = Date.now() - setsSetStart - setsTimeOffset;
+    setsLaps.push({ type: 'set', num: setsCurrentSet, time: setTime });
+    tripleBeep(); flashBeep();
+    renderLapList();
+
+    if (setsCurrentSet >= setsConfig.sets) {
+      clearInterval(setsInterval);
+      showSetsDone();
+      return;
+    }
+
+    if (setsConfig.hasRest) {
+      setsState = 'rest';
+      setsRestStart = Date.now();
+      setsTimeOffset = 0;
+      setsCurrentSet++;
+      updateSetsUI();
+    } else {
+      setsCurrentSet++;
+      setsSetStart = Date.now();
+      setsTimeOffset = 0;
+      updateSetsUI();
+    }
+  } else {
+    // skip rest
+    startNextSet();
+  }
+}
+
+function startNextSet() {
+  const restTime = Date.now() - setsRestStart - setsTimeOffset;
+  setsLaps.push({ type: 'rest', num: setsCurrentSet - 1, time: restTime });
+  setsState = 'work';
+  setsSetStart = Date.now();
+  setsTimeOffset = 0;
+  tripleBeep(); flashBeep();
+  updateSetsUI();
+}
+
+function renderLapList() {
+  const list = document.getElementById('setsLapList');
+  if (!setsLaps.length) { list.innerHTML = ''; return; }
+  list.innerHTML = [...setsLaps].reverse().map(l => {
+    if (l.type === 'set') {
+      return `<div class="lap-item">
+        <span class="lap-num">SET ${l.num}</span>
+        <span class="lap-label">Work time</span>
+        <span class="lap-time">${fmtMs(l.time)}</span>
+      </div>`;
+    } else {
+      return `<div class="lap-item">
+        <span class="lap-num" style="color:#00d4ff">REST</span>
+        <span class="lap-label" style="color:var(--muted)">After set ${l.num}</span>
+        <span class="lap-time rest-time">${fmtMs(l.time)}</span>
+      </div>`;
+    }
+  }).join('');
+}
+
+function stopSets() {
+  clearInterval(setsInterval);
+  showSetsDone(true);
+}
+
+function showSetsDone(stopped = false) {
+  const entry = buildSetsHistoryEntry(stopped);
+  saveToHistory(entry);
+  showScreen('done');
+  const setLaps = setsLaps.filter(l => l.type === 'set');
+  document.getElementById('doneSub').textContent = stopped ? 'WORKOUT STOPPED' : 'ALL SETS COMPLETE';
+
+  let statsHtml = `<div class="done-stat"><span class="done-stat-label">Mode</span><span class="done-stat-val">SETS</span></div>`;
+  statsHtml += `<div class="done-stat"><span class="done-stat-label">Sets done</span><span class="done-stat-val">${setLaps.length} / ${setsConfig.sets}</span></div>`;
+
+  setLaps.forEach(l => {
+    statsHtml += `<div class="done-stat">
+      <span class="done-stat-label">Set ${l.num}</span>
+      <span class="done-stat-val" style="color:#30d158">${fmtMs(l.time)}</span>
+    </div>`;
+  });
+
+  if (setLaps.length > 1) {
+    const avg = setLaps.reduce((s, l) => s + l.time, 0) / setLaps.length;
+    const best = Math.min(...setLaps.map(l => l.time));
+    statsHtml += `<div class="done-stat"><span class="done-stat-label">Avg set time</span><span class="done-stat-val">${fmtMs(avg)}</span></div>`;
+    statsHtml += `<div class="done-stat"><span class="done-stat-label">Best set</span><span class="done-stat-val" style="color:var(--accent)">${fmtMs(best)}</span></div>`;
+  }
+
+  document.getElementById('doneStats').innerHTML = statsHtml;
+}
+
+function savedMeta(w) {
+  const c = w.config;
+  if (w.mode === 'amrap') return `${c.mins} min`;
+  if (w.mode === 'emom') return `${c.mins} min · ${c.movs} mov/min`;
+  if (w.mode === 'fortime') return `${c.cap ? c.cap + ' min cap' : 'No cap'} · ${c.splits ? 'splits on' : 'no splits'}`;
+  if (w.mode === 'tabata') return `${c.rounds} rounds`;
+  if (w.mode === 'sets') return `${c.sets} sets · ${c.hasRest ? fmtSecs(c.restMin*60+c.restSec)+' rest' : 'no rest'}`;
+  return '';
+}
+
+function loadSaved(id) {
+  const saved = getSaved();
+  const w = saved.find(s => s.id === id);
+  if (!w) return;
+  if (w.mode === 'custom') customIntervals = [...(w.config.intervals || [])];
+  goSetup(w.mode, w.config);
+}
+
+function deleteSaved(e, id) {
+  e.stopPropagation();
+  const saved = getSaved().filter(s => s.id !== id);
+  setSaved(saved);
+  renderSavedList();
+}
+
+// ─── CONFIG EXTRACTION ───────────────────────────────────────────────────────
+function getConfig() {
+  if (currentMode === 'amrap') return { mins: parseInt(document.getElementById('amrapMins')?.textContent || 10) };
+  if (currentMode === 'emom') return { mins: parseInt(document.getElementById('emomMins')?.textContent || 10), movs: parseInt(document.getElementById('emomMovs')?.textContent || 2) };
+  if (currentMode === 'fortime') {
+    const splitsOn = document.getElementById('splitsToggleBtn')?.style.background.includes('accent') ||
+                     document.getElementById('splitsToggleLabel')?.textContent === 'ON';
+    return { cap: parseInt(document.getElementById('ftCap')?.textContent || 0), splits: splitsOn };
+  }
+  if (currentMode === 'tabata') return { rounds: parseInt(document.getElementById('tabRounds')?.textContent || 8) };
+  if (currentMode === 'custom') return { intervals: [...customIntervals], loops: workoutConfig.loops ?? 1 };
+  if (currentMode === 'sets') {
+    const hasRest = document.getElementById('restInputs')?.style.display !== 'none';
+    return {
+      sets: parseInt(document.getElementById('setsCount')?.textContent || 5),
+      hasRest,
+      restMin: parseInt(document.getElementById('restMin')?.textContent || 2),
+      restSec: parseInt(document.getElementById('restSec')?.textContent || 0),
+    };
+  }
+  return {};
+}
+
+// ─── COUNTDOWN ───────────────────────────────────────────────────────────────
+function beginCountdown() {
+  workoutConfig = getConfig();
+  const appSettings = getSettings();
+
+  // Handle sets mode separately
+  if (currentMode === 'sets') {
+    const overlay = document.getElementById('countdownOverlay');
+    const numEl = document.getElementById('countdownNum');
+    let count = appSettings.countdown;
+    if (count <= 0) { startSetsTimer(); return; }
+    overlay.classList.add('active');
+    numEl.textContent = count;
+    if (appSettings.beep) beep(660, 0.15, 0.3);
+    const tick = setInterval(() => {
+      count--;
+      if (count <= 0) {
+        clearInterval(tick);
+        overlay.classList.remove('active');
+        startSetsTimer();
+      } else {
+        numEl.textContent = count;
+        numEl.style.animation = 'none';
+        void numEl.offsetWidth;
+        numEl.style.animation = 'countPop 1s ease';
+        if (appSettings.beep) beep(count === 1 ? 880 : 660, 0.15, 0.3);
+      }
+    }, 1000);
+    return;
+  }
+  const overlay = document.getElementById('countdownOverlay');
+  const numEl = document.getElementById('countdownNum');
+  let count = appSettings.countdown;
+  if (count <= 0) { startTimer(); return; }
+  overlay.classList.add('active');
+  numEl.textContent = count;
+  if (appSettings.beep) beep(660, 0.15, 0.3);
+
+  const tick = setInterval(() => {
+    count--;
+    if (count <= 0) {
+      clearInterval(tick);
+      overlay.classList.remove('active');
+      startTimer();
+    } else {
+      numEl.textContent = count;
+      numEl.style.animation = 'none';
+      void numEl.offsetWidth;
+      numEl.style.animation = 'countPop 1s ease';
+      if (appSettings.beep) beep(count === 1 ? 880 : 660, 0.15, 0.3);
+    }
+  }, 1000);
+}
+
+// ─── TIMER ───────────────────────────────────────────────────────────────────
+function startTimer() {
+  showScreen('timer');
+  isPaused = false;
+  elapsed = 0;
+  completedRounds = 0;
+  currentRound = 1;
+  currentIntervalIdx = 0;
+  intervalElapsed = 0;
+  startTime = Date.now();
+  ftSplits = [];
+  ftLastSplitTime = 0;
+  ftSectionNum = 1;
+  amrapRounds = [];
+  amrapLastRoundTime = 0;
+  amrapRoundNum = 0;
+
+  document.getElementById('timerModeLabel').textContent = modeLabels[currentMode];
+  document.getElementById('pauseBtn').textContent = 'PAUSE';
+
+  // Show split button only for fortime with splits enabled
+  const splitBtn = document.getElementById('splitBtn');
+  splitBtn.style.display = (currentMode === 'fortime' && workoutConfig.splits) ? 'flex' : 'none';
+  // Show round button only for amrap
+  const roundBtn = document.getElementById('roundBtn');
+  roundBtn.style.display = currentMode === 'amrap' ? 'flex' : 'none';
+  // Adjust pause flex
+  const hasExtra = (currentMode === 'fortime' && workoutConfig.splits) || currentMode === 'amrap';
+  document.getElementById('pauseBtn').style.flex = hasExtra ? '1' : '2';
+
+  setupTimerForMode();
+  timerInterval = setInterval(tickTimer, 100);
+}
+
+function setupTimerForMode() {
+  const cfg = workoutConfig;
+  if (currentMode === 'amrap') {
+    totalDuration = cfg.mins * 60 * 1000;
+    roundCount = 0;
+    document.getElementById('timerPhase').textContent = 'AMRAP ' + cfg.mins + ' MIN';
+    document.getElementById('timerRoundInfo').textContent = 'ROUND 0';
+    document.getElementById('timerSub').textContent = 'Tap ROUND when done!';
+  } else if (currentMode === 'emom') {
+    totalDuration = cfg.mins * 60 * 1000;
+    roundCount = cfg.mins;
+    document.getElementById('timerPhase').textContent = 'EMOM';
+    document.getElementById('timerRoundInfo').textContent = `MIN 1 / ${cfg.mins}`;
+  } else if (currentMode === 'fortime') {
+    totalDuration = cfg.cap > 0 ? cfg.cap * 60 * 1000 : 0;
+    document.getElementById('timerPhase').textContent = 'FOR TIME';
+    document.getElementById('timerRoundInfo').textContent = cfg.cap ? `CAP: ${cfg.cap} MIN` : 'NO CAP';
+  } else if (currentMode === 'tabata') {
+    totalDuration = cfg.rounds * 30 * 1000;
+    roundCount = cfg.rounds;
+    currentRound = 1;
+    document.getElementById('timerPhase').textContent = 'WORK';
+    document.getElementById('timerRoundInfo').textContent = `1 / ${cfg.rounds}`;
+    document.getElementById('timerPhase').style.color = '#e8ff00';
+  } else if (currentMode === 'custom') {
+    const total = cfg.intervals.reduce((s, iv) => s + iv.duration, 0) * (cfg.loops || 1);
+    totalDuration = total;
+    if (cfg.intervals.length > 0) {
+      const iv = cfg.intervals[0];
+      document.getElementById('timerPhase').textContent = iv.name;
+      document.getElementById('timerPhase').style.color = iv.color;
+    }
+    document.getElementById('timerRoundInfo').textContent = `LOOP 1 / ${cfg.loops || 1}`;
+  }
+}
+
+function tickTimer() {
+  if (isPaused) return;
+  elapsed = Date.now() - startTime;
+
+  if (currentMode === 'amrap') tickAmrap();
+  else if (currentMode === 'emom') tickEmom();
+  else if (currentMode === 'fortime') tickForTime();
+  else if (currentMode === 'tabata') tickTabata();
+  else if (currentMode === 'custom') tickCustom();
+}
+
+function tickAmrap() {
+  const remaining = totalDuration - elapsed;
+  if (remaining <= 0) { endTimer(); return; }
+  const secs = Math.ceil(remaining / 1000);
+  updateDisplay(fmtSecs(secs), remaining);
+  warnColor(secs);
+  updateProgress(elapsed / totalDuration);
+  // Show current round elapsed time
+  if (amrapRoundNum > 0) {
+    const roundTime = elapsed - amrapLastRoundTime;
+    document.getElementById('timerSub').textContent = `Round ${amrapRoundNum + 1} — ${fmtMs(roundTime)}`;
+  }
+}
+
+function tickEmom() {
+  const cfg = workoutConfig;
+  if (elapsed >= totalDuration) { endTimer(); return; }
+  const minElapsed = Math.floor(elapsed / 60000);
+  const secInMin = (elapsed % 60000) / 1000;
+  const remaining = 60 - secInMin;
+  const newMin = minElapsed + 1;
+  if (newMin !== currentRound) {
+    currentRound = newMin;
+    tripleBeep(); flashBeep();
+    document.getElementById('timerRoundInfo').textContent = `MIN ${currentRound} / ${cfg.mins}`;
+  }
+  updateDisplay(fmtSecs(Math.ceil(remaining)), remaining * 1000);
+  warnColor(Math.ceil(remaining));
+  updateProgress(elapsed / totalDuration);
+}
+
+function tickForTime() {
+  const cfg = workoutConfig;
+  if (cfg.cap > 0 && elapsed >= totalDuration) { endTimer(); return; }
+  updateDisplay(fmtMs(elapsed), 999999);
+  document.getElementById('timerDisplay').classList.remove('warning', 'critical');
+  if (cfg.cap > 0) {
+    const remaining = totalDuration - elapsed;
+    updateProgress(elapsed / totalDuration);
+    warnColor(Math.ceil(remaining / 1000));
+  } else {
+    document.getElementById('progressFill').style.width = '0%';
+  }
+  // Update splits display
+  if (cfg.splits && ftSplits.length > 0) {
+    const sinceLastSplit = elapsed - ftLastSplitTime;
+    document.getElementById('timerSub').textContent = `Section ${ftSectionNum} — ${fmtMs(sinceLastSplit)}`;
+  } else if (cfg.splits) {
+    document.getElementById('timerSub').textContent = `Section 1 — tap SPLIT to mark`;
+  }
+}
+
+function recordSplit() {
+  const splitTime = elapsed;
+  const sectionTime = splitTime - ftLastSplitTime;
+  ftSplits.push({ num: ftSectionNum, at: splitTime, duration: sectionTime });
+  ftLastSplitTime = splitTime;
+  ftSectionNum++;
+  beep(880, 0.1, 0.3); flashBeep();
+  const btn = document.getElementById('splitBtn');
+  btn.style.background = 'rgba(255,77,0,0.2)';
+  setTimeout(() => btn.style.background = '', 200);
+}
+
+function recordAmrapRound() {
+  amrapRoundNum++;
+  const roundTime = elapsed - amrapLastRoundTime;
+  amrapRounds.push({ num: amrapRoundNum, at: elapsed, duration: roundTime });
+  amrapLastRoundTime = elapsed;
+  document.getElementById('timerRoundInfo').textContent = `ROUND ${amrapRoundNum}`;
+  beep(880, 0.1, 0.3); flashBeep();
+  // Flash the round button green
+  const btn = document.getElementById('roundBtn');
+  btn.style.background = '#fff';
+  setTimeout(() => { btn.style.background = '#30d158'; }, 150);
+  document.getElementById('timerSub').textContent = `Round ${amrapRoundNum + 1} — 00:00`;
+}
+
+function tickTabata() {
+  const cfg = workoutConfig;
+  const cycleTime = 30000;
+  const cycleElapsed = elapsed % cycleTime;
+  const isWork = cycleElapsed < 20000;
+  const phaseElapsed = isWork ? cycleElapsed : cycleElapsed - 20000;
+  const phaseDur = isWork ? 20000 : 10000;
+  const remaining = phaseDur - phaseElapsed;
+  const round = Math.floor(elapsed / cycleTime) + 1;
+
+  if (round > cfg.rounds) { endTimer(); return; }
+
+  if (round !== currentRound) {
+    currentRound = round;
+    tripleBeep(); flashBeep();
+    document.getElementById('timerRoundInfo').textContent = `${round} / ${cfg.rounds}`;
+  }
+
+  const wasWork = document.getElementById('timerPhase').textContent === 'WORK';
+  if (isWork && !wasWork) { tripleBeep(); flashBeep(); }
+  if (!isWork && wasWork) { beep(440, 0.1, 0.2); flashBeep(); }
+
+  document.getElementById('timerPhase').textContent = isWork ? 'WORK' : 'REST';
+  document.getElementById('timerPhase').style.color = isWork ? '#e8ff00' : '#00d4ff';
+  updateDisplay(fmtSecs(Math.ceil(remaining / 1000)), remaining);
+  warnColor(Math.ceil(remaining / 1000));
+  updateProgress(elapsed / totalDuration);
+}
+
+function tickCustom() {
+  const cfg = workoutConfig;
+  if (!cfg.intervals || cfg.intervals.length === 0) { endTimer(); return; }
+
+  const totalLoop = cfg.intervals.reduce((s, iv) => s + iv.duration, 0);
+  const loops = cfg.loops || 1;
+  const loopElapsed = elapsed % totalLoop;
+  const loopIdx = Math.floor(elapsed / totalLoop);
+
+  if (loopIdx >= loops) { endTimer(); return; }
+
+  let acc = 0;
+  let ivIdx = 0;
+  for (let i = 0; i < cfg.intervals.length; i++) {
+    if (loopElapsed < acc + cfg.intervals[i].duration) { ivIdx = i; break; }
+    acc += cfg.intervals[i].duration;
+  }
+
+  const iv = cfg.intervals[ivIdx];
+  const ivElapsed = loopElapsed - acc;
+  const remaining = iv.duration - ivElapsed;
+
+  if (ivIdx !== currentIntervalIdx) {
+    currentIntervalIdx = ivIdx;
+    tripleBeep(); flashBeep();
+    document.getElementById('timerPhase').textContent = iv.name;
+    document.getElementById('timerPhase').style.color = iv.color;
+  }
+
+  document.getElementById('timerRoundInfo').textContent = `LOOP ${loopIdx + 1} / ${loops}`;
+  updateDisplay(fmtSecs(Math.ceil(remaining / 1000)), remaining);
+  warnColor(Math.ceil(remaining / 1000));
+  updateProgress(elapsed / totalDuration);
+}
+
+function updateDisplay(txt, remaining) {
+  document.getElementById('timerDisplay').textContent = txt;
+}
+
+function warnColor(secs) {
+  const s = getSettings();
+  const warn = s.warnAt || 10;
+  const el = document.getElementById('timerDisplay');
+  el.classList.toggle('warning', secs <= warn && secs > 3);
+  el.classList.toggle('critical', secs <= 3 && secs > 0);
+  if (secs <= 3 && secs > 0 && s.beep) beep(660, 0.05, 0.15);
+}
+
+function updateProgress(ratio) {
+  document.getElementById('progressFill').style.width = Math.min(100, ratio * 100) + '%';
+}
+
+function togglePause() {
+  isPaused = !isPaused;
+  if (isPaused) {
+    pausedAt = Date.now();
+    document.getElementById('pauseBtn').textContent = 'RESUME';
+  } else {
+    startTime += Date.now() - pausedAt;
+    document.getElementById('pauseBtn').textContent = 'PAUSE';
+  }
+}
+
+function clearTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function stopTimer() {
+  clearTimer();
+  showDone(true);
+}
+
+function endTimer() {
+  clearTimer();
+  tripleBeep();
+  tripleBeep();
+  const banner = document.getElementById('finishBanner');
+  banner.classList.add('active');
+  setTimeout(() => { banner.classList.remove('active'); showDone(false); }, 1200);
+}
+
+function showDone(stopped) {
+  const entry = buildHistoryEntry(stopped);
+  saveToHistory(entry);
+  showScreen('done');
+  const cfg = workoutConfig;
+  const elSec = Math.round(elapsed / 1000);
+  document.getElementById('doneSub').textContent = stopped ? 'WORKOUT STOPPED' : 'WORKOUT COMPLETE';
+
+  let statsHtml = `<div class="done-stat"><span class="done-stat-label">Mode</span><span class="done-stat-val">${modeLabels[currentMode]}</span></div>`;
+  statsHtml += `<div class="done-stat"><span class="done-stat-label">Time</span><span class="done-stat-val">${fmtSecs(elSec)}</span></div>`;
+
+  if (currentMode === 'tabata') {
+    statsHtml += `<div class="done-stat"><span class="done-stat-label">Rounds</span><span class="done-stat-val">${Math.min(currentRound, cfg.rounds)} / ${cfg.rounds}</span></div>`;
+  }
+  if (currentMode === 'emom') {
+    statsHtml += `<div class="done-stat"><span class="done-stat-label">Minutes</span><span class="done-stat-val">${Math.min(currentRound, cfg.mins)} / ${cfg.mins}</span></div>`;
+  }
+  if (currentMode === 'amrap') {
+    statsHtml += `<div class="done-stat"><span class="done-stat-label">Rounds</span><span class="done-stat-val" style="color:var(--accent)">${amrapRoundNum}</span></div>`;
+    if (amrapRounds.length > 0) {
+      amrapRounds.forEach(r => {
+        statsHtml += `<div class="done-stat"><span class="done-stat-label">Round ${r.num}</span><span class="done-stat-val" style="color:#30d158">${fmtMs(r.duration)}</span></div>`;
+      });
+      // Partial round if any elapsed since last round tap
+      const partialTime = elapsed - amrapLastRoundTime;
+      if (partialTime > 2000 && amrapRoundNum > 0) {
+        statsHtml += `<div class="done-stat"><span class="done-stat-label">Partial</span><span class="done-stat-val" style="color:var(--muted)">${fmtMs(partialTime)}</span></div>`;
+      }
+      const avg = amrapRounds.reduce((s,r) => s + r.duration, 0) / amrapRounds.length;
+      const best = Math.min(...amrapRounds.map(r => r.duration));
+      if (amrapRounds.length > 1) {
+        statsHtml += `<div class="done-stat"><span class="done-stat-label">Avg round</span><span class="done-stat-val">${fmtMs(avg)}</span></div>`;
+        statsHtml += `<div class="done-stat"><span class="done-stat-label">Best round</span><span class="done-stat-val" style="color:var(--accent)">${fmtMs(best)}</span></div>`;
+      }
+    }
+  }
+  if (currentMode === 'fortime' && ftSplits.length > 0) {
+    ftSplits.forEach(s => {
+      statsHtml += `<div class="done-stat">
+        <span class="done-stat-label">Section ${s.num}</span>
+        <span class="done-stat-val" style="color:var(--accent2)">${fmtMs(s.duration)}</span>
+      </div>`;
+    });
+    // Final section (after last split to finish)
+    const lastSection = elapsed - ftLastSplitTime;
+    if (lastSection > 1000) {
+      statsHtml += `<div class="done-stat">
+        <span class="done-stat-label">Section ${ftSectionNum}</span>
+        <span class="done-stat-val" style="color:var(--accent2)">${fmtMs(lastSection)}</span>
+      </div>`;
+    }
+  }
+
+  document.getElementById('doneStats').innerHTML = statsHtml;
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+const defaultSettings = { countdown: 3, beep: true, flash: true, warnAt: 10 };
+
+function getSettings() {
+  try { return { ...defaultSettings, ...JSON.parse(localStorage.getItem('wodtimerSettings') || '{}') }; }
+  catch { return { ...defaultSettings }; }
+}
+
+function saveSettings() {
+  const s = {
+    countdown: parseInt(document.getElementById('settingCountdown').textContent),
+    beep: document.getElementById('beepToggle').style.background.includes('accent') || document.getElementById('beepToggle').style.background === 'var(--accent)' || document.getElementById('beepThumb').style.right === '3px',
+    flash: document.getElementById('flashThumb').style.right === '3px',
+    warnAt: parseInt(document.getElementById('settingWarnAt').textContent),
+  };
+  localStorage.setItem('wodtimerSettings', JSON.stringify(s));
+  showToast('Settings saved!');
+  setTimeout(goHome, 800);
+}
+
+function showSettings() {
+  showScreen('settings');
+  const s = getSettings();
+  document.getElementById('settingCountdown').textContent = s.countdown;
+  document.getElementById('settingWarnAt').textContent = s.warnAt;
+  setToggleUI('beepToggle', 'beepThumb', s.beep);
+  setToggleUI('flashToggle', 'flashThumb', s.flash);
+}
+
+function setToggleUI(toggleId, thumbId, on) {
+  const toggle = document.getElementById(toggleId);
+  const thumb = document.getElementById(thumbId);
+  toggle.style.background = on ? 'var(--accent)' : 'var(--surface2)';
+  thumb.style.right = on ? '3px' : '';
+  thumb.style.left = on ? '' : '3px';
+  thumb.style.background = on ? '#000' : 'var(--muted)';
+}
+
+function toggleSetting(key) {
+  const toggleId = key + 'Toggle';
+  const thumbId = key + 'Thumb';
+  const thumb = document.getElementById(thumbId);
+  const isOn = thumb.style.right === '3px';
+  setToggleUI(toggleId, thumbId, !isOn);
+}
+
+function adjSetting(id, delta, min, max) {
+  const elId = 'setting' + id.charAt(0).toUpperCase() + id.slice(1);
+  const el = document.getElementById(elId);
+  const val = Math.max(min, Math.min(max, parseInt(el.textContent) + delta));
+  el.textContent = val;
+}
+
+// ─── HISTORY ─────────────────────────────────────────────────────────────────
+let historyFilter = 'all';
+
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('wodtimerHistory') || '[]'); } catch { return []; }
+}
+
+function saveToHistory(entry) {
+  try {
+    const history = getHistory();
+    history.unshift(entry);
+    // Keep max 200 entries
+    if (history.length > 200) history.splice(200);
+    localStorage.setItem('wodtimerHistory', JSON.stringify(history));
+  } catch(e) {}
+}
+
+function buildHistoryEntry(stopped) {
+  const cfg = workoutConfig;
+  const entry = {
+    id: Date.now(),
+    date: new Date().toISOString(),
+    mode: currentMode,
+    elapsed: elapsed,
+    stopped,
+    config: cfg,
+    splits: [],
+    setLaps: [],
+    amrapRounds: [],
+  };
+  if (currentMode === 'fortime' && ftSplits.length > 0) {
+    entry.splits = [...ftSplits];
+    const lastSection = elapsed - ftLastSplitTime;
+    if (lastSection > 1000) {
+      entry.splits.push({ num: ftSectionNum, at: elapsed, duration: lastSection });
+    }
+  }
+  if (currentMode === 'amrap' && amrapRounds.length > 0) {
+    entry.amrapRounds = [...amrapRounds];
+    entry.amrapTotal = amrapRoundNum;
+  }
+  return entry;
+}
+
+function buildSetsHistoryEntry(stopped) {
+  return {
+    id: Date.now(),
+    date: new Date().toISOString(),
+    mode: 'sets',
+    elapsed: Date.now() - setsSetStart,
+    stopped,
+    config: setsConfig,
+    setLaps: [...setsLaps],
+    splits: [],
+  };
+}
+
+function showHistory() {
+  showScreen('history');
+  historyFilter = 'all';
+  renderHistoryFilters();
+  renderHistoryList();
+}
+
+function renderHistoryFilters() {
+  const history = getHistory();
+  const modes = ['all', ...new Set(history.map(h => h.mode))];
+  document.getElementById('historyFilters').innerHTML = modes.map(m => `
+    <button class="filter-pill ${m === historyFilter ? 'active' : ''}" onclick="setHistoryFilter('${m}')">
+      ${m === 'all' ? 'ALL' : modeLabels[m] || m.toUpperCase()}
+    </button>`).join('');
+}
+
+function setHistoryFilter(mode) {
+  historyFilter = mode;
+  renderHistoryFilters();
+  renderHistoryList();
+}
+
+function renderHistoryList() {
+  const history = getHistory();
+  const filtered = historyFilter === 'all' ? history : history.filter(h => h.mode === historyFilter);
+  const list = document.getElementById('historyList');
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-text">No workouts yet.<br>Complete one to see it here!</div></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(h => {
+    const color = modeColors[h.mode] || '#888';
+    const date = new Date(h.date);
+    const dateStr = date.toLocaleDateString('en-CA', { month:'short', day:'numeric' });
+    const timeStr = date.toLocaleTimeString('en-CA', { hour:'2-digit', minute:'2-digit' });
+
+    let metaItems = [];
+    if (h.mode === 'amrap') metaItems.push(`${h.config?.mins} min`);
+    if (h.mode === 'emom') metaItems.push(`${h.config?.mins} min`, `${h.config?.movs} mov/min`);
+    if (h.mode === 'tabata') metaItems.push(`${h.config?.rounds} rounds`);
+    if (h.mode === 'fortime' && h.config?.cap) metaItems.push(`${h.config.cap} min cap`);
+    if (h.stopped) metaItems.push('stopped early');
+
+    let splitsHtml = '';
+    if (h.splits?.length > 0) {
+      splitsHtml = '<div class="history-splits-preview">' +
+        h.splits.map(s => `<span class="split-pill section-pill">S${s.num} ${fmtMs(s.duration)}</span>`).join('') +
+        '</div>';
+    }
+    if (h.setLaps?.filter(l => l.type === 'set').length > 0) {
+      const setItems = h.setLaps.filter(l => l.type === 'set');
+      splitsHtml = '<div class="history-splits-preview">' +
+        setItems.map(s => `<span class="split-pill set-pill">Set${s.num} ${fmtMs(s.time)}</span>`).join('') +
+        '</div>';
+    }
+
+    return `<div class="history-card" onclick="showHistoryDetail(${h.id})">
+      <div class="history-card-top">
+        <span class="history-mode-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${modeLabels[h.mode] || h.mode}</span>
+        <span class="history-date">${dateStr} · ${timeStr}</span>
+      </div>
+      <div class="history-time">${fmtMs(h.elapsed)}</div>
+      <div class="history-meta">${metaItems.join(' · ')}</div>
+      ${splitsHtml}
+    </div>`;
+  }).join('');
+}
+
+function showHistoryDetail(id) {
+  const history = getHistory();
+  const h = history.find(e => e.id === id);
+  if (!h) return;
+  showScreen('historyDetail');
+  const color = modeColors[h.mode] || '#888';
+  const date = new Date(h.date);
+  const dateStr = date.toLocaleDateString('en-CA', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const timeStr = date.toLocaleTimeString('en-CA', { hour:'2-digit', minute:'2-digit' });
+
+  document.getElementById('detailTitle').textContent = modeLabels[h.mode] || h.mode;
+
+  let html = `
+    <div class="detail-section" style="padding:24px 20px">
+      <div class="detail-label">Total Time</div>
+      <div class="detail-value" style="color:${color}">${fmtMs(h.elapsed)}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:8px">${dateStr}<br>${timeStr}${h.stopped?' · stopped early':''}</div>
+    </div>`;
+
+  // Config details
+  let configRows = '';
+  if (h.mode === 'amrap') configRows += `<div class="detail-row"><span class="detail-row-label">Duration</span><span class="detail-row-val">${h.config?.mins} MIN</span></div>`;
+  if (h.mode === 'emom') {
+    configRows += `<div class="detail-row"><span class="detail-row-label">Duration</span><span class="detail-row-val">${h.config?.mins} MIN</span></div>`;
+    configRows += `<div class="detail-row"><span class="detail-row-label">Movements/min</span><span class="detail-row-val">${h.config?.movs}</span></div>`;
+  }
+  if (h.mode === 'fortime') configRows += `<div class="detail-row"><span class="detail-row-label">Time cap</span><span class="detail-row-val">${h.config?.cap ? h.config.cap + ' MIN' : 'NONE'}</span></div>`;
+  if (h.mode === 'tabata') configRows += `<div class="detail-row"><span class="detail-row-label">Rounds</span><span class="detail-row-val">${h.config?.rounds}</span></div>`;
+  if (h.mode === 'sets') {
+    configRows += `<div class="detail-row"><span class="detail-row-label">Sets</span><span class="detail-row-val">${h.config?.sets}</span></div>`;
+    configRows += `<div class="detail-row"><span class="detail-row-label">Rest</span><span class="detail-row-val">${h.config?.hasRest ? fmtSecs(h.config.restMin*60+h.config.restSec) : 'NONE'}</span></div>`;
+  }
+  if (configRows) html += `<div class="detail-section">${configRows}</div>`;
+
+  // Section splits for fortime
+  if (h.splits?.length > 0) {
+    let splitRows = h.splits.map(s => `
+      <div class="detail-row">
+        <span class="detail-row-label">Section ${s.num}</span>
+        <span class="detail-row-val" style="color:var(--accent2)">${fmtMs(s.duration)}</span>
+      </div>`).join('');
+    html += `<div class="detail-section"><div class="detail-label">Section Splits</div>${splitRows}</div>`;
+  }
+
+  // Set laps for sets mode
+  if (h.setLaps?.length > 0) {
+    const setItems = h.setLaps.filter(l => l.type === 'set');
+    const restItems = h.setLaps.filter(l => l.type === 'rest');
+    if (setItems.length > 0) {
+      let setRows = setItems.map(s => `
+        <div class="detail-row">
+          <span class="detail-row-label">Set ${s.num}</span>
+          <span class="detail-row-val" style="color:#30d158">${fmtMs(s.time)}</span>
+        </div>`).join('');
+      if (setItems.length > 1) {
+        const avg = setItems.reduce((sum, s) => sum + s.time, 0) / setItems.length;
+        const best = Math.min(...setItems.map(s => s.time));
+        setRows += `<div class="detail-row"><span class="detail-row-label">Average</span><span class="detail-row-val">${fmtMs(avg)}</span></div>`;
+        setRows += `<div class="detail-row"><span class="detail-row-label">Best set</span><span class="detail-row-val" style="color:var(--accent)">${fmtMs(best)}</span></div>`;
+      }
+      html += `<div class="detail-section"><div class="detail-label">Set Times</div>${setRows}</div>`;
+    }
+  }
+
+  html += `<div style="padding:0 0 8px"><button onclick="deleteHistoryEntry(${h.id})" style="width:100%;padding:14px;background:none;border:1px solid var(--danger);border-radius:12px;color:var(--danger);font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1px;cursor:pointer">DELETE THIS ENTRY</button></div>`;
+
+  document.getElementById('detailContent').innerHTML = html;
+}
+
+function deleteHistoryEntry(id) {
+  const history = getHistory().filter(h => h.id !== id);
+  localStorage.setItem('wodtimerHistory', JSON.stringify(history));
+  showHistory();
+}
+
+function confirmClearHistory() {
+  if (confirm('Clear all workout history? This cannot be undone.')) {
+    localStorage.removeItem('wodtimerHistory');
+    renderHistoryFilters();
+    renderHistoryList();
+  }
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function fmtSecs(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function fmtMs(ms) {
+  const s = Math.floor(ms / 1000);
+  return fmtSecs(s);
+}
+</script>
+</body>
+</html>
