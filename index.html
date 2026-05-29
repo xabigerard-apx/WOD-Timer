@@ -437,7 +437,7 @@
 
   .timer-display {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(80px, 22vw, 120px);
+    font-size: clamp(100px, 28vw, 148px);
     letter-spacing: 4px;
     line-height: 1;
     text-align: center;
@@ -673,8 +673,41 @@
 
   .color-opt.selected { border-color: var(--text); transform: scale(1.1); }
 
-  /* DONE SCREEN */
-  #done {
+  /* Volume slider */
+  .volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--surface2);
+    outline: none;
+    margin-top: 12px;
+  }
+  .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid #000;
+  }
+  .volume-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid #000;
+  }
+  .volume-slider::-webkit-slider-runnable-track {
+    background: linear-gradient(to right, var(--accent) var(--vol-pct, 70%), var(--surface2) var(--vol-pct, 70%));
+    height: 6px;
+    border-radius: 3px;
+  }
+
     background: var(--bg);
     align-items: center;
     justify-content: center;
@@ -788,7 +821,7 @@
   #setsTimer { background: var(--bg); justify-content: space-between; }
   .sets-center { flex:1; display:flex; flex-direction:column; align-items:center; padding:12px 24px; overflow-y:auto; }
   .sets-phase { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:4px; color:#30d158; margin-bottom:8px; text-align:center; }
-  .sets-display { font-family:'Bebas Neue',sans-serif; font-size:clamp(64px,18vw,100px); letter-spacing:4px; line-height:1; text-align:center; color:var(--text); margin-bottom:8px; }
+  .sets-display { font-family:'Bebas Neue',sans-serif; font-size:clamp(84px,24vw,132px); letter-spacing:4px; line-height:1; text-align:center; color:var(--text); margin-bottom:8px; }
   .sets-display.rest-phase { color:#00d4ff; }
   .sets-sub { font-family:'DM Mono',monospace; font-size:13px; color:var(--muted); margin-bottom:20px; text-align:center; min-height:18px; }
   .sets-lap-list { width:100%; display:flex; flex-direction:column; gap:8px; max-height:240px; overflow-y:auto; }
@@ -1066,6 +1099,19 @@
     </div>
 
     <div class="form-group">
+      <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
+        <span>BEEP VOLUME</span>
+        <span id="volumeLabel" style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--accent)">70%</span>
+      </label>
+      <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70"
+        oninput="updateVolumeLabel(this.value)"
+        style="--vol-pct:70%">
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">
+        <span>QUIET</span><span>LOUD</span>
+      </div>
+    </div>
+
+    <div class="form-group">
       <label class="form-label" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
         <span>SCREEN FLASH ON INTERVAL</span>
         <div onclick="toggleSetting('flash')" id="flashToggle" style="width:44px;height:26px;border-radius:13px;border:1px solid var(--border);cursor:pointer;position:relative;transition:all 0.2s;background:var(--accent)">
@@ -1101,6 +1147,30 @@
 </div>
 
 <script>
+// ─── WAKE LOCK ───────────────────────────────────────────────────────────────
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+    }
+  } catch(e) {}
+}
+
+function releaseWakeLock() {
+  try {
+    if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  } catch(e) {}
+}
+
+// Re-acquire on tab visibility change (wake lock is released when tab hides)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && (timerInterval || setsInterval)) {
+    requestWakeLock();
+  }
+});
+
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let currentMode = 'amrap';
 let timerInterval = null;
@@ -1136,13 +1206,15 @@ function getAudio() {
 function beep(freq = 880, dur = 0.1, vol = 0.3) {
   try {
     const ctx = getAudio();
+    const s = getSettings();
+    const actualVol = vol * (s.volume ?? 0.7);
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.frequency.value = freq;
     osc.type = 'sine';
-    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.setValueAtTime(actualVol, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime + dur);
@@ -1217,10 +1289,12 @@ function renderSetupForm(mode, config) {
         </div>
       </div>`;
   } else if (mode === 'emom') {
-    const mins = config?.mins ?? 10; const movs = config?.movs ?? 2;
+    const mins = config?.mins ?? 10;
+    const ivMin = config?.ivMin ?? 1;
+    const ivSec = config?.ivSec ?? 0;
     form.innerHTML = `
       <div class="form-group">
-        <label class="form-label">DURATION</label>
+        <label class="form-label">TOTAL DURATION</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('emomMins',-1,1,99)">−</button>
           <span class="num-val" id="emomMins">${mins}</span>
@@ -1229,13 +1303,22 @@ function renderSetupForm(mode, config) {
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">MOVEMENTS PER MINUTE</label>
-        <div class="num-input-wrap">
-          <button class="num-btn" onclick="adj('emomMovs',-1,1,6)">−</button>
-          <span class="num-val" id="emomMovs">${movs}</span>
-          <span class="num-unit">MOV</span>
-          <button class="num-btn" onclick="adj('emomMovs',1,1,6)">+</button>
+        <label class="form-label">EVERY (INTERVAL LENGTH)</label>
+        <div class="form-row">
+          <div class="num-input-wrap">
+            <button class="num-btn" onclick="adj('emomIvMin',-1,0,59)">−</button>
+            <span class="num-val" id="emomIvMin">${ivMin}</span>
+            <span class="num-unit">MIN</span>
+            <button class="num-btn" onclick="adj('emomIvMin',1,0,59)">+</button>
+          </div>
+          <div class="num-input-wrap">
+            <button class="num-btn" onclick="adj('emomIvSec',-5,0,55)">−</button>
+            <span class="num-val" id="emomIvSec">${ivSec}</span>
+            <span class="num-unit">SEC</span>
+            <button class="num-btn" onclick="adj('emomIvSec',5,0,55)">+</button>
+          </div>
         </div>
+        <div style="margin-top:10px;font-size:12px;color:var(--muted)">Classic EMOM = every 1:00 · E2MOM = every 2:00</div>
       </div>`;
   } else if (mode === 'fortime') {
     const cap = config?.cap ?? 20;
@@ -1533,6 +1616,7 @@ let setsPausedAt = 0;
 let setsTimeOffset = 0;
 
 function startSetsTimer() {
+  requestWakeLock();
   setsConfig = workoutConfig;
   setsState = 'work';
   setsCurrentSet = 1;
@@ -1597,6 +1681,7 @@ function completeSet() {
 
     if (setsCurrentSet >= setsConfig.sets) {
       clearInterval(setsInterval);
+      releaseWakeLock();
       showSetsDone();
       return;
     }
@@ -1651,6 +1736,7 @@ function renderLapList() {
 
 function stopSets() {
   clearInterval(setsInterval);
+  releaseWakeLock();
   showSetsDone(true);
 }
 
@@ -1684,7 +1770,10 @@ function showSetsDone(stopped = false) {
 function savedMeta(w) {
   const c = w.config;
   if (w.mode === 'amrap') return `${c.mins} min`;
-  if (w.mode === 'emom') return `${c.mins} min · ${c.movs} mov/min`;
+  if (w.mode === 'emom') {
+    const ivMs = c.intervalMs || 60000;
+    return `${c.mins} min · every ${fmtSecs(ivMs/1000)}`;
+  }
   if (w.mode === 'fortime') return `${c.cap ? c.cap + ' min cap' : 'No cap'} · ${c.splits ? 'splits on' : 'no splits'}`;
   if (w.mode === 'tabata') return `${c.rounds} rounds`;
   if (w.mode === 'sets') return `${c.sets} sets · ${c.hasRest ? fmtSecs(c.restMin*60+c.restSec)+' rest' : 'no rest'}`;
@@ -1709,7 +1798,16 @@ function deleteSaved(e, id) {
 // ─── CONFIG EXTRACTION ───────────────────────────────────────────────────────
 function getConfig() {
   if (currentMode === 'amrap') return { mins: parseInt(document.getElementById('amrapMins')?.textContent || 10) };
-  if (currentMode === 'emom') return { mins: parseInt(document.getElementById('emomMins')?.textContent || 10), movs: parseInt(document.getElementById('emomMovs')?.textContent || 2) };
+  if (currentMode === 'emom') {
+    const ivMin = parseInt(document.getElementById('emomIvMin')?.textContent || 1);
+    const ivSec = parseInt(document.getElementById('emomIvSec')?.textContent || 0);
+    return {
+      mins: parseInt(document.getElementById('emomMins')?.textContent || 10),
+      ivMin,
+      ivSec,
+      intervalMs: (ivMin * 60 + ivSec) * 1000 || 60000,
+    };
+  }
   if (currentMode === 'fortime') {
     const splitsOn = document.getElementById('splitsToggleBtn')?.style.background.includes('accent') ||
                      document.getElementById('splitsToggleLabel')?.textContent === 'ON';
@@ -1785,6 +1883,7 @@ function beginCountdown() {
 
 // ─── TIMER ───────────────────────────────────────────────────────────────────
 function startTimer() {
+  requestWakeLock();
   showScreen('timer');
   isPaused = false;
   elapsed = 0;
@@ -1827,9 +1926,10 @@ function setupTimerForMode() {
     document.getElementById('timerSub').textContent = 'Tap ROUND when done!';
   } else if (currentMode === 'emom') {
     totalDuration = cfg.mins * 60 * 1000;
-    roundCount = cfg.mins;
+    const ivMs = cfg.intervalMs || 60000;
+    roundCount = Math.floor(totalDuration / ivMs);
     document.getElementById('timerPhase').textContent = 'EMOM';
-    document.getElementById('timerRoundInfo').textContent = `MIN 1 / ${cfg.mins}`;
+    document.getElementById('timerRoundInfo').textContent = `1 / ${roundCount}`;
   } else if (currentMode === 'fortime') {
     totalDuration = cfg.cap > 0 ? cfg.cap * 60 * 1000 : 0;
     document.getElementById('timerPhase').textContent = 'FOR TIME';
@@ -1881,17 +1981,18 @@ function tickAmrap() {
 function tickEmom() {
   const cfg = workoutConfig;
   if (elapsed >= totalDuration) { endTimer(); return; }
-  const minElapsed = Math.floor(elapsed / 60000);
-  const secInMin = (elapsed % 60000) / 1000;
-  const remaining = 60 - secInMin;
-  const newMin = minElapsed + 1;
-  if (newMin !== currentRound) {
-    currentRound = newMin;
+  const ivMs = cfg.intervalMs || 60000;
+  const ivElapsed = elapsed % ivMs;
+  const remaining = ivMs - ivElapsed;
+  const newRound = Math.floor(elapsed / ivMs) + 1;
+  const totalRounds = Math.floor(totalDuration / ivMs);
+  if (newRound !== currentRound) {
+    currentRound = newRound;
     tripleBeep(); flashBeep();
-    document.getElementById('timerRoundInfo').textContent = `MIN ${currentRound} / ${cfg.mins}`;
+    document.getElementById('timerRoundInfo').textContent = `${currentRound} / ${totalRounds}`;
   }
-  updateDisplay(fmtSecs(Math.ceil(remaining)), remaining * 1000);
-  warnColor(Math.ceil(remaining));
+  updateDisplay(fmtSecs(Math.ceil(remaining / 1000)), remaining);
+  warnColor(Math.ceil(remaining / 1000));
   updateProgress(elapsed / totalDuration);
 }
 
@@ -2040,11 +2141,13 @@ function clearTimer() {
 
 function stopTimer() {
   clearTimer();
+  releaseWakeLock();
   showDone(true);
 }
 
 function endTimer() {
   clearTimer();
+  releaseWakeLock();
   tripleBeep();
   tripleBeep();
   const banner = document.getElementById('finishBanner');
@@ -2067,7 +2170,9 @@ function showDone(stopped) {
     statsHtml += `<div class="done-stat"><span class="done-stat-label">Rounds</span><span class="done-stat-val">${Math.min(currentRound, cfg.rounds)} / ${cfg.rounds}</span></div>`;
   }
   if (currentMode === 'emom') {
-    statsHtml += `<div class="done-stat"><span class="done-stat-label">Minutes</span><span class="done-stat-val">${Math.min(currentRound, cfg.mins)} / ${cfg.mins}</span></div>`;
+    const ivMs = cfg.intervalMs || 60000;
+    const totalRounds = Math.floor(cfg.mins * 60000 / ivMs);
+    statsHtml += `<div class="done-stat"><span class="done-stat-label">Intervals</span><span class="done-stat-val">${Math.min(currentRound, totalRounds)} / ${totalRounds}</span></div>`;
   }
   if (currentMode === 'amrap') {
     statsHtml += `<div class="done-stat"><span class="done-stat-label">Rounds</span><span class="done-stat-val" style="color:var(--accent)">${amrapRoundNum}</span></div>`;
@@ -2109,7 +2214,7 @@ function showDone(stopped) {
 }
 
 // ─── SETTINGS ────────────────────────────────────────────────────────────────
-const defaultSettings = { countdown: 3, beep: true, flash: true, warnAt: 10 };
+const defaultSettings = { countdown: 3, beep: true, flash: true, warnAt: 10, volume: 0.7 };
 
 function getSettings() {
   try { return { ...defaultSettings, ...JSON.parse(localStorage.getItem('wodtimerSettings') || '{}') }; }
@@ -2117,11 +2222,13 @@ function getSettings() {
 }
 
 function saveSettings() {
+  const volRaw = parseInt(document.getElementById('volumeSlider').value);
   const s = {
     countdown: parseInt(document.getElementById('settingCountdown').textContent),
     beep: document.getElementById('beepToggle').style.background.includes('accent') || document.getElementById('beepToggle').style.background === 'var(--accent)' || document.getElementById('beepThumb').style.right === '3px',
     flash: document.getElementById('flashThumb').style.right === '3px',
     warnAt: parseInt(document.getElementById('settingWarnAt').textContent),
+    volume: volRaw / 100,
   };
   localStorage.setItem('wodtimerSettings', JSON.stringify(s));
   showToast('Settings saved!');
@@ -2135,6 +2242,15 @@ function showSettings() {
   document.getElementById('settingWarnAt').textContent = s.warnAt;
   setToggleUI('beepToggle', 'beepThumb', s.beep);
   setToggleUI('flashToggle', 'flashThumb', s.flash);
+  const volPct = Math.round((s.volume ?? 0.7) * 100);
+  document.getElementById('volumeSlider').value = volPct;
+  document.getElementById('volumeLabel').textContent = volPct + '%';
+  document.getElementById('volumeSlider').style.setProperty('--vol-pct', volPct + '%');
+}
+
+function updateVolumeLabel(val) {
+  document.getElementById('volumeLabel').textContent = val + '%';
+  document.getElementById('volumeSlider').style.setProperty('--vol-pct', val + '%');
 }
 
 function setToggleUI(toggleId, thumbId, on) {
@@ -2258,7 +2374,10 @@ function renderHistoryList() {
 
     let metaItems = [];
     if (h.mode === 'amrap') metaItems.push(`${h.config?.mins} min`);
-    if (h.mode === 'emom') metaItems.push(`${h.config?.mins} min`, `${h.config?.movs} mov/min`);
+    if (h.mode === 'emom') {
+      const ivMs = h.config?.intervalMs || 60000;
+      metaItems.push(`${h.config?.mins} min`, `every ${fmtSecs(ivMs/1000)}`);
+    }
     if (h.mode === 'tabata') metaItems.push(`${h.config?.rounds} rounds`);
     if (h.mode === 'fortime' && h.config?.cap) metaItems.push(`${h.config.cap} min cap`);
     if (h.stopped) metaItems.push('stopped early');
@@ -2312,7 +2431,8 @@ function showHistoryDetail(id) {
   if (h.mode === 'amrap') configRows += `<div class="detail-row"><span class="detail-row-label">Duration</span><span class="detail-row-val">${h.config?.mins} MIN</span></div>`;
   if (h.mode === 'emom') {
     configRows += `<div class="detail-row"><span class="detail-row-label">Duration</span><span class="detail-row-val">${h.config?.mins} MIN</span></div>`;
-    configRows += `<div class="detail-row"><span class="detail-row-label">Movements/min</span><span class="detail-row-val">${h.config?.movs}</span></div>`;
+    const ivMs = h.config?.intervalMs || 60000;
+    configRows += `<div class="detail-row"><span class="detail-row-label">Interval</span><span class="detail-row-val">EVERY ${fmtSecs(ivMs/1000)}</span></div>`;
   }
   if (h.mode === 'fortime') configRows += `<div class="detail-row"><span class="detail-row-label">Time cap</span><span class="detail-row-val">${h.config?.cap ? h.config.cap + ' MIN' : 'NONE'}</span></div>`;
   if (h.mode === 'tabata') configRows += `<div class="detail-row"><span class="detail-row-label">Rounds</span><span class="detail-row-val">${h.config?.rounds}</span></div>`;
