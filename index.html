@@ -262,6 +262,11 @@
     border: none;
     outline: none;
     width: 100%;
+    cursor: text;
+  }
+  .num-val:focus {
+    color: var(--accent);
+    outline: none;
   }
 
   .num-unit {
@@ -437,7 +442,7 @@
 
   .timer-display {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(100px, 28vw, 148px);
+    font-size: clamp(110px, 32vw, 168px);
     letter-spacing: 4px;
     line-height: 1;
     text-align: center;
@@ -821,7 +826,7 @@
   #setsTimer { background: var(--bg); justify-content: space-between; }
   .sets-center { flex:1; display:flex; flex-direction:column; align-items:center; padding:12px 24px; overflow-y:auto; }
   .sets-phase { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:4px; color:#30d158; margin-bottom:8px; text-align:center; }
-  .sets-display { font-family:'Bebas Neue',sans-serif; font-size:clamp(84px,24vw,132px); letter-spacing:4px; line-height:1; text-align:center; color:var(--text); margin-bottom:8px; }
+  .sets-display { font-family:'Bebas Neue',sans-serif; font-size:clamp(96px,28vw,152px); letter-spacing:4px; line-height:1; text-align:center; color:var(--text); margin-bottom:8px; }
   .sets-display.rest-phase { color:#00d4ff; }
   .sets-sub { font-family:'DM Mono',monospace; font-size:13px; color:var(--muted); margin-bottom:20px; text-align:center; min-height:18px; }
   .sets-lap-list { width:100%; display:flex; flex-direction:column; gap:8px; max-height:240px; overflow-y:auto; }
@@ -896,13 +901,13 @@
     <div class="form-row" style="margin-bottom:20px">
       <div class="num-input-wrap">
         <button class="num-btn" onclick="adjInterval('min',-1)">−</button>
-        <span class="num-val" id="intMinVal">0</span>
+        <span class="num-val" id="intMinVal" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">0</span>
         <span class="num-unit">MIN</span>
         <button class="num-btn" onclick="adjInterval('min',1)">+</button>
       </div>
       <div class="num-input-wrap">
         <button class="num-btn" onclick="adjInterval('sec',-10)">−</button>
-        <span class="num-val" id="intSecVal">30</span>
+        <span class="num-val" id="intSecVal" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">30</span>
         <span class="num-unit">SEC</span>
         <button class="num-btn" onclick="adjInterval('sec',10)">+</button>
       </div>
@@ -1080,7 +1085,7 @@
       <label class="form-label">COUNTDOWN DURATION</label>
       <div class="num-input-wrap">
         <button class="num-btn" onclick="adjSetting('countdown',-1,0,10)">−</button>
-        <span class="num-val" id="settingCountdown">3</span>
+        <span class="num-val" id="settingCountdown" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">3</span>
         <span class="num-unit">SEC</span>
         <button class="num-btn" onclick="adjSetting('countdown',1,0,10)">+</button>
       </div>
@@ -1126,7 +1131,7 @@
       <label class="form-label">WARN WHEN TIME REMAINING</label>
       <div class="num-input-wrap">
         <button class="num-btn" onclick="adjSetting('warnAt',-5,5,60)">−</button>
-        <span class="num-val" id="settingWarnAt">10</span>
+        <span class="num-val" id="settingWarnAt" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">10</span>
         <span class="num-unit">SEC</span>
         <button class="num-btn" onclick="adjSetting('warnAt',5,5,60)">+</button>
       </div>
@@ -1282,7 +1287,7 @@ function renderSetupForm(mode, config) {
         <div class="form-row">
           <div class="num-input-wrap">
             <button class="num-btn" onclick="adj('amrapMins',-1,1,99)">−</button>
-            <span class="num-val" id="amrapMins">${mins}</span>
+            <span class="num-val" id="amrapMins" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">${mins}</span>
             <span class="num-unit">MIN</span>
             <button class="num-btn" onclick="adj('amrapMins',1,1,99)">+</button>
           </div>
@@ -1297,7 +1302,7 @@ function renderSetupForm(mode, config) {
         <label class="form-label">TOTAL DURATION</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('emomMins',-1,1,99)">−</button>
-          <span class="num-val" id="emomMins">${mins}</span>
+          <span class="num-val" id="emomMins" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">${mins}</span>
           <span class="num-unit">MIN</span>
           <button class="num-btn" onclick="adj('emomMins',1,1,99)">+</button>
         </div>
@@ -1307,13 +1312,13 @@ function renderSetupForm(mode, config) {
         <div class="form-row">
           <div class="num-input-wrap">
             <button class="num-btn" onclick="adj('emomIvMin',-1,0,59)">−</button>
-            <span class="num-val" id="emomIvMin">${ivMin}</span>
+            <span class="num-val" id="emomIvMin" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">${ivMin}</span>
             <span class="num-unit">MIN</span>
             <button class="num-btn" onclick="adj('emomIvMin',1,0,59)">+</button>
           </div>
           <div class="num-input-wrap">
             <button class="num-btn" onclick="adj('emomIvSec',-5,0,55)">−</button>
-            <span class="num-val" id="emomIvSec">${ivSec}</span>
+            <span class="num-val" id="emomIvSec" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">${ivSec}</span>
             <span class="num-unit">SEC</span>
             <button class="num-btn" onclick="adj('emomIvSec',5,0,55)">+</button>
           </div>
@@ -1328,7 +1333,7 @@ function renderSetupForm(mode, config) {
         <label class="form-label">TIME CAP (OPTIONAL)</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('ftCap',-1,0,99)">−</button>
-          <span class="num-val" id="ftCap">${cap}</span>
+          <span class="num-val" id="ftCap" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">${cap}</span>
           <span class="num-unit">MIN</span>
           <button class="num-btn" onclick="adj('ftCap',1,0,99)">+</button>
         </div>
@@ -1351,24 +1356,34 @@ function renderSetupForm(mode, config) {
       </div>`;
   } else if (mode === 'tabata') {
     const rounds = config?.rounds ?? 8;
+    const workSec = config?.workSec ?? 20;
+    const restSec = config?.tabRestSec ?? 10;
     form.innerHTML = `
       <div class="form-group">
         <label class="form-label">ROUNDS</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('tabRounds',-1,1,20)">−</button>
-          <span class="num-val" id="tabRounds">${rounds}</span>
+          <span class="num-val" id="tabRounds" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">${rounds}</span>
           <span class="num-unit">RDS</span>
           <button class="num-btn" onclick="adj('tabRounds',1,1,20)">+</button>
         </div>
       </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-top:8px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-          <span style="font-size:13px;color:var(--muted)">Work</span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent)">20 SEC</span>
+      <div class="form-group">
+        <label class="form-label" style="color:var(--accent)">WORK TIME</label>
+        <div class="num-input-wrap">
+          <button class="num-btn" onclick="adj('tabWork',-5,5,300)">−</button>
+          <span class="num-val" id="tabWork" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">${workSec}</span>
+          <span class="num-unit">SEC</span>
+          <button class="num-btn" onclick="adj('tabWork',5,5,300)">+</button>
         </div>
-        <div style="display:flex;justify-content:space-between">
-          <span style="font-size:13px;color:var(--muted)">Rest</span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent3)">10 SEC</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="color:var(--accent3)">REST TIME</label>
+        <div class="num-input-wrap">
+          <button class="num-btn" onclick="adj('tabRest',-5,5,300)">−</button>
+          <span class="num-val" id="tabRest" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">${restSec}</span>
+          <span class="num-unit">SEC</span>
+          <button class="num-btn" onclick="adj('tabRest',5,5,300)">+</button>
         </div>
       </div>`;
   } else if (mode === 'custom') {
@@ -1384,7 +1399,7 @@ function renderSetupForm(mode, config) {
         <label class="form-label">NUMBER OF SETS</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('setsCount',-1,1,20)">−</button>
-          <span class="num-val" id="setsCount">${sets}</span>
+          <span class="num-val" id="setsCount" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">${sets}</span>
           <span class="num-unit">SETS</span>
           <button class="num-btn" onclick="adj('setsCount',1,1,20)">+</button>
         </div>
@@ -1402,15 +1417,15 @@ function renderSetupForm(mode, config) {
         <div id="restInputs" style="display:${hasRest?'flex':'none'};gap:12px;margin-top:12px">
           <div class="num-input-wrap">
             <button class="num-btn" onclick="adj('restMin',-1,0,59)">−</button>
-            <span class="num-val" id="restMin">${restMin}</span>
+            <span class="num-val" id="restMin" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">${restMin}</span>
             <span class="num-unit">MIN</span>
             <button class="num-btn" onclick="adj('restMin',1,0,59)">+</button>
           </div>
           <div class="num-input-wrap">
-            <button class="num-btn" onclick="adj('restSec',-10,0,50)">−</button>
-            <span class="num-val" id="restSec">${restSec}</span>
+            <button class="num-btn" onclick="adj('restSec',-5,0,55)">−</button>
+            <span class="num-val" id="restSec" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">${restSec}</span>
             <span class="num-unit">SEC</span>
-            <button class="num-btn" onclick="adj('restSec',10,0,50)">+</button>
+            <button class="num-btn" onclick="adj('restSec',5,0,55)">+</button>
           </div>
         </div>
       </div>
@@ -1447,7 +1462,7 @@ function renderCustomForm() {
       <label class="form-label">LOOPS (repeat full sequence)</label>
       <div class="num-input-wrap">
         <button class="num-btn" onclick="adjLoops(-1)">−</button>
-        <span class="num-val" id="loopsVal">${loops}</span>
+        <span class="num-val" id="loopsVal" contenteditable="true" inputmode="numeric" onclick="selectNumVal(this)">${loops}</span>
         <span class="num-unit">×</span>
         <button class="num-btn" onclick="adjLoops(1)">+</button>
       </div>
@@ -1459,6 +1474,23 @@ function adjLoops(d) {
   workoutConfig.loops = Math.max(1, Math.min(20, cur + d));
   document.getElementById('loopsVal').textContent = workoutConfig.loops;
 }
+
+function selectNumVal(el) {
+  // Select all text for easy replacement on tap
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+// Sanitize contenteditable number fields on blur
+document.addEventListener('blur', e => {
+  if (e.target.classList.contains('num-val') && e.target.isContentEditable) {
+    const raw = parseInt(e.target.textContent);
+    e.target.textContent = isNaN(raw) ? 0 : Math.max(0, raw);
+  }
+}, true);
 
 function adj(id, delta, min, max) {
   const el = document.getElementById(id);
@@ -1775,7 +1807,7 @@ function savedMeta(w) {
     return `${c.mins} min · every ${fmtSecs(ivMs/1000)}`;
   }
   if (w.mode === 'fortime') return `${c.cap ? c.cap + ' min cap' : 'No cap'} · ${c.splits ? 'splits on' : 'no splits'}`;
-  if (w.mode === 'tabata') return `${c.rounds} rounds`;
+  if (w.mode === 'tabata') return `${c.rounds} rds · ${c.workSec||20}s work / ${c.tabRestSec||10}s rest`;
   if (w.mode === 'sets') return `${c.sets} sets · ${c.hasRest ? fmtSecs(c.restMin*60+c.restSec)+' rest' : 'no rest'}`;
   return '';
 }
@@ -1813,7 +1845,15 @@ function getConfig() {
                      document.getElementById('splitsToggleLabel')?.textContent === 'ON';
     return { cap: parseInt(document.getElementById('ftCap')?.textContent || 0), splits: splitsOn };
   }
-  if (currentMode === 'tabata') return { rounds: parseInt(document.getElementById('tabRounds')?.textContent || 8) };
+  if (currentMode === 'tabata') {
+    const workSec = parseInt(document.getElementById('tabWork')?.textContent || 20);
+    const tabRestSec = parseInt(document.getElementById('tabRest')?.textContent || 10);
+    return {
+      rounds: parseInt(document.getElementById('tabRounds')?.textContent || 8),
+      workSec,
+      tabRestSec,
+    };
+  }
   if (currentMode === 'custom') return { intervals: [...customIntervals], loops: workoutConfig.loops ?? 1 };
   if (currentMode === 'sets') {
     const hasRest = document.getElementById('restInputs')?.style.display !== 'none';
@@ -1935,7 +1975,9 @@ function setupTimerForMode() {
     document.getElementById('timerPhase').textContent = 'FOR TIME';
     document.getElementById('timerRoundInfo').textContent = cfg.cap ? `CAP: ${cfg.cap} MIN` : 'NO CAP';
   } else if (currentMode === 'tabata') {
-    totalDuration = cfg.rounds * 30 * 1000;
+    const workMs = (cfg.workSec || 20) * 1000;
+    const restMs = (cfg.tabRestSec || 10) * 1000;
+    totalDuration = cfg.rounds * (workMs + restMs);
     roundCount = cfg.rounds;
     currentRound = 1;
     document.getElementById('timerPhase').textContent = 'WORK';
@@ -2045,11 +2087,13 @@ function recordAmrapRound() {
 
 function tickTabata() {
   const cfg = workoutConfig;
-  const cycleTime = 30000;
+  const workMs = (cfg.workSec || 20) * 1000;
+  const restMs = (cfg.tabRestSec || 10) * 1000;
+  const cycleTime = workMs + restMs;
   const cycleElapsed = elapsed % cycleTime;
-  const isWork = cycleElapsed < 20000;
-  const phaseElapsed = isWork ? cycleElapsed : cycleElapsed - 20000;
-  const phaseDur = isWork ? 20000 : 10000;
+  const isWork = cycleElapsed < workMs;
+  const phaseElapsed = isWork ? cycleElapsed : cycleElapsed - workMs;
+  const phaseDur = isWork ? workMs : restMs;
   const remaining = phaseDur - phaseElapsed;
   const round = Math.floor(elapsed / cycleTime) + 1;
 
@@ -2378,7 +2422,7 @@ function renderHistoryList() {
       const ivMs = h.config?.intervalMs || 60000;
       metaItems.push(`${h.config?.mins} min`, `every ${fmtSecs(ivMs/1000)}`);
     }
-    if (h.mode === 'tabata') metaItems.push(`${h.config?.rounds} rounds`);
+    if (h.mode === 'tabata') metaItems.push(`${h.config?.rounds} rds`, `${h.config?.workSec||20}s / ${h.config?.tabRestSec||10}s`);
     if (h.mode === 'fortime' && h.config?.cap) metaItems.push(`${h.config.cap} min cap`);
     if (h.stopped) metaItems.push('stopped early');
 
@@ -2435,7 +2479,11 @@ function showHistoryDetail(id) {
     configRows += `<div class="detail-row"><span class="detail-row-label">Interval</span><span class="detail-row-val">EVERY ${fmtSecs(ivMs/1000)}</span></div>`;
   }
   if (h.mode === 'fortime') configRows += `<div class="detail-row"><span class="detail-row-label">Time cap</span><span class="detail-row-val">${h.config?.cap ? h.config.cap + ' MIN' : 'NONE'}</span></div>`;
-  if (h.mode === 'tabata') configRows += `<div class="detail-row"><span class="detail-row-label">Rounds</span><span class="detail-row-val">${h.config?.rounds}</span></div>`;
+  if (h.mode === 'tabata') {
+    configRows += `<div class="detail-row"><span class="detail-row-label">Rounds</span><span class="detail-row-val">${h.config?.rounds}</span></div>`;
+    configRows += `<div class="detail-row"><span class="detail-row-label">Work</span><span class="detail-row-val" style="color:var(--accent)">${h.config?.workSec||20} SEC</span></div>`;
+    configRows += `<div class="detail-row"><span class="detail-row-label">Rest</span><span class="detail-row-val" style="color:var(--accent3)">${h.config?.tabRestSec||10} SEC</span></div>`;
+  }
   if (h.mode === 'sets') {
     configRows += `<div class="detail-row"><span class="detail-row-label">Sets</span><span class="detail-row-val">${h.config?.sets}</span></div>`;
     configRows += `<div class="detail-row"><span class="detail-row-label">Rest</span><span class="detail-row-val">${h.config?.hasRest ? fmtSecs(h.config.restMin*60+h.config.restSec) : 'NONE'}</span></div>`;
