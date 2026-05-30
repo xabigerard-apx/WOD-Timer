@@ -55,9 +55,9 @@
   .logo {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 48px;
-    letter-spacing: 4px;
+    letter-spacing: 2px;
     color: var(--accent);
-    line-height: 1;
+    line-height: 0.92;
   }
 
   .logo span { color: var(--text); }
@@ -136,7 +136,7 @@
 
   .mode-icon {
     font-size: 28px;
-    margin-bottom: 12px;
+    margin-bottom: 4px;
     display: block;
   }
 
@@ -178,7 +178,7 @@
     border-radius: 10px;
     background: var(--surface);
     color: var(--text);
-    font-size: 18px;
+    font-size: 22px;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: all 0.15s;
@@ -293,7 +293,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-bottom: 12px;
+    margin-bottom: 4px;
   }
 
   .interval-item {
@@ -416,9 +416,10 @@
   }
 
   .timer-round-info {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    color: var(--muted);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 38px;
+    letter-spacing: 3px;
+    color: var(--accent);
   }
 
   .timer-center {
@@ -427,24 +428,24 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 0 8px;
   }
 
   .timer-phase {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px;
-    letter-spacing: 4px;
+    font-size: 22px;
+    letter-spacing: 2px;
     color: var(--accent);
-    margin-bottom: 12px;
-    min-height: 24px;
+    margin-bottom: 4px;
+    min-height: 28px;
     text-align: center;
   }
 
   .timer-display {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(110px, 32vw, 168px);
-    letter-spacing: 4px;
-    line-height: 1;
+    font-size: clamp(150px, 44vw, 240px);
+    letter-spacing: 2px;
+    line-height: 0.92;
     text-align: center;
     transition: color 0.3s;
   }
@@ -501,16 +502,36 @@
     background: var(--surface);
     color: var(--text);
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px;
+    font-size: 22px;
     letter-spacing: 2px;
     cursor: pointer;
     transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
   }
 
   .ctrl-btn:active { transform: scale(0.97); background: var(--surface2); }
   .ctrl-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); flex: 2; }
   .ctrl-btn.primary:active { opacity: 0.9; }
   .ctrl-btn.danger { color: var(--danger); border-color: var(--danger); }
+
+  .timer-pause-hint {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 12px;
+    opacity: 0.5;
+    transition: opacity 0.3s;
+  }
+  .paused .timer-pause-hint {
+    opacity: 1;
+    color: var(--accent);
+    animation: pulse 1s infinite;
+  }
 
   /* ROUND BEEP overlay */
   .beep-overlay {
@@ -577,7 +598,7 @@
     border: none;
     background: none;
     color: var(--muted);
-    font-size: 18px;
+    font-size: 22px;
     cursor: pointer;
     border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
@@ -655,7 +676,7 @@
     padding: 16px;
     border-radius: 12px;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px;
+    font-size: 22px;
     letter-spacing: 2px;
     cursor: pointer;
     transition: all 0.15s;
@@ -725,8 +746,9 @@
     font-size: 72px;
     letter-spacing: 6px;
     color: var(--accent);
-    line-height: 1;
+    line-height: 0.92;
     margin-bottom: 8px;
+    text-align: center;
   }
 
   .done-sub {
@@ -735,6 +757,7 @@
     color: var(--muted);
     letter-spacing: 2px;
     margin-bottom: 48px;
+    text-align: center;
   }
 
   .done-stats {
@@ -742,9 +765,9 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 24px;
-    width: 100%;
-    max-width: 320px;
-    margin-bottom: 40px;
+    width: calc(100% - 48px);
+    max-width: 340px;
+    margin: 0 auto 40px;
   }
 
   .done-stat {
@@ -803,7 +826,7 @@
     font-size: 160px;
     letter-spacing: 8px;
     color: var(--accent);
-    line-height: 1;
+    line-height: 0.92;
     animation: countPop 1s ease;
   }
 
@@ -817,16 +840,16 @@
   .countdown-label {
     font-family: 'DM Mono', monospace;
     font-size: 13px;
-    letter-spacing: 4px;
+    letter-spacing: 2px;
     color: var(--muted);
     text-transform: uppercase;
   }
 
   /* SETS TIMER */
   #setsTimer { background: var(--bg); justify-content: space-between; }
-  .sets-center { flex:1; display:flex; flex-direction:column; align-items:center; padding:12px 24px; overflow-y:auto; }
+  .sets-center { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 12px; user-select:none; -webkit-user-select:none; }
   .sets-phase { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:4px; color:#30d158; margin-bottom:8px; text-align:center; }
-  .sets-display { font-family:'Bebas Neue',sans-serif; font-size:clamp(96px,28vw,152px); letter-spacing:4px; line-height:1; text-align:center; color:var(--text); margin-bottom:8px; }
+  .sets-display { font-family:'Bebas Neue',sans-serif; font-size:clamp(140px,40vw,220px); letter-spacing:4px; line-height:1; text-align:center; color:var(--text); margin-bottom:8px; }
   .sets-display.rest-phase { color:#00d4ff; }
   .sets-sub { font-family:'DM Mono',monospace; font-size:13px; color:var(--muted); margin-bottom:20px; text-align:center; min-height:18px; }
   .sets-lap-list { width:100%; display:flex; flex-direction:column; gap:8px; max-height:240px; overflow-y:auto; }
@@ -870,7 +893,7 @@
 <div class="beep-overlay" id="beepOverlay"></div>
 
 <!-- COUNTDOWN -->
-<div class="countdown-overlay" id="countdownOverlay">
+<div class="countdown-overlay" id="countdownOverlay" onclick="pauseCountdown()">
   <div class="countdown-num" id="countdownNum">3</div>
   <div class="countdown-label">GET READY</div>
 </div>
@@ -888,6 +911,18 @@
     <div class="modal-btns">
       <button class="modal-btn cancel" onclick="closeSaveModal()">CANCEL</button>
       <button class="modal-btn confirm" onclick="confirmSave()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLEAR HISTORY MODAL -->
+<div class="modal-overlay" id="clearHistoryModal">
+  <div class="modal">
+    <div class="modal-title" style="color:var(--danger)">CLEAR HISTORY</div>
+    <div style="font-size:14px;color:var(--muted);text-align:center;margin-bottom:20px;line-height:1.6">Are you sure you want to delete all workout history?<br>This cannot be undone.</div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeClearHistoryModal()">CANCEL</button>
+      <button class="modal-btn confirm" style="background:var(--danger);border-color:var(--danger)" onclick="doClearHistory()">DELETE ALL</button>
     </div>
   </div>
 </div>
@@ -1035,15 +1070,16 @@
     <div class="timer-mode-label">SETS</div>
     <div class="timer-round-info" id="setsRoundInfo">SET 1 / 5</div>
   </div>
-  <div class="sets-center">
+  <div class="sets-center" id="setsTapZone" onclick="toggleSetsPause()" style="cursor:pointer">
     <div class="sets-phase" id="setsPhase">SET 1</div>
     <div class="sets-display" id="setsDisplay">00:00</div>
+    <div class="timer-pause-hint" id="setsPauseHint">TAP TO PAUSE</div>
     <div class="sets-sub" id="setsSub"></div>
-    <div class="sets-lap-list" id="setsLapList"></div>
   </div>
+  <div class="sets-lap-list" id="setsLapList" style="padding:0 24px;max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;"></div>
   <div class="sets-controls">
-    <button class="ctrl-btn danger" onclick="stopSets()">STOP</button>
-    <button class="sets-lap-btn" id="setsLapBtn" onclick="completeSet()">DONE SET</button>
+    <button class="ctrl-btn danger" onclick="stopSets(); event.stopPropagation()">STOP</button>
+    <button class="sets-lap-btn" id="setsLapBtn" onclick="completeSet(); event.stopPropagation()">DONE SET</button>
   </div>
 </div>
 
@@ -1053,21 +1089,22 @@
     <div class="timer-mode-label" id="timerModeLabel">AMRAP</div>
     <div class="timer-round-info" id="timerRoundInfo"></div>
   </div>
-  <div class="timer-center">
+  <div class="timer-center" id="timerTapZone" onclick="togglePause()" style="cursor:pointer">
     <div class="timer-phase" id="timerPhase"></div>
     <div class="timer-display" id="timerDisplay">00:00</div>
+    <div class="timer-pause-hint" id="timerPauseHint">TAP TO PAUSE</div>
     <div class="timer-sub" id="timerSub"></div>
   </div>
+  <div id="timerLapList" style="padding:0 20px;max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
   <div class="progress-bar-wrap">
     <div class="progress-bar-bg">
       <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
     </div>
   </div>
   <div class="timer-controls">
-    <button class="ctrl-btn danger" onclick="stopTimer()">STOP</button>
-    <button class="ctrl-btn" id="splitBtn" onclick="recordSplit()" style="display:none;border-color:var(--accent2);color:var(--accent2)">SPLIT</button>
-    <button class="ctrl-btn" id="roundBtn" onclick="recordAmrapRound()" style="display:none;background:#30d158;border-color:#30d158;color:#000">ROUND</button>
-    <button class="ctrl-btn primary" id="pauseBtn" onclick="togglePause()">PAUSE</button>
+    <button class="ctrl-btn danger" onclick="stopTimer(); event.stopPropagation()">STOP</button>
+    <button class="ctrl-btn" id="splitBtn" onclick="recordSplit(); event.stopPropagation()" style="display:none;background:#30d158;border-color:#30d158;color:#000">SPLIT</button>
+    <button class="ctrl-btn" id="roundBtn" onclick="recordAmrapRound(); event.stopPropagation()" style="display:none;background:#30d158;border-color:#30d158;color:#000">ROUND</button>
   </div>
 </div>
 
@@ -1144,7 +1181,7 @@
 </div>
 
 <!-- ===== DONE ===== -->
-<div class="screen" id="done">
+<div class="screen" id="done" style="align-items:center;justify-content:center;padding:40px 24px;text-align:center;">
   <div class="done-title">DONE!</div>
   <div class="done-sub" id="doneSub">WORKOUT COMPLETE</div>
   <div class="done-stats" id="doneStats"></div>
@@ -1208,21 +1245,31 @@ function getAudio() {
   return audioCtx;
 }
 
-function beep(freq = 880, dur = 0.1, vol = 0.3) {
+function beep(freq = 880, dur = 0.12, vol = 0.3) {
   try {
     const ctx = getAudio();
     const s = getSettings();
-    const actualVol = vol * (s.volume ?? 0.7);
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = freq;
-    osc.type = 'sine';
-    gain.gain.setValueAtTime(actualVol, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + dur);
+    const masterVol = (s.volume ?? 0.7);
+    // Use compressor to allow louder output without clipping
+    const compressor = ctx.createDynamicsCompressor();
+    compressor.threshold.value = -6;
+    compressor.ratio.value = 3;
+    compressor.connect(ctx.destination);
+
+    // Layer 3 oscillators for a thick, punchy sound
+    [freq, freq * 1.005, freq * 0.995].forEach(f => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(compressor);
+      osc.frequency.value = f;
+      osc.type = 'square';
+      const v = vol * masterVol * 1.8;
+      gain.gain.setValueAtTime(v, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + dur);
+    });
   } catch(e) {}
 }
 
@@ -1231,6 +1278,15 @@ function tripleBeep() {
   beep(880, 0.08, 0.3);
   setTimeout(() => beep(880, 0.08, 0.3), 150);
   setTimeout(() => beep(1100, 0.15, 0.4), 300);
+}
+
+function goBeep() {
+  if (!getSettings().beep) return;
+  // Three rapid low beeps then a long high GO tone
+  beep(660, 0.07, 0.35);
+  setTimeout(() => beep(660, 0.07, 0.35), 120);
+  setTimeout(() => beep(660, 0.07, 0.35), 240);
+  setTimeout(() => beep(1320, 0.45, 0.6), 380);
 }
 
 function flashBeep() {
@@ -1742,7 +1798,7 @@ function startNextSet() {
   setsState = 'work';
   setsSetStart = Date.now();
   setsTimeOffset = 0;
-  tripleBeep(); flashBeep();
+  goBeep(); flashBeep();
   updateSetsUI();
 }
 
@@ -1877,7 +1933,7 @@ function beginCountdown() {
     const overlay = document.getElementById('countdownOverlay');
     const numEl = document.getElementById('countdownNum');
     let count = appSettings.countdown;
-    if (count <= 0) { startSetsTimer(); return; }
+    if (count <= 0) { goBeep(); startSetsTimer(); return; }
     overlay.classList.add('active');
     numEl.textContent = count;
     if (appSettings.beep) beep(660, 0.15, 0.3);
@@ -1886,6 +1942,7 @@ function beginCountdown() {
       if (count <= 0) {
         clearInterval(tick);
         overlay.classList.remove('active');
+        goBeep();
         startSetsTimer();
       } else {
         numEl.textContent = count;
@@ -1900,7 +1957,7 @@ function beginCountdown() {
   const overlay = document.getElementById('countdownOverlay');
   const numEl = document.getElementById('countdownNum');
   let count = appSettings.countdown;
-  if (count <= 0) { startTimer(); return; }
+  if (count <= 0) { goBeep(); startTimer(); return; }
   overlay.classList.add('active');
   numEl.textContent = count;
   if (appSettings.beep) beep(660, 0.15, 0.3);
@@ -1910,6 +1967,7 @@ function beginCountdown() {
     if (count <= 0) {
       clearInterval(tick);
       overlay.classList.remove('active');
+      goBeep();
       startTimer();
     } else {
       numEl.textContent = count;
@@ -1940,7 +1998,6 @@ function startTimer() {
   amrapRoundNum = 0;
 
   document.getElementById('timerModeLabel').textContent = modeLabels[currentMode];
-  document.getElementById('pauseBtn').textContent = 'PAUSE';
 
   // Show split button only for fortime with splits enabled
   const splitBtn = document.getElementById('splitBtn');
@@ -1948,9 +2005,13 @@ function startTimer() {
   // Show round button only for amrap
   const roundBtn = document.getElementById('roundBtn');
   roundBtn.style.display = currentMode === 'amrap' ? 'flex' : 'none';
-  // Adjust pause flex
-  const hasExtra = (currentMode === 'fortime' && workoutConfig.splits) || currentMode === 'amrap';
-  document.getElementById('pauseBtn').style.flex = hasExtra ? '1' : '2';
+
+  // Reset pause hint
+  const hint = document.getElementById('timerPauseHint');
+  if (hint) hint.textContent = 'TAP TO PAUSE';
+  document.getElementById('timerTapZone').classList.remove('paused');
+  const lapList = document.getElementById('timerLapList');
+  if (lapList) lapList.innerHTML = '';
 
   setupTimerForMode();
   timerInterval = setInterval(tickTimer, 100);
@@ -1963,7 +2024,7 @@ function setupTimerForMode() {
     roundCount = 0;
     document.getElementById('timerPhase').textContent = 'AMRAP ' + cfg.mins + ' MIN';
     document.getElementById('timerRoundInfo').textContent = 'ROUND 0';
-    document.getElementById('timerSub').textContent = 'Tap ROUND when done!';
+    document.getElementById('timerSub').textContent = '';
   } else if (currentMode === 'emom') {
     totalDuration = cfg.mins * 60 * 1000;
     const ivMs = cfg.intervalMs || 60000;
@@ -2016,7 +2077,7 @@ function tickAmrap() {
   // Show current round elapsed time
   if (amrapRoundNum > 0) {
     const roundTime = elapsed - amrapLastRoundTime;
-    document.getElementById('timerSub').textContent = `Round ${amrapRoundNum + 1} — ${fmtMs(roundTime)}`;
+    // Track round time internally — not shown in sub
   }
 }
 
@@ -2030,7 +2091,7 @@ function tickEmom() {
   const totalRounds = Math.floor(totalDuration / ivMs);
   if (newRound !== currentRound) {
     currentRound = newRound;
-    tripleBeep(); flashBeep();
+    goBeep(); flashBeep();
     document.getElementById('timerRoundInfo').textContent = `${currentRound} / ${totalRounds}`;
   }
   updateDisplay(fmtSecs(Math.ceil(remaining / 1000)), remaining);
@@ -2050,12 +2111,12 @@ function tickForTime() {
   } else {
     document.getElementById('progressFill').style.width = '0%';
   }
-  // Update splits display
+  // Update splits display — removed from visible sub, only show in done screen
   if (cfg.splits && ftSplits.length > 0) {
     const sinceLastSplit = elapsed - ftLastSplitTime;
-    document.getElementById('timerSub').textContent = `Section ${ftSectionNum} — ${fmtMs(sinceLastSplit)}`;
+    // Keep tracking internally but don't show distracting sub-text
   } else if (cfg.splits) {
-    document.getElementById('timerSub').textContent = `Section 1 — tap SPLIT to mark`;
+    // no sub text
   }
 }
 
@@ -2067,8 +2128,33 @@ function recordSplit() {
   ftSectionNum++;
   beep(880, 0.1, 0.3); flashBeep();
   const btn = document.getElementById('splitBtn');
-  btn.style.background = 'rgba(255,77,0,0.2)';
-  setTimeout(() => btn.style.background = '', 200);
+  btn.style.background = '#fff';
+  setTimeout(() => btn.style.background = '#30d158', 150);
+  renderTimerLapList();
+}
+
+function renderTimerLapList() {
+  const list = document.getElementById('timerLapList');
+  if (!list) return;
+  if (currentMode === 'fortime' && ftSplits.length > 0) {
+    list.innerHTML = [...ftSplits].reverse().map(s =>
+      `<div class="lap-item">
+        <span class="lap-num" style="color:var(--accent2)">S${s.num}</span>
+        <span class="lap-label">Section ${s.num}</span>
+        <span class="lap-time" style="color:var(--accent2)">${fmtMs(s.duration)}</span>
+      </div>`
+    ).join('');
+  } else if (currentMode === 'amrap' && amrapRounds.length > 0) {
+    list.innerHTML = [...amrapRounds].reverse().map(r =>
+      `<div class="lap-item">
+        <span class="lap-num" style="color:#30d158">R${r.num}</span>
+        <span class="lap-label">Round ${r.num}</span>
+        <span class="lap-time" style="color:#30d158">${fmtMs(r.duration)}</span>
+      </div>`
+    ).join('');
+  } else {
+    list.innerHTML = '';
+  }
 }
 
 function recordAmrapRound() {
@@ -2078,11 +2164,10 @@ function recordAmrapRound() {
   amrapLastRoundTime = elapsed;
   document.getElementById('timerRoundInfo').textContent = `ROUND ${amrapRoundNum}`;
   beep(880, 0.1, 0.3); flashBeep();
-  // Flash the round button green
   const btn = document.getElementById('roundBtn');
   btn.style.background = '#fff';
   setTimeout(() => { btn.style.background = '#30d158'; }, 150);
-  document.getElementById('timerSub').textContent = `Round ${amrapRoundNum + 1} — 00:00`;
+  renderTimerLapList();
 }
 
 function tickTabata() {
@@ -2106,7 +2191,7 @@ function tickTabata() {
   }
 
   const wasWork = document.getElementById('timerPhase').textContent === 'WORK';
-  if (isWork && !wasWork) { tripleBeep(); flashBeep(); }
+  if (isWork && !wasWork) { goBeep(); flashBeep(); }
   if (!isWork && wasWork) { beep(440, 0.1, 0.2); flashBeep(); }
 
   document.getElementById('timerPhase').textContent = isWork ? 'WORK' : 'REST';
@@ -2170,12 +2255,33 @@ function updateProgress(ratio) {
 
 function togglePause() {
   isPaused = !isPaused;
+  const zone = document.getElementById('timerTapZone');
+  const hint = document.getElementById('timerPauseHint');
   if (isPaused) {
     pausedAt = Date.now();
-    document.getElementById('pauseBtn').textContent = 'RESUME';
+    hint.textContent = 'TAP TO RESUME';
+    zone.classList.add('paused');
   } else {
     startTime += Date.now() - pausedAt;
-    document.getElementById('pauseBtn').textContent = 'PAUSE';
+    hint.textContent = 'TAP TO PAUSE';
+    zone.classList.remove('paused');
+  }
+}
+
+function toggleSetsPause() {
+  setsPaused = !setsPaused;
+  const zone = document.getElementById('setsTapZone');
+  const hint = document.getElementById('setsPauseHint');
+  if (setsPaused) {
+    setsPausedAt = Date.now();
+    hint.textContent = 'TAP TO RESUME';
+    zone.classList.add('paused');
+  } else {
+    const pauseDur = Date.now() - setsPausedAt;
+    setsSetStart += pauseDur;
+    setsRestStart += pauseDur;
+    hint.textContent = 'TAP TO PAUSE';
+    zone.classList.remove('paused');
   }
 }
 
@@ -2532,11 +2638,19 @@ function deleteHistoryEntry(id) {
 }
 
 function confirmClearHistory() {
-  if (confirm('Clear all workout history? This cannot be undone.')) {
-    localStorage.removeItem('wodtimerHistory');
-    renderHistoryFilters();
-    renderHistoryList();
-  }
+  document.getElementById('clearHistoryModal').classList.add('active');
+}
+
+function closeClearHistoryModal() {
+  document.getElementById('clearHistoryModal').classList.remove('active');
+}
+
+function doClearHistory() {
+  localStorage.removeItem('wodtimerHistory');
+  closeClearHistoryModal();
+  renderHistoryFilters();
+  renderHistoryList();
+  showToast('History cleared');
 }
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
