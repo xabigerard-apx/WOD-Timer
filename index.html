@@ -1771,7 +1771,7 @@ function tickSets() {
     document.getElementById('setsDisplay').textContent = fmtSecs(Math.ceil(remaining / 1000));
     document.getElementById('setsDisplay').classList.add('rest-phase');
     const remainSec = Math.ceil(remaining/1000);
-    if (remainSec <= 3 && remainSec !== lastWarnSec) {
+    if (remainSec <= 3 && remainSec >= 1 && remainSec !== lastWarnSec) {
       lastWarnSec = remainSec;
       snapBeep();
     }
@@ -2311,8 +2311,8 @@ function warnColor(secs) {
   const warn = s.warnAt || 10;
   const el = document.getElementById('timerDisplay');
   el.classList.toggle('warning', secs <= warn && secs > 3);
-  el.classList.toggle('critical', secs <= 3 && secs > 0);
-  if (secs <= 3 && secs > 0 && s.beep && secs !== lastWarnSec) {
+  el.classList.toggle('critical', secs <= 3 && secs >= 1);
+  if (secs <= 3 && secs >= 1 && s.beep && secs !== lastWarnSec) {
     lastWarnSec = secs;
     snapBeep();
   }
