@@ -429,17 +429,25 @@
     align-items: center;
     justify-content: center;
     padding: 0 8px;
+    gap: 41px;
   }
+
+  .timer-center.custom-layout { gap: 41px; }
 
   .timer-phase {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    letter-spacing: 2px;
-    color: var(--accent);
-    margin-bottom: 4px;
-    min-height: 28px;
+    font-size: 80px;
+    letter-spacing: 5px;
+    color: #000;
+    background: var(--accent);
+    border-radius: 30px;
+    padding: 6px 28px;
     text-align: center;
+    margin-bottom: 0;
   }
+
+  /* override — keep pill color dynamic for custom mode (set via inline style) */
+  .timer-phase.pill { background: var(--phase-color, var(--accent)); }
 
   .timer-display {
     font-family: 'Bebas Neue', sans-serif;
@@ -465,6 +473,18 @@
     margin-top: 16px;
     text-align: center;
     min-height: 20px;
+  }
+
+  .timer-sub.pill {
+    color: #000;
+    background: #ccc;
+    border-radius: 30px;
+    padding: 4px 16px;
+    letter-spacing: 1px;
+  }
+
+  .timer-sub.custom-big {
+    font-size: 25px;
   }
 
   .progress-bar-wrap {
@@ -847,8 +867,8 @@
 
   /* SETS TIMER */
   #setsTimer { background: var(--bg); justify-content: space-between; }
-  .sets-center { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 12px; user-select:none; -webkit-user-select:none; }
-  .sets-phase { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:4px; color:#30d158; margin-bottom:8px; text-align:center; }
+  .sets-center { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 12px; user-select:none; -webkit-user-select:none; gap:41px; }
+  .sets-phase { font-family:'Bebas Neue',sans-serif; font-size:80px; letter-spacing:5px; color:#000; background:#30d158; border-radius:30px; padding:6px 28px; text-align:center; }
   .sets-display { font-family:'Bebas Neue',sans-serif; font-size:clamp(140px,40vw,220px); letter-spacing:4px; line-height:1; text-align:center; color:var(--text); margin-bottom:8px; }
   .sets-display.rest-phase { color:#00d4ff; }
   .sets-sub { font-family:'DM Mono',monospace; font-size:13px; color:var(--muted); margin-bottom:20px; text-align:center; min-height:18px; }
@@ -1245,26 +1265,26 @@ function getAudio() {
   return audioCtx;
 }
 
-function beep(freq = 880, dur = 0.12, vol = 0.3) {
+function beep(freq = 880, dur = 0.12, vol = 0.3, opts = {}) {
   try {
     const ctx = getAudio();
     const s = getSettings();
     const masterVol = (s.volume ?? 0.7);
-    // Use compressor to allow louder output without clipping
     const compressor = ctx.createDynamicsCompressor();
-    compressor.threshold.value = -6;
-    compressor.ratio.value = 3;
+    compressor.threshold.value = opts.limiterThreshold ?? -6;
+    compressor.ratio.value = opts.limiterRatio ?? 3;
     compressor.connect(ctx.destination);
 
-    // Layer 3 oscillators for a thick, punchy sound
-    [freq, freq * 1.005, freq * 0.995].forEach(f => {
+    const layers = opts.layers || [freq, freq * 1.005, freq * 0.995];
+    const type = opts.type || 'square';
+    layers.forEach(f => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain);
       gain.connect(compressor);
       osc.frequency.value = f;
-      osc.type = 'square';
-      const v = vol * masterVol * 1.8;
+      osc.type = type;
+      const v = Math.min(vol * masterVol * 1.8, 1.0);
       gain.gain.setValueAtTime(v, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
       osc.start(ctx.currentTime);
@@ -1282,11 +1302,26 @@ function tripleBeep() {
 
 function goBeep() {
   if (!getSettings().beep) return;
-  // Three rapid low beeps then a long high GO tone
-  beep(660, 0.07, 0.35);
-  setTimeout(() => beep(660, 0.07, 0.35), 120);
-  setTimeout(() => beep(660, 0.07, 0.35), 240);
-  setTimeout(() => beep(1320, 0.45, 0.6), 380);
+  // C-4: Two-tone airhorn (low->high), max gain, hard limiter to avoid distortion
+  const limOpts = { type: 'square', limiterThreshold: -24, limiterRatio: 12 };
+  beep(523, 0.2, 1.0, limOpts);
+  setTimeout(() => beep(784, 0.5, 1.0, limOpts), 180);
+}
+
+function snapBeep() {
+  if (!getSettings().beep) return;
+  // Option F: crisp two-stage snap — end-of-work / end-of-interval warning
+  beep(1000, 0.03, 0.6, { type: 'square' });
+  setTimeout(() => beep(600, 0.03, 0.3, { type: 'square' }), 20);
+}
+
+function phaseEndBeep() {
+  if (!getSettings().beep) return;
+  // snap snap snap → GO (orange button from sound check)
+  snapBeep();
+  setTimeout(snapBeep, 200);
+  setTimeout(snapBeep, 400);
+  setTimeout(goBeep, 650);
 }
 
 function flashBeep() {
@@ -1735,7 +1770,11 @@ function tickSets() {
     }
     document.getElementById('setsDisplay').textContent = fmtSecs(Math.ceil(remaining / 1000));
     document.getElementById('setsDisplay').classList.add('rest-phase');
-    if (Math.ceil(remaining/1000) <= 3) beep(660, 0.05, 0.15);
+    const remainSec = Math.ceil(remaining/1000);
+    if (remainSec <= 3 && remainSec !== lastWarnSec) {
+      lastWarnSec = remainSec;
+      snapBeep();
+    }
   }
 }
 
@@ -1744,14 +1783,14 @@ function updateSetsUI() {
   document.getElementById('setsRoundInfo').textContent = `SET ${setsCurrentSet} / ${cfg.sets}`;
   if (setsState === 'work') {
     document.getElementById('setsPhase').textContent = `SET ${setsCurrentSet}`;
-    document.getElementById('setsPhase').style.color = '#30d158';
+    document.getElementById('setsPhase').style.background = '#30d158';
     document.getElementById('setsSub').textContent = 'Tap DONE SET when finished';
     const btn = document.getElementById('setsLapBtn');
     btn.textContent = 'DONE SET';
     btn.className = 'sets-lap-btn';
   } else {
     document.getElementById('setsPhase').textContent = 'REST';
-    document.getElementById('setsPhase').style.color = '#00d4ff';
+    document.getElementById('setsPhase').style.background = '#00d4ff';
     document.getElementById('setsSub').textContent = `Set ${setsCurrentSet - 1} done — next up: Set ${setsCurrentSet}`;
     const btn = document.getElementById('setsLapBtn');
     btn.textContent = 'SKIP REST';
@@ -1764,12 +1803,13 @@ function completeSet() {
   if (setsState === 'work') {
     const setTime = Date.now() - setsSetStart - setsTimeOffset;
     setsLaps.push({ type: 'set', num: setsCurrentSet, time: setTime });
-    tripleBeep(); flashBeep();
+    phaseEndBeep(); flashBeep();
     renderLapList();
 
     if (setsCurrentSet >= setsConfig.sets) {
       clearInterval(setsInterval);
       releaseWakeLock();
+      phaseEndBeep();
       showSetsDone();
       return;
     }
@@ -1936,7 +1976,7 @@ function beginCountdown() {
     if (count <= 0) { goBeep(); startSetsTimer(); return; }
     overlay.classList.add('active');
     numEl.textContent = count;
-    if (appSettings.beep) beep(660, 0.15, 0.3);
+    if (appSettings.beep) beep(880, 0.12, 0.35);
     const tick = setInterval(() => {
       count--;
       if (count <= 0) {
@@ -1949,7 +1989,7 @@ function beginCountdown() {
         numEl.style.animation = 'none';
         void numEl.offsetWidth;
         numEl.style.animation = 'countPop 1s ease';
-        if (appSettings.beep) beep(count === 1 ? 880 : 660, 0.15, 0.3);
+        if (appSettings.beep) beep(880, 0.12, 0.35);
       }
     }, 1000);
     return;
@@ -1960,7 +2000,7 @@ function beginCountdown() {
   if (count <= 0) { goBeep(); startTimer(); return; }
   overlay.classList.add('active');
   numEl.textContent = count;
-  if (appSettings.beep) beep(660, 0.15, 0.3);
+  if (appSettings.beep) beep(880, 0.12, 0.35);
 
   const tick = setInterval(() => {
     count--;
@@ -1974,7 +2014,7 @@ function beginCountdown() {
       numEl.style.animation = 'none';
       void numEl.offsetWidth;
       numEl.style.animation = 'countPop 1s ease';
-      if (appSettings.beep) beep(count === 1 ? 880 : 660, 0.15, 0.3);
+      if (appSettings.beep) beep(880, 0.12, 0.35);
     }
   }, 1000);
 }
@@ -2013,6 +2053,19 @@ function startTimer() {
   const lapList = document.getElementById('timerLapList');
   if (lapList) lapList.innerHTML = '';
 
+  // Custom mode: bigger interval name (pill) + bigger "Next" text (pill)
+  const phaseEl = document.getElementById('timerPhase');
+  const subEl = document.getElementById('timerSub');
+  const isCustom = currentMode === 'custom';
+  phaseEl.classList.toggle('pill', isCustom);
+  subEl.classList.toggle('pill', isCustom);
+  subEl.classList.toggle('custom-big', isCustom);
+  document.getElementById('timerTapZone').classList.toggle('custom-layout', isCustom);
+  if (!isCustom) {
+    phaseEl.style.background = '';
+    subEl.style.background = '';
+  }
+
   setupTimerForMode();
   timerInterval = setInterval(tickTimer, 100);
 }
@@ -2043,14 +2096,15 @@ function setupTimerForMode() {
     currentRound = 1;
     document.getElementById('timerPhase').textContent = 'WORK';
     document.getElementById('timerRoundInfo').textContent = `1 / ${cfg.rounds}`;
-    document.getElementById('timerPhase').style.color = '#e8ff00';
+    document.getElementById('timerPhase').style.background = 'var(--accent)';
   } else if (currentMode === 'custom') {
     const total = cfg.intervals.reduce((s, iv) => s + iv.duration, 0) * (cfg.loops || 1);
     totalDuration = total;
     if (cfg.intervals.length > 0) {
       const iv = cfg.intervals[0];
       document.getElementById('timerPhase').textContent = iv.name;
-      document.getElementById('timerPhase').style.color = iv.color;
+      document.getElementById('timerPhase').style.background = iv.color;
+      updateCustomNextText(cfg, 0);
     }
     document.getElementById('timerRoundInfo').textContent = `LOOP 1 / ${cfg.loops || 1}`;
   }
@@ -2186,19 +2240,28 @@ function tickTabata() {
 
   if (round !== currentRound) {
     currentRound = round;
-    tripleBeep(); flashBeep();
+    phaseEndBeep(); flashBeep();
     document.getElementById('timerRoundInfo').textContent = `${round} / ${cfg.rounds}`;
   }
 
   const wasWork = document.getElementById('timerPhase').textContent === 'WORK';
   if (isWork && !wasWork) { goBeep(); flashBeep(); }
-  if (!isWork && wasWork) { beep(440, 0.1, 0.2); flashBeep(); }
+  if (!isWork && wasWork) { goBeep(); flashBeep(); }
 
   document.getElementById('timerPhase').textContent = isWork ? 'WORK' : 'REST';
-  document.getElementById('timerPhase').style.color = isWork ? '#e8ff00' : '#00d4ff';
+  document.getElementById('timerPhase').style.background = isWork ? 'var(--accent)' : 'var(--accent3)';
   updateDisplay(fmtSecs(Math.ceil(remaining / 1000)), remaining);
   warnColor(Math.ceil(remaining / 1000));
   updateProgress(elapsed / totalDuration);
+}
+
+function updateCustomNextText(cfg, currentIdx) {
+  const subEl = document.getElementById('timerSub');
+  const intervals = cfg.intervals;
+  if (!intervals || intervals.length === 0) { subEl.textContent = ''; return; }
+  const nextIdx = (currentIdx + 1) % intervals.length;
+  const next = intervals[nextIdx];
+  subEl.textContent = `NEXT: ${next.name} · ${fmtMs(next.duration)}`;
 }
 
 function tickCustom() {
@@ -2225,9 +2288,10 @@ function tickCustom() {
 
   if (ivIdx !== currentIntervalIdx) {
     currentIntervalIdx = ivIdx;
-    tripleBeep(); flashBeep();
+    phaseEndBeep(); flashBeep();
     document.getElementById('timerPhase').textContent = iv.name;
-    document.getElementById('timerPhase').style.color = iv.color;
+    document.getElementById('timerPhase').style.background = iv.color;
+    updateCustomNextText(cfg, ivIdx);
   }
 
   document.getElementById('timerRoundInfo').textContent = `LOOP ${loopIdx + 1} / ${loops}`;
@@ -2240,13 +2304,19 @@ function updateDisplay(txt, remaining) {
   document.getElementById('timerDisplay').textContent = txt;
 }
 
+let lastWarnSec = -1;
+
 function warnColor(secs) {
   const s = getSettings();
   const warn = s.warnAt || 10;
   const el = document.getElementById('timerDisplay');
   el.classList.toggle('warning', secs <= warn && secs > 3);
   el.classList.toggle('critical', secs <= 3 && secs > 0);
-  if (secs <= 3 && secs > 0 && s.beep) beep(660, 0.05, 0.15);
+  if (secs <= 3 && secs > 0 && s.beep && secs !== lastWarnSec) {
+    lastWarnSec = secs;
+    snapBeep();
+  }
+  if (secs > 3) lastWarnSec = -1;
 }
 
 function updateProgress(ratio) {
@@ -2298,8 +2368,7 @@ function stopTimer() {
 function endTimer() {
   clearTimer();
   releaseWakeLock();
-  tripleBeep();
-  tripleBeep();
+  phaseEndBeep();
   const banner = document.getElementById('finishBanner');
   banner.classList.add('active');
   setTimeout(() => { banner.classList.remove('active'); showDone(false); }, 1200);
