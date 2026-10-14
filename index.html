@@ -38,23 +38,29 @@
     overflow-x: hidden;
   }
 
-  /* SCREENS */
+  /* GESTION VISIBILITÉ ÉCRANS */
   .screen { 
-    display: none; 
+    display: none !important; 
     min-height: 100vh;
     min-height: 100dvh;
     flex-direction: column; 
   }
-  .screen.active { display: flex; }
+  .screen.active { 
+    display: flex !important; 
+  }
 
-  /* ÉCRANS CHRONO : AUCUN DÉFILEMENT */
+  /* ÉCRANS TIMER PLEIN ÉCRAN SANS SCROLLBAR */
   #timer.active, #setsTimer.active {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
     height: 100vh;
     height: 100dvh;
     max-height: 100dvh;
     overflow: hidden !important;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--bg);
+    padding: 24px 20px 28px;
+    justify-content: space-between;
+    z-index: 50;
   }
 
   /* HOME */
@@ -322,16 +328,7 @@
     cursor: pointer;
   }
 
-  /* TIMER LAYOUT (STRICT FULLSCREEN) */
-  #timer, #setsTimer {
-    background: var(--bg);
-    display: none;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100dvh;
-    padding: 24px 20px 28px;
-  }
-
+  /* ÉLÉMENTS DU CHRONOMÈTRE */
   .timer-top {
     display: flex;
     align-items: center;
@@ -382,7 +379,7 @@
 
   .timer-display, .sets-display {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(110px, 32vw, 210px);
+    font-size: clamp(100px, 30vw, 200px);
     letter-spacing: 2px;
     line-height: 0.88;
     text-align: center;
@@ -421,7 +418,6 @@
     min-height: 18px;
   }
 
-  /* LISTE DES TOURS & SPLITS */
   .timer-lap-compact {
     flex-shrink: 0;
     max-height: 110px;
@@ -674,46 +670,7 @@
     cursor: pointer;
   }
 
-  /* HISTORY & SAVED CARDS */
   .saved-list { padding: 16px 20px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-  .saved-card, .history-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px 18px;
-    cursor: pointer;
-  }
-  .history-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-  .history-mode-badge { font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
-  .history-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-left: auto; }
-  .history-time { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 2px; line-height: 1; margin-bottom: 6px; }
-  .history-meta { font-size: 12px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; }
-  .history-splits-preview { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
-  .split-pill { font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 8px; background: var(--surface2); border-radius: 4px; color: var(--muted); }
-  .split-pill.set-pill { color: #30d158; }
-  .split-pill.section-pill { color: var(--accent2); }
-
-  /* INTERVALS */
-  .interval-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 8px;
-  }
-  .interval-color { width: 10px; height: 10px; border-radius: 50%; }
-  .interval-name { flex: 1; font-size: 14px; font-weight: 500; }
-  .interval-time { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
-  .interval-del { background: none; border: none; color: var(--danger); font-size: 18px; cursor: pointer; }
-  .add-interval-btn {
-    width: 100%; padding: 14px; background: none;
-    border: 1px dashed var(--border); border-radius: 12px;
-    color: var(--muted); font-size: 13px; cursor: pointer;
-  }
-
   .volume-slider {
     -webkit-appearance: none;
     appearance: none;
@@ -731,7 +688,7 @@
 
 <div class="beep-overlay" id="beepOverlay"></div>
 
-<div class="countdown-overlay" id="countdownOverlay" onclick="pauseCountdown()">
+<div class="countdown-overlay" id="countdownOverlay">
   <div class="countdown-num" id="countdownNum">3</div>
   <div class="countdown-label">GET READY</div>
 </div>
@@ -748,33 +705,6 @@
     <div class="modal-btns">
       <button class="modal-btn cancel" onclick="closeSaveModal()">ANNULER</button>
       <button class="modal-btn confirm" onclick="confirmSave()">ENREGISTRER</button>
-    </div>
-  </div>
-</div>
-
-<!-- ADD INTERVAL MODAL -->
-<div class="modal-overlay" id="intervalModal">
-  <div class="modal">
-    <div class="modal-title">NOUVEL INTERVALLE</div>
-    <input type="text" class="text-input" id="intervalNameInput" placeholder="Ex: Travail, Repos, Row...">
-    <div class="form-label">DURÉE</div>
-    <div class="form-row" style="margin-bottom:20px">
-      <div class="num-input-wrap">
-        <button class="num-btn" onclick="adjInterval('min',-1)">−</button>
-        <span class="num-val" id="intMinVal">0</span>
-        <span class="num-unit">MIN</span>
-        <button class="num-btn" onclick="adjInterval('min',1)">+</button>
-      </div>
-      <div class="num-input-wrap">
-        <button class="num-btn" onclick="adjInterval('sec',-5)">−</button>
-        <span class="num-val" id="intSecVal">30</span>
-        <span class="num-unit">SEC</span>
-        <button class="num-btn" onclick="adjInterval('sec',5)">+</button>
-      </div>
-    </div>
-    <div class="modal-btns">
-      <button class="modal-btn cancel" onclick="closeIntervalModal()">ANNULER</button>
-      <button class="modal-btn confirm" onclick="confirmInterval()">AJOUTER</button>
     </div>
   </div>
 </div>
@@ -806,30 +736,15 @@
       <span class="mode-name">TABATA</span>
       <div class="mode-desc">Intervalles 20s/10s</div>
     </div>
-    <div class="mode-card custom" onclick="goSetup('custom')">
-      <span class="mode-icon">⚡</span>
-      <span class="mode-name">CUSTOM</span>
-      <div class="mode-desc">Séquences personnalisées</div>
-    </div>
     <div class="mode-card sets" onclick="goSetup('sets')">
       <span class="mode-icon">💪</span>
       <span class="mode-name">SETS</span>
       <div class="mode-desc">Chrono par set + repos fixe ou 1:1</div>
     </div>
-    <div class="mode-card saved" onclick="showSaved()">
-      <span class="mode-icon">📋</span>
-      <span class="mode-name">SAVED</span>
-      <div class="mode-desc">Workouts sauvegardés</div>
-    </div>
-    <div class="mode-card history" onclick="showHistory()">
-      <span class="mode-icon">📈</span>
-      <span class="mode-name">HISTORY</span>
-      <div class="mode-desc">Historique & statistiques</div>
-    </div>
     <div class="mode-card settings" onclick="showSettings()">
       <span class="mode-icon">⚙️</span>
       <span class="mode-name">SETTINGS</span>
-      <div class="mode-desc">Volume, son & signaux</div>
+      <div class="mode-desc">Volume, son & décompte</div>
     </div>
   </div>
 </div>
@@ -931,41 +846,28 @@
   <button class="home-btn" onclick="goHome()">RETOUR</button>
 </div>
 
-<!-- ===== SAVED SCREEN ===== -->
-<div class="screen" id="saved">
-  <div class="screen-header">
-    <button class="back-btn" onclick="goHome()">←</button>
-    <div class="screen-title">SAVED</div>
-  </div>
-  <div class="saved-list" id="savedList"></div>
-</div>
-
-<!-- ===== HISTORY SCREEN ===== -->
-<div class="screen" id="history">
-  <div class="screen-header">
-    <button class="back-btn" onclick="goHome()">←</button>
-    <div class="screen-title">HISTORY</div>
-  </div>
-  <div class="saved-list" id="historyList"></div>
-</div>
-
 <script>
 // ─── AUDIO SYSTEM ────────────────────────────────────────────────────────────
 let audioCtx = null;
 function getAudio() {
-  if (!audioCtx) {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    audioCtx = new AudioContext();
+  try {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  } catch(e) {
+    return null;
   }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-  return audioCtx;
 }
 
 function beep(freq = 880, dur = 0.1, vol = 0.5) {
   try {
     const ctx = getAudio();
+    if (!ctx) return;
     const s = getSettings();
     const masterVol = s.volume ?? 0.7;
     const osc = ctx.createOscillator();
@@ -992,8 +894,10 @@ function snapBeep() {
 
 function flashBeep() {
   const overlay = document.getElementById('beepOverlay');
-  overlay.classList.add('flash');
-  setTimeout(() => overlay.classList.remove('flash'), 120);
+  if (overlay) {
+    overlay.classList.add('flash');
+    setTimeout(() => overlay.classList.remove('flash'), 120);
+  }
 }
 
 // ─── WAKE LOCK ───────────────────────────────────────────────────────────────
@@ -1004,7 +908,9 @@ async function requestWakeLock() {
   } catch(e) {}
 }
 function releaseWakeLock() {
-  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  try {
+    if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  } catch(e) {}
 }
 
 // ─── ÉTAT GLOBAL ─────────────────────────────────────────────────────────────
@@ -1017,9 +923,7 @@ let pausedAt = 0;
 let totalDuration = 0;
 let currentRound = 1;
 let workoutConfig = {};
-let customIntervals = [];
 
-// For Time & AMRAP Splits
 let ftSplits = [];
 let ftLastSplitTime = 0;
 let ftSectionNum = 1;
@@ -1027,9 +931,8 @@ let amrapRounds = [];
 let amrapLastRoundTime = 0;
 let amrapRoundNum = 0;
 
-// SETS TIMER
 let setsInterval = null;
-let setsState = 'work'; // 'work' | 'rest'
+let setsState = 'work';
 let setsCurrentSet = 1;
 let setsSetStart = 0;
 let setsRestStart = 0;
@@ -1043,17 +946,18 @@ let lastWarnSec = -1;
 
 const modeLabels = {
   amrap: 'AMRAP', emom: 'EMOM', fortime: 'FOR TIME',
-  tabata: 'TABATA', custom: 'CUSTOM', sets: 'SETS'
+  tabata: 'TABATA', sets: 'SETS'
 };
 
 const modeColors = {
   amrap: '#e8ff00', emom: '#00d4ff', fortime: '#ff4d00',
-  tabata: '#ff2d78', custom: '#bf5af2', sets: '#30d158'
+  tabata: '#ff2d78', sets: '#30d158'
 };
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  const target = document.getElementById(id);
+  if (target) target.classList.add('active');
 }
 
 function goHome() {
@@ -1125,6 +1029,7 @@ function renderSetupForm(mode, config) {
   } else if (mode === 'fortime') {
     const cap = config?.cap ?? 20;
     const splits = config?.splits ?? true;
+    currentSplitsOption = splits;
     form.innerHTML = `
       <div class="form-group">
         <label class="form-label">TIME CAP (0 = AUCUN)</label>
@@ -1172,9 +1077,10 @@ function renderSetupForm(mode, config) {
       </div>`;
   } else if (mode === 'sets') {
     const sets = config?.sets ?? 5;
-    const restType = config?.restType ?? 'fixed'; // 'none' | 'fixed' | '1to1'
+    const restType = config?.restType ?? 'fixed';
     const restMin = config?.restMin ?? 2;
     const restSec = config?.restSec ?? 0;
+    activeRestMode = restType;
 
     form.innerHTML = `
       <div class="form-group">
@@ -1213,31 +1119,32 @@ function renderSetupForm(mode, config) {
           Le repos s'ajuste automatiquement : si votre série prend 1 min 15 s, vous aurez 1 min 15 s de repos.
         </div>
       </div>`;
-  } else if (mode === 'custom') {
-    renderCustomForm();
   }
 }
 
 let currentSplitsOption = true;
 function setSplitsOption(enabled) {
   currentSplitsOption = enabled;
-  document.getElementById('splitsOnBtn').classList.toggle('active', enabled);
-  document.getElementById('splitsOffBtn').classList.toggle('active', !enabled);
+  document.getElementById('splitsOnBtn')?.classList.toggle('active', enabled);
+  document.getElementById('splitsOffBtn')?.classList.toggle('active', !enabled);
 }
 
 let activeRestMode = 'fixed';
 function setRestMode(type) {
   activeRestMode = type;
-  document.getElementById('restBtnFixed').classList.toggle('active', type === 'fixed');
-  document.getElementById('restBtn1to1').classList.toggle('active', type === '1to1');
-  document.getElementById('restBtnNone').classList.toggle('active', type === 'none');
+  document.getElementById('restBtnFixed')?.classList.toggle('active', type === 'fixed');
+  document.getElementById('restBtn1to1')?.classList.toggle('active', type === '1to1');
+  document.getElementById('restBtnNone')?.classList.toggle('active', type === 'none');
 
-  document.getElementById('fixedRestInputs').style.display = type === 'fixed' ? 'flex' : 'none';
-  document.getElementById('restHint1to1').style.display = type === '1to1' ? 'block' : 'none';
+  const fixWrap = document.getElementById('fixedRestInputs');
+  const hint11 = document.getElementById('restHint1to1');
+  if (fixWrap) fixWrap.style.display = type === 'fixed' ? 'flex' : 'none';
+  if (hint11) hint11.style.display = type === '1to1' ? 'block' : 'none';
 }
 
 function adj(id, delta, min, max) {
   const el = document.getElementById(id);
+  if (!el) return;
   const val = Math.max(min, Math.min(max, parseInt(el.textContent) + delta));
   el.textContent = val;
 }
@@ -1276,22 +1183,20 @@ function getConfig() {
       restSec: parseInt(document.getElementById('restSec')?.textContent || 0)
     };
   }
-  if (currentMode === 'custom') {
-    return { intervals: [...customIntervals] };
-  }
   return {};
 }
 
-// ─── COMPTE À REBOURS DE DÉPART ──────────────────────────────────────────────
+// ─── COUNTDOWN SÉCURISÉ ──────────────────────────────────────────────────────
 function beginCountdown() {
-  getAudio(); // initialise le contexte sur le tap
+  getAudio();
   workoutConfig = getConfig();
   const settings = getSettings();
   let count = settings.countdown ?? 3;
 
   if (count <= 0) {
     goBeep();
-    currentMode === 'sets' ? startSetsTimer() : startTimer();
+    if (currentMode === 'sets') startSetsTimer();
+    else startTimer();
     return;
   }
 
@@ -1307,7 +1212,11 @@ function beginCountdown() {
       clearInterval(timer);
       overlay.classList.remove('active');
       goBeep();
-      currentMode === 'sets' ? startSetsTimer() : startTimer();
+      if (currentMode === 'sets') {
+        startSetsTimer();
+      } else {
+        startTimer();
+      }
     } else {
       numEl.textContent = count;
       beep(880, 0.12, 0.35);
@@ -1315,7 +1224,7 @@ function beginCountdown() {
   }, 1000);
 }
 
-// ─── TIMER PRINCIPAL (AMRAP, EMOM, FOR TIME, TABATA) ─────────────────────────
+// ─── TIMER PRINCIPAL ─────────────────────────────────────────────────────────
 function startTimer() {
   requestWakeLock();
   showScreen('timer');
@@ -1500,7 +1409,7 @@ function endTimer() {
   }, 1200);
 }
 
-// ─── SETS TIMER AVEC OPTION 1:1 ──────────────────────────────────────────────
+// ─── TIMER SETS AVEC OPTION 1:1 DIRECTEMENT OPÉRATIONNELLE ───────────────────
 function startSetsTimer() {
   requestWakeLock();
   setsConfig = workoutConfig;
@@ -1563,9 +1472,8 @@ function completeSet() {
       setsTimeOffset = 0;
       updateSetsUI();
     } else {
-      // Détermination du temps de repos (Fixe ou 1:1)
       if (setsConfig.restType === '1to1') {
-        setsTargetRestMs = setTime; // REPOS 1:1 STRICT
+        setsTargetRestMs = setTime; // Repos égal au temps passé sur le set
       } else {
         setsTargetRestMs = (setsConfig.restMin * 60 + setsConfig.restSec) * 1000;
       }
@@ -1577,7 +1485,6 @@ function completeSet() {
       updateSetsUI();
     }
   } else {
-    // Passer le repos
     startNextSet();
   }
 }
@@ -1610,7 +1517,7 @@ function updateSetsUI() {
     phase.style.background = 'var(--accent3)';
     btn.textContent = 'SKIP REST';
     btn.className = 'sets-lap-btn rest-btn';
-    sub.textContent = setsConfig.restType === '1to1' ? 'Repos 1:1 (égal au set précédent)' : 'Repos en décompte';
+    sub.textContent = setsConfig.restType === '1to1' ? 'Repos 1:1 égal au set' : 'Repos en décompte';
   }
 }
 
@@ -1649,7 +1556,7 @@ function stopSets() {
 
 function showSetsSummary(stopped = false) {
   showScreen('done');
-  document.getElementById('doneSub').textContent = stopped ? 'ENTRAÎNEMENT ARRÊTÉ' : 'SETS TERMINÉS';
+  document.getElementById('doneSub').textContent = stopped ? 'ARRÊTÉ PRÉMATURÉMENT' : 'SÉRIES TERMINÉES';
   const sets = setsLaps.filter(l => l.type === 'set');
 
   let html = `<div class="done-stat"><span class="done-stat-label">Séries complétées</span><span class="done-stat-val">${sets.length} / ${setsConfig.sets}</span></div>`;
@@ -1720,8 +1627,6 @@ function adjSetting(id, d, min, max) {
 function openSaveModal() { document.getElementById('saveModal').classList.add('active'); }
 function closeSaveModal() { document.getElementById('saveModal').classList.remove('active'); }
 function confirmSave() { closeSaveModal(); }
-function showSaved() { showScreen('saved'); }
-function showHistory() { showScreen('history'); }
 </script>
 </body>
 </html>
