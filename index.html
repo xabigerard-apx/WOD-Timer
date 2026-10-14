@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -39,7 +39,7 @@
     overflow-x: hidden;
   }
 
-  /* SYSTÈME D'ÉCRANS */
+  /* SCREENS SYSTEM */
   .screen {
     display: none;
     width: 100%;
@@ -48,7 +48,7 @@
     flex-direction: column;
   }
 
-  /* CHRONOS : PLEIN ÉCRAN STRICT SANS AUCUNE BARRE DÉFILANTE */
+  /* FULLSCREEN STRICT TIMER MODES WITHOUT SCROLLBARS */
   .timer-screen-mode {
     display: none;
     position: fixed;
@@ -131,7 +131,7 @@
   .mode-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--text); display: block; }
   .mode-desc { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
 
-  /* SETUP & GESTION */
+  /* SETUP */
   .screen-header {
     display: flex;
     align-items: center;
@@ -277,7 +277,7 @@
     cursor: pointer;
   }
 
-  /* TIMERS INTERNE */
+  /* TIMERS INTERNAL UI */
   .timer-top { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .timer-mode-label { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 3px; color: var(--muted); }
   .timer-round-info { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 2px; color: var(--accent); }
@@ -377,7 +377,7 @@
   }
   .sets-lap-btn.rest-btn { background: var(--accent3); }
 
-  /* OVERLAYS */
+  /* COUNTDOWN OVERLAY */
   .countdown-overlay {
     position: fixed;
     inset: 0;
@@ -463,7 +463,7 @@
   .modal-btn.confirm { background: var(--accent); color: #000; }
   .modal-btn.cancel { background: var(--surface2); color: var(--text); }
 
-  /* CUSTOM INTERVALS LIST & PICKER */
+  /* CUSTOM INTERVALS */
   .interval-item {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -492,7 +492,7 @@
   }
   .color-opt.selected { border-color: var(--text); transform: scale(1.1); }
 
-  /* HISTORY & SAVED */
+  /* HISTORY & SAVED CARDS */
   .filter-pill {
     padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
     background: none; color: var(--muted); font-family: 'DM Mono', monospace;
@@ -511,11 +511,6 @@
   .history-mode-badge { font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
   .history-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-left: auto; }
   .history-time { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 2px; line-height: 1; margin-bottom: 6px; }
-  .history-meta { font-size: 12px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; }
-  .history-splits-preview { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
-  .split-pill { font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 8px; background: var(--surface2); border-radius: 4px; color: var(--muted); }
-  .split-pill.set-pill { color: #30d158; }
-  .split-pill.section-pill { color: var(--accent2); }
 
   .detail-section { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 10px; }
   .detail-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
@@ -525,7 +520,7 @@
   .detail-row-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
   .detail-row-val { font-family: 'Bebas Neue', sans-serif; font-size: 20px; }
 
-  /* DONE */
+  /* DONE SCREEN */
   #done {
     background: var(--bg);
     align-items: center;
@@ -559,23 +554,25 @@
 
 <div class="beep-overlay" id="beepOverlay"></div>
 
+<!-- COUNTDOWN OVERLAY -->
 <div class="countdown-overlay" id="countdownOverlay">
   <div class="countdown-num" id="countdownNum">3</div>
   <div class="countdown-label">GET READY</div>
 </div>
 
+<!-- FINISH BANNER -->
 <div class="finish-banner" id="finishBanner">
   <div class="finish-text">TIME!</div>
 </div>
 
-<!-- SAVE MODAL -->
+<!-- SAVE WORKOUT MODAL -->
 <div class="modal-overlay" id="saveModal">
   <div class="modal">
     <div class="modal-title">SAVE WORKOUT</div>
-    <input type="text" class="text-input" id="saveNameInput" placeholder="Nom du workout..." maxlength="30">
+    <input type="text" class="text-input" id="saveNameInput" placeholder="Workout name..." maxlength="30">
     <div class="modal-btns">
-      <button class="modal-btn cancel" onclick="closeSaveModal()">ANNULER</button>
-      <button class="modal-btn confirm" onclick="confirmSave()">ENREGISTRER</button>
+      <button class="modal-btn cancel" onclick="closeSaveModal()">CANCEL</button>
+      <button class="modal-btn confirm" onclick="confirmSave()">SAVE</button>
     </div>
   </div>
 </div>
@@ -583,9 +580,9 @@
 <!-- ADD INTERVAL MODAL -->
 <div class="modal-overlay" id="intervalModal">
   <div class="modal">
-    <div class="modal-title">NOUVEL INTERVALLE</div>
-    <input type="text" class="text-input" id="intervalNameInput" placeholder="Ex: Work, Rest, Row, Bike...">
-    <div class="form-label">DURÉE</div>
+    <div class="modal-title">ADD INTERVAL</div>
+    <input type="text" class="text-input" id="intervalNameInput" placeholder="Interval name (e.g. Work, Rest, Row...)">
+    <div class="form-label">DURATION</div>
     <div class="form-row" style="margin-bottom:20px">
       <div class="num-input-wrap">
         <button class="num-btn" onclick="adjInterval('min',-1)">−</button>
@@ -600,7 +597,7 @@
         <button class="num-btn" onclick="adjInterval('sec',5)">+</button>
       </div>
     </div>
-    <div class="form-label">COULEUR</div>
+    <div class="form-label">COLOR</div>
     <div class="color-picker" id="colorPicker">
       <div class="color-opt selected" data-color="#e8ff00" style="background:#e8ff00"></div>
       <div class="color-opt" data-color="#00d4ff" style="background:#00d4ff"></div>
@@ -610,8 +607,8 @@
       <div class="color-opt" data-color="#bf5af2" style="background:#bf5af2"></div>
     </div>
     <div class="modal-btns">
-      <button class="modal-btn cancel" onclick="closeIntervalModal()">ANNULER</button>
-      <button class="modal-btn confirm" onclick="confirmInterval()">AJOUTER</button>
+      <button class="modal-btn cancel" onclick="closeIntervalModal()">CANCEL</button>
+      <button class="modal-btn confirm" onclick="confirmInterval()">ADD</button>
     </div>
   </div>
 </div>
@@ -636,37 +633,37 @@
     <div class="mode-card fortime" onclick="goSetup('fortime')">
       <span class="mode-icon">🏁</span>
       <span class="mode-name">FOR TIME</span>
-      <div class="mode-desc">Chrono avec cap & splits</div>
+      <div class="mode-desc">Count up with cap & splits</div>
     </div>
     <div class="mode-card tabata" onclick="goSetup('tabata')">
       <span class="mode-icon">🔥</span>
       <span class="mode-name">TABATA</span>
-      <div class="mode-desc">Intervalles 20s/10s</div>
+      <div class="mode-desc">20s work / 10s rest intervals</div>
     </div>
     <div class="mode-card custom" onclick="goSetup('custom')">
       <span class="mode-icon">⚡</span>
       <span class="mode-name">CUSTOM</span>
-      <div class="mode-desc">Séquences d'intervalles sur mesure</div>
+      <div class="mode-desc">Build your custom interval sequence</div>
     </div>
     <div class="mode-card sets" onclick="goSetup('sets')">
       <span class="mode-icon">💪</span>
       <span class="mode-name">SETS</span>
-      <div class="mode-desc">Chrono par set + repos fixe ou 1:1</div>
+      <div class="mode-desc">Set timer with fixed or 1:1 rest</div>
     </div>
     <div class="mode-card saved" onclick="showSaved()">
       <span class="mode-icon">📋</span>
       <span class="mode-name">SAVED</span>
-      <div class="mode-desc">Workouts sauvegardés</div>
+      <div class="mode-desc">Your saved workouts</div>
     </div>
     <div class="mode-card history" onclick="showHistory()">
       <span class="mode-icon">📈</span>
       <span class="mode-name">HISTORY</span>
-      <div class="mode-desc">Historique & splits</div>
+      <div class="mode-desc">Workout logs & split records</div>
     </div>
     <div class="mode-card settings" onclick="showSettings()">
       <span class="mode-icon">⚙️</span>
       <span class="mode-name">SETTINGS</span>
-      <div class="mode-desc">Bips, flash & options</div>
+      <div class="mode-desc">Audio, screen flash & countdown</div>
     </div>
   </div>
 </div>
@@ -682,21 +679,21 @@
   <div class="bottom-action">
     <button class="start-btn" onclick="beginCountdown()">START WORKOUT</button>
     <div class="save-row">
-      <button class="save-btn" onclick="openSaveModal()">💾 SAUVEGARDER</button>
+      <button class="save-btn" onclick="openSaveModal()">💾 SAVE WORKOUT</button>
     </div>
   </div>
 </div>
 
-<!-- ===== TIMER STANDARD (AMRAP, EMOM, FOR TIME, TABATA, CUSTOM) ===== -->
+<!-- ===== STANDARD TIMER SCREEN (AMRAP, EMOM, FOR TIME, TABATA, CUSTOM) ===== -->
 <div class="timer-screen-mode" id="timer">
   <div class="timer-top">
     <div class="timer-mode-label" id="timerModeLabel">AMRAP</div>
     <div class="timer-round-info" id="timerRoundInfo"></div>
   </div>
   <div class="timer-center" id="timerTapZone" onclick="togglePause()" style="cursor:pointer">
-    <div class="timer-phase" id="timerPhase">TRAVAIL</div>
+    <div class="timer-phase" id="timerPhase">WORK</div>
     <div class="timer-display" id="timerDisplay">00:00</div>
-    <div class="timer-pause-hint" id="timerPauseHint">TOUCHER POUR PAUSE</div>
+    <div class="timer-pause-hint" id="timerPauseHint">TAP TO PAUSE</div>
     <div class="timer-sub" id="timerSub"></div>
   </div>
   <div class="timer-lap-compact" id="timerLapList"></div>
@@ -708,11 +705,11 @@
   <div class="timer-controls">
     <button class="ctrl-btn danger" onclick="stopTimer(); event.stopPropagation()">STOP</button>
     <button class="ctrl-btn" id="splitBtn" onclick="recordSplit(); event.stopPropagation()" style="display:none;background:var(--success);color:#000">SPLIT</button>
-    <button class="ctrl-btn" id="roundBtn" onclick="recordAmrapRound(); event.stopPropagation()" style="display:none;background:var(--accent);color:#000">TOUR</button>
+    <button class="ctrl-btn" id="roundBtn" onclick="recordAmrapRound(); event.stopPropagation()" style="display:none;background:var(--accent);color:#000">ROUND</button>
   </div>
 </div>
 
-<!-- ===== TIMER SETS (OPTION 1:1) ===== -->
+<!-- ===== SETS TIMER SCREEN (1:1 REST RATIO SUPPORTED) ===== -->
 <div class="timer-screen-mode" id="setsTimer">
   <div class="timer-top">
     <div class="timer-mode-label">SETS</div>
@@ -721,8 +718,8 @@
   <div class="sets-center" id="setsTapZone" onclick="toggleSetsPause()" style="cursor:pointer">
     <div class="sets-phase" id="setsPhase">SET 1</div>
     <div class="sets-display" id="setsDisplay">00:00</div>
-    <div class="timer-pause-hint" id="setsPauseHint">TOUCHER POUR PAUSE</div>
-    <div class="sets-sub" id="setsSub">Appuie sur DONE SET à la fin de la série</div>
+    <div class="timer-pause-hint" id="setsPauseHint">TAP TO PAUSE</div>
+    <div class="sets-sub" id="setsSub">Tap DONE SET when finished</div>
   </div>
   <div class="timer-lap-compact" id="setsLapList"></div>
   <div class="sets-controls">
@@ -745,7 +742,7 @@
   <div class="screen-header">
     <button class="back-btn" onclick="goHome()">←</button>
     <div class="screen-title">HISTORY</div>
-    <button onclick="clearAllHistory()" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;padding:6px 12px;cursor:pointer;font-family:'DM Mono',monospace;">EFFACER</button>
+    <button onclick="clearAllHistory()" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;padding:6px 12px;cursor:pointer;font-family:'DM Mono',monospace;">CLEAR ALL</button>
   </div>
   <div id="historyFilters" style="padding:14px 20px 0;display:flex;gap:8px;overflow-x:auto;"></div>
   <div class="saved-list" id="historyList"></div>
@@ -755,7 +752,7 @@
 <div class="screen" id="historyDetail">
   <div class="screen-header">
     <button class="back-btn" onclick="showHistory()">←</button>
-    <div class="screen-title" id="detailTitle">DÉTAIL</div>
+    <div class="screen-title" id="detailTitle">DETAIL</div>
   </div>
   <div class="saved-list" id="detailContent"></div>
 </div>
@@ -768,7 +765,7 @@
   </div>
   <div class="setup-form">
     <div class="form-group">
-      <label class="form-label">DÉCOMPTE DÉPART (SEC)</label>
+      <label class="form-label">COUNTDOWN DURATION (SEC)</label>
       <div class="num-input-wrap">
         <button class="num-btn" onclick="adjSetting('countdown',-1,0,10)">−</button>
         <span class="num-val" id="settingCountdown">3</span>
@@ -778,25 +775,25 @@
     </div>
     <div class="form-group">
       <label class="form-label" style="display:flex;justify-content:space-between">
-        <span>BIPS SONORES</span>
-        <span id="settingBeepStatus" style="color:var(--accent);cursor:pointer;" onclick="toggleSettingBool('beep')">OUI</span>
+        <span>BEEP SOUNDS</span>
+        <span id="settingBeepStatus" style="color:var(--accent);cursor:pointer;" onclick="toggleSettingBool('beep')">YES</span>
       </label>
     </div>
     <div class="form-group">
       <label class="form-label" style="display:flex;justify-content:space-between">
-        <span>FLASH ÉCRAN SUR CHANGEMENT</span>
-        <span id="settingFlashStatus" style="color:var(--accent);cursor:pointer;" onclick="toggleSettingBool('flash')">OUI</span>
+        <span>SCREEN FLASH ON TRANSITION</span>
+        <span id="settingFlashStatus" style="color:var(--accent);cursor:pointer;" onclick="toggleSettingBool('flash')">YES</span>
       </label>
     </div>
     <div class="form-group">
       <label class="form-label" style="display:flex;justify-content:space-between">
-        <span>VOLUME DU BIP</span>
+        <span>BEEP VOLUME</span>
         <span id="volumeLabel" style="color:var(--accent)">70%</span>
       </label>
       <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70" oninput="updateVolumeLabel(this.value)">
     </div>
     <div class="form-group">
-      <label class="form-label">AVERTISSEMENT TEMPS RESTANT</label>
+      <label class="form-label">WARN WHEN TIME REMAINING</label>
       <div class="num-input-wrap">
         <button class="num-btn" onclick="adjSetting('warnAt',-5,5,30)">−</button>
         <span class="num-val" id="settingWarnAt">10</span>
@@ -806,20 +803,81 @@
     </div>
   </div>
   <div class="bottom-action">
-    <button class="start-btn" onclick="saveSettings()">ENREGISTRER</button>
+    <button class="start-btn" onclick="saveSettings()">SAVE SETTINGS</button>
   </div>
 </div>
 
-<!-- ===== DONE ===== -->
+<!-- ===== DONE SCREEN ===== -->
 <div class="screen" id="done">
   <div class="done-title">DONE!</div>
-  <div class="done-sub" id="doneSub">WORKOUT TERMINÉ</div>
+  <div class="done-sub" id="doneSub">WORKOUT COMPLETE</div>
   <div class="done-stats" id="doneStats"></div>
-  <button class="home-btn" onclick="goHome()">RETOUR</button>
+  <button class="home-btn" onclick="goHome()">HOME</button>
 </div>
 
 <script>
-// ─── AUDIO ───────────────────────────────────────────────────────────────────
+// ─── SCREEN WAKE LOCK MANAGER ────────────────────────────────────────────────
+let wakeLock = null;
+let fallbackVideo = null;
+
+async function requestWakeLock() {
+  // 1. Native Screen Wake Lock API
+  try {
+    if ('wakeLock' in navigator && navigator.wakeLock.request) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => {
+        wakeLock = null;
+      });
+      return;
+    }
+  } catch (err) {}
+
+  // 2. Fallback: Invisible micro-video playback loop (prevents sleep on older iOS Safari)
+  try {
+    if (!fallbackVideo) {
+      fallbackVideo = document.createElement('video');
+      fallbackVideo.setAttribute('playsinline', '');
+      fallbackVideo.setAttribute('muted', '');
+      fallbackVideo.muted = true;
+      fallbackVideo.loop = true;
+      fallbackVideo.style.cssText = 'position:fixed;width:1px;height:1px;top:-10px;left:-10px;opacity:0.01;pointer-events:none;';
+      // Blank 1-pixel webm stream data
+      fallbackVideo.src = 'data:video/webm;base64,GkXfo0AgQoaBAUL3gQFC8oEEQvOBCEKCQAR3ZWJtQoeBAkKFgQIYU4BnQI0VSalmQCgq17GDD0JATYCGQ2hyb21lV0GGQ2hyb21lFlSua8WIhkK+17GDD0JAR4BNgEA8AQIAAAAA';
+      document.body.appendChild(fallbackVideo);
+    }
+    fallbackVideo.play().catch(() => {});
+  } catch(e) {}
+}
+
+function releaseWakeLock() {
+  try {
+    if (wakeLock) {
+      wakeLock.release();
+      wakeLock = null;
+    }
+  } catch (e) {}
+
+  if (fallbackVideo) {
+    try {
+      fallbackVideo.pause();
+      fallbackVideo.remove();
+      fallbackVideo = null;
+    } catch(e) {}
+  }
+}
+
+// Automatically re-request wake lock when returning to visible tab
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    const isStandardTimerActive = document.getElementById('timer').style.display === 'flex';
+    const isSetsTimerActive = document.getElementById('setsTimer').style.display === 'flex';
+    if (isStandardTimerActive || isSetsTimerActive) {
+      requestWakeLock();
+    }
+  }
+});
+
+// ─── AUDIO SYSTEM ────────────────────────────────────────────────────────────
 let audioCtx = null;
 function getAudio() {
   try {
@@ -874,7 +932,7 @@ function flashBeep() {
   }
 }
 
-// ─── GESTION D'AFFICHAGE FLUIDE ──────────────────────────────────────────────
+// ─── SCREEN DISPLAY ROUTING ──────────────────────────────────────────────────
 function hideAllScreens() {
   document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
   document.querySelectorAll('.timer-screen-mode').forEach(s => s.style.display = 'none');
@@ -891,10 +949,11 @@ function showScreen(id) {
 function goHome() {
   clearTimer();
   if (setsInterval) { clearInterval(setsInterval); setsInterval = null; }
+  releaseWakeLock();
   showScreen('home');
 }
 
-// ─── ÉTAT ────────────────────────────────────────────────────────────────────
+// ─── STATE ───────────────────────────────────────────────────────────────────
 let currentMode = 'amrap';
 let timerInterval = null;
 let isPaused = false;
@@ -938,7 +997,7 @@ const modeColors = {
   tabata: '#ff2d78', custom: '#bf5af2', sets: '#30d158'
 };
 
-// ─── FORMULAIRES DE CONFIGURATION ────────────────────────────────────────────
+// ─── SETUP FORMS ─────────────────────────────────────────────────────────────
 let activeRestMode = '1to1';
 let currentSplitsOption = true;
 
@@ -961,7 +1020,7 @@ function renderSetupForm(mode, config) {
     const mins = config?.mins ?? 10;
     form.innerHTML = `
       <div class="form-group">
-        <label class="form-label">DURÉE (MINUTES)</label>
+        <label class="form-label">DURATION (MINUTES)</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('amrapMins',-1,1,99)">−</button>
           <span class="num-val" id="amrapMins">${mins}</span>
@@ -975,7 +1034,7 @@ function renderSetupForm(mode, config) {
     const ivSec = config?.ivSec ?? 0;
     form.innerHTML = `
       <div class="form-group">
-        <label class="form-label">DURÉE TOTALE</label>
+        <label class="form-label">TOTAL DURATION</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('emomMins',-1,1,99)">−</button>
           <span class="num-val" id="emomMins">${mins}</span>
@@ -984,7 +1043,7 @@ function renderSetupForm(mode, config) {
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">INTERVALLE</label>
+        <label class="form-label">INTERVAL FREQUENCY</label>
         <div class="form-row">
           <div class="num-input-wrap">
             <button class="num-btn" onclick="adj('emomIvMin',-1,0,59)">−</button>
@@ -1006,7 +1065,7 @@ function renderSetupForm(mode, config) {
     currentSplitsOption = splits;
     form.innerHTML = `
       <div class="form-group">
-        <label class="form-label">TIME CAP (0 = AUCUN)</label>
+        <label class="form-label">TIME CAP (0 = NO CAP)</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('ftCap',-1,0,99)">−</button>
           <span class="num-val" id="ftCap">${cap}</span>
@@ -1015,10 +1074,10 @@ function renderSetupForm(mode, config) {
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">SPLITS PAR SECTION</label>
+        <label class="form-label">SECTION SPLITS</label>
         <div class="segmented-control">
-          <button class="segmented-btn ${splits ? 'active' : ''}" id="splitsOnBtn" onclick="setSplitsOption(true)">ACTIF</button>
-          <button class="segmented-btn ${!splits ? 'active' : ''}" id="splitsOffBtn" onclick="setSplitsOption(false)">DÉSACTIVÉ</button>
+          <button class="segmented-btn ${splits ? 'active' : ''}" id="splitsOnBtn" onclick="setSplitsOption(true)">ACTIVE</button>
+          <button class="segmented-btn ${!splits ? 'active' : ''}" id="splitsOffBtn" onclick="setSplitsOption(false)">OFF</button>
         </div>
       </div>`;
   } else if (mode === 'tabata') {
@@ -1039,13 +1098,13 @@ function renderSetupForm(mode, config) {
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('tabWork',-5,5,180)">−</button>
           <span class="num-val" id="tabWork">${workSec}</span>
-          <span class="num-unit">TRAVAIL</span>
+          <span class="num-unit">WORK</span>
           <button class="num-btn" onclick="adj('tabWork',5,5,180)">+</button>
         </div>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('tabRest',-5,0,180)">−</button>
           <span class="num-val" id="tabRest">${restSec}</span>
-          <span class="num-unit">REPOS</span>
+          <span class="num-unit">REST</span>
           <button class="num-btn" onclick="adj('tabRest',5,0,180)">+</button>
         </div>
       </div>`;
@@ -1061,7 +1120,7 @@ function renderSetupForm(mode, config) {
 
     form.innerHTML = `
       <div class="form-group">
-        <label class="form-label">NOMBRE DE SÉRIES (SETS)</label>
+        <label class="form-label">NUMBER OF SETS</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('setsCount',-1,1,30)">−</button>
           <span class="num-val" id="setsCount">${sets}</span>
@@ -1070,11 +1129,11 @@ function renderSetupForm(mode, config) {
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">MODE DE REPOS</label>
+        <label class="form-label">REST MODE</label>
         <div class="segmented-control">
-          <button class="segmented-btn ${restType === '1to1' ? 'active' : ''}" id="restBtn1to1" onclick="setRestMode('1to1')">REPOS 1:1</button>
-          <button class="segmented-btn ${restType === 'fixed' ? 'active' : ''}" id="restBtnFixed" onclick="setRestMode('fixed')">FIXE</button>
-          <button class="segmented-btn ${restType === 'none' ? 'active' : ''}" id="restBtnNone" onclick="setRestMode('none')">AUCUN</button>
+          <button class="segmented-btn ${restType === '1to1' ? 'active' : ''}" id="restBtn1to1" onclick="setRestMode('1to1')">1:1 REST</button>
+          <button class="segmented-btn ${restType === 'fixed' ? 'active' : ''}" id="restBtnFixed" onclick="setRestMode('fixed')">FIXED</button>
+          <button class="segmented-btn ${restType === 'none' ? 'active' : ''}" id="restBtnNone" onclick="setRestMode('none')">NONE</button>
         </div>
         <div id="fixedRestInputs" style="display:${restType === 'fixed' ? 'flex' : 'none'};gap:12px;margin-top:12px">
           <div class="num-input-wrap">
@@ -1091,7 +1150,7 @@ function renderSetupForm(mode, config) {
           </div>
         </div>
         <div id="restHint1to1" style="display:${restType === '1to1' ? 'block' : 'none'};margin-top:12px;font-size:12px;color:var(--accent3);line-height:1.5">
-          Le repos s'ajuste exactement à la durée de votre série terminée (ratio 1:1).
+          Rest time automatically matches your completed set duration (1:1 ratio).
         </div>
       </div>`;
   }
@@ -1111,12 +1170,12 @@ function renderCustomForm() {
 
   form.innerHTML = `
     <div class="form-group">
-      <label class="form-label">SÉQUENCE D'INTERVALLES</label>
-      <div style="margin-bottom:10px">${items || '<div style="color:var(--muted);font-size:13px;padding:8px 0">Aucun intervalle créé</div>'}</div>
-      <button class="add-interval-btn" onclick="openIntervalModal()">+ AJOUTER UN INTERVALLE</button>
+      <label class="form-label">INTERVAL SEQUENCE</label>
+      <div style="margin-bottom:10px">${items || '<div style="color:var(--muted);font-size:13px;padding:8px 0">No intervals created yet</div>'}</div>
+      <button class="add-interval-btn" onclick="openIntervalModal()">+ ADD INTERVAL</button>
     </div>
     <div class="form-group">
-      <label class="form-label">BOUCLES (RÉPÉTER LA SÉQUENCE)</label>
+      <label class="form-label">LOOPS (REPEAT SEQUENCE)</label>
       <div class="num-input-wrap">
         <button class="num-btn" onclick="adjLoops(-1)">−</button>
         <span class="num-val" id="loopsVal">${loops}</span>
@@ -1244,6 +1303,7 @@ function getConfig() {
 // ─── COUNTDOWN ───────────────────────────────────────────────────────────────
 function beginCountdown() {
   getAudio();
+  requestWakeLock(); // Request screen keep-awake on direct user interaction
   workoutConfig = getConfig();
   const s = getSettings();
   let count = s.countdown ?? 3;
@@ -1279,9 +1339,10 @@ function beginCountdown() {
   }, 1000);
 }
 
-// ─── TIMER STANDARD (AMRAP, EMOM, FOR TIME, TABATA, CUSTOM) ──────────────────
+// ─── TIMER STANDARD ──────────────────────────────────────────────────────────
 function startTimer() {
   hideAllScreens();
+  requestWakeLock();
   document.getElementById('timer').style.display = 'flex';
   isPaused = false;
   elapsed = 0;
@@ -1315,7 +1376,7 @@ function setupModeDisplay() {
   if (currentMode === 'amrap') {
     totalDuration = cfg.mins * 60 * 1000;
     phase.textContent = 'AMRAP';
-    roundInfo.textContent = 'TOUR 0';
+    roundInfo.textContent = 'ROUND 0';
   } else if (currentMode === 'emom') {
     totalDuration = cfg.mins * 60 * 1000;
     const totalRounds = Math.floor(totalDuration / (cfg.intervalMs || 60000));
@@ -1338,14 +1399,14 @@ function setupModeDisplay() {
       phase.style.background = cfg.intervals[0].color;
       updateCustomNextText(0);
     }
-    roundInfo.textContent = `BOUCLE 1 / ${cfg.loops || 1}`;
+    roundInfo.textContent = `LOOP 1 / ${cfg.loops || 1}`;
   }
 }
 
 function updateCustomNextText(idx) {
   const cfg = workoutConfig;
   const nextIdx = (idx + 1) % cfg.intervals.length;
-  document.getElementById('timerSub').textContent = `SUIVANT: ${cfg.intervals[nextIdx].name} (${fmtMs(cfg.intervals[nextIdx].duration)})`;
+  document.getElementById('timerSub').textContent = `NEXT: ${cfg.intervals[nextIdx].name} (${fmtMs(cfg.intervals[nextIdx].duration)})`;
 }
 
 function tickTimer() {
@@ -1389,7 +1450,7 @@ function tickTimer() {
     if (round > workoutConfig.rounds) { endTimer(); return; }
 
     const isWork = (elapsed % cycle) < wMs;
-    document.getElementById('timerPhase').textContent = isWork ? 'TRAVAIL' : 'REPOS';
+    document.getElementById('timerPhase').textContent = isWork ? 'WORK' : 'REST';
     document.getElementById('timerPhase').style.background = isWork ? 'var(--accent)' : 'var(--accent3)';
     const remain = isWork ? wMs - (elapsed % cycle) : cycle - (elapsed % cycle);
     const s = Math.ceil(remain / 1000);
@@ -1419,7 +1480,7 @@ function tickTimer() {
 
     const remain = cfg.intervals[ivIdx].duration - (loopElapsed - acc);
     const s = Math.ceil(remain / 1000);
-    document.getElementById('timerRoundInfo').textContent = `BOUCLE ${loopIdx + 1} / ${cfg.loops}`;
+    document.getElementById('timerRoundInfo').textContent = `LOOP ${loopIdx + 1} / ${cfg.loops}`;
     document.getElementById('timerDisplay').textContent = fmtSecs(s);
     handleWarnColors(s);
     document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
@@ -1452,7 +1513,7 @@ function recordAmrapRound() {
   const dur = elapsed - amrapLastRoundTime;
   amrapRounds.push({ num: amrapRoundNum, duration: dur });
   amrapLastRoundTime = elapsed;
-  document.getElementById('timerRoundInfo').textContent = `TOUR ${amrapRoundNum}`;
+  document.getElementById('timerRoundInfo').textContent = `ROUND ${amrapRoundNum}`;
   snapBeep();
   renderCompactList('timerLapList', amrapRounds, 'R', 'var(--accent)');
 }
@@ -1472,10 +1533,10 @@ function togglePause() {
   const hint = document.getElementById('timerPauseHint');
   if (isPaused) {
     pausedAt = Date.now();
-    hint.textContent = 'EN PAUSE - TOUCHER POUR REPRENDRE';
+    hint.textContent = 'PAUSED - TAP TO RESUME';
   } else {
     startTime += (Date.now() - pausedAt);
-    hint.textContent = 'TOUCHER POUR PAUSE';
+    hint.textContent = 'TAP TO PAUSE';
   }
 }
 
@@ -1485,11 +1546,13 @@ function clearTimer() {
 
 function stopTimer() {
   clearTimer();
+  releaseWakeLock();
   showSummary(true);
 }
 
 function endTimer() {
   clearTimer();
+  releaseWakeLock();
   goBeep();
   document.getElementById('finishBanner').classList.add('active');
   setTimeout(() => {
@@ -1498,9 +1561,10 @@ function endTimer() {
   }, 1200);
 }
 
-// ─── SETS TIMER (OPTION 1:1 INTÉGRÉE) ────────────────────────────────────────
+// ─── SETS TIMER ──────────────────────────────────────────────────────────────
 function startSetsTimer() {
   hideAllScreens();
+  requestWakeLock();
   document.getElementById('setsTimer').style.display = 'flex';
   setsConfig = workoutConfig;
   setsState = 'work';
@@ -1551,6 +1615,7 @@ function completeSet() {
 
     if (setsCurrentSet >= setsConfig.sets) {
       clearInterval(setsInterval);
+      releaseWakeLock();
       goBeep();
       showSetsSummary();
       return;
@@ -1580,7 +1645,7 @@ function startNextSet() {
   setsState = 'work';
   setsSetStart = Date.now();
   setsTimeOffset = 0;
-  goBeep(); flashBeep();
+  goBeep();
   updateSetsUI();
   renderSetsLaps();
 }
@@ -1596,13 +1661,13 @@ function updateSetsUI() {
     phase.style.background = '#30d158';
     btn.textContent = 'DONE SET';
     btn.className = 'sets-lap-btn';
-    sub.textContent = 'Chrono de travail · Appuie sur DONE SET à la fin';
+    sub.textContent = 'Counting up · Tap DONE SET when set is finished';
   } else {
     phase.textContent = 'REST';
     phase.style.background = 'var(--accent3)';
     btn.textContent = 'SKIP REST';
     btn.className = 'sets-lap-btn rest-btn';
-    sub.textContent = setsConfig.restType === '1to1' ? 'Repos 1:1 égal au set terminé' : 'Compte à rebours du repos';
+    sub.textContent = setsConfig.restType === '1to1' ? '1:1 rest matching completed set time' : 'Rest countdown';
   }
 }
 
@@ -1611,10 +1676,10 @@ function toggleSetsPause() {
   const hint = document.getElementById('setsPauseHint');
   if (setsPaused) {
     setsPausedAt = Date.now();
-    hint.textContent = 'EN PAUSE - TOUCHER POUR REPRENDRE';
+    hint.textContent = 'PAUSED - TAP TO RESUME';
   } else {
     setsTimeOffset += (Date.now() - setsPausedAt);
-    hint.textContent = 'TOUCHER POUR PAUSE';
+    hint.textContent = 'TAP TO PAUSE';
   }
 }
 
@@ -1625,13 +1690,14 @@ function renderSetsLaps() {
       <span class="lap-num" style="color:${l.type==='set'?'#30d158':'var(--accent3)'}">
         ${l.type==='set' ? 'SET '+l.num : 'REST'}
       </span>
-      <span class="lap-label">${l.type==='set' ? 'Travail' : 'Repos après set '+l.num}</span>
+      <span class="lap-label">${l.type==='set' ? 'Work time' : 'Rest after set '+l.num}</span>
       <span class="lap-time ${l.type==='rest'?'rest-time':''}">${fmtMs(l.time)}</span>
     </div>`).join('');
 }
 
 function stopSets() {
   if (setsInterval) clearInterval(setsInterval);
+  releaseWakeLock();
   showSetsSummary(true);
 }
 
@@ -1645,10 +1711,10 @@ function showSetsSummary(stopped = false) {
   });
 
   showScreen('done');
-  document.getElementById('doneSub').textContent = stopped ? 'SÉANCES ARRÊTÉES' : 'SETS COMPLÉTÉS';
+  document.getElementById('doneSub').textContent = stopped ? 'WORKOUT STOPPED' : 'ALL SETS COMPLETED';
   const sets = setsLaps.filter(l => l.type === 'set');
 
-  let html = `<div class="done-stat"><span class="done-stat-label">Séries effectuées</span><span class="done-stat-val">${sets.length} / ${setsConfig.sets}</span></div>`;
+  let html = `<div class="done-stat"><span class="done-stat-label">Sets finished</span><span class="done-stat-val">${sets.length} / ${setsConfig.sets}</span></div>`;
   sets.forEach(s => {
     html += `<div class="done-stat"><span class="done-stat-label">Set ${s.num}</span><span class="done-stat-val" style="color:#30d158">${fmtMs(s.time)}</span></div>`;
   });
@@ -1666,17 +1732,17 @@ function showSummary(stopped) {
   });
 
   showScreen('done');
-  document.getElementById('doneSub').textContent = stopped ? 'ARRÊTÉ' : 'TERMINÉ';
+  document.getElementById('doneSub').textContent = stopped ? 'WORKOUT STOPPED' : 'WORKOUT COMPLETE';
   let html = `
     <div class="done-stat"><span class="done-stat-label">Mode</span><span class="done-stat-val">${modeLabels[currentMode]}</span></div>
-    <div class="done-stat"><span class="done-stat-label">Temps</span><span class="done-stat-val">${fmtMs(elapsed)}</span></div>`;
+    <div class="done-stat"><span class="done-stat-label">Time</span><span class="done-stat-val">${fmtMs(elapsed)}</span></div>`;
   if (currentMode === 'amrap') {
-    html += `<div class="done-stat"><span class="done-stat-label">Tours</span><span class="done-stat-val" style="color:var(--accent)">${amrapRoundNum}</span></div>`;
+    html += `<div class="done-stat"><span class="done-stat-label">Rounds</span><span class="done-stat-val" style="color:var(--accent)">${amrapRoundNum}</span></div>`;
   }
   document.getElementById('doneStats').innerHTML = html;
 }
 
-// ─── LOCAL STORAGE : SAVED & HISTORY ─────────────────────────────────────────
+// ─── LOCAL STORAGE: SAVED & HISTORY ──────────────────────────────────────────
 function getSaved() {
   try { return JSON.parse(localStorage.getItem('wodtimerSaved') || '[]'); } catch { return []; }
 }
@@ -1703,7 +1769,7 @@ function showSaved() {
   const saved = getSaved();
   const list = document.getElementById('savedList');
   if (!saved.length) {
-    list.innerHTML = `<div style="text-align:center;color:var(--muted);padding:40px;">Aucun workout sauvegardé.</div>`;
+    list.innerHTML = `<div style="text-align:center;color:var(--muted);padding:40px;">No saved workouts yet.</div>`;
     return;
   }
   list.innerHTML = saved.map(w => `
@@ -1744,7 +1810,7 @@ function renderHistoryFilters() {
   const modes = ['all', ...new Set(hist.map(h => h.mode))];
   document.getElementById('historyFilters').innerHTML = modes.map(m => `
     <button class="filter-pill ${m === activeHistoryFilter ? 'active' : ''}" onclick="filterHistory('${m}')">
-      ${m === 'all' ? 'TOUS' : modeLabels[m] || m.toUpperCase()}
+      ${m === 'all' ? 'ALL' : modeLabels[m] || m.toUpperCase()}
     </button>`).join('');
 }
 
@@ -1760,7 +1826,7 @@ function renderHistoryList() {
   const list = document.getElementById('historyList');
 
   if (!filtered.length) {
-    list.innerHTML = `<div style="text-align:center;color:var(--muted);padding:40px;">Aucun entraînement archivé.</div>`;
+    list.innerHTML = `<div style="text-align:center;color:var(--muted);padding:40px;">No workout history recorded yet.</div>`;
     return;
   }
 
@@ -1770,7 +1836,7 @@ function renderHistoryList() {
       <div class="history-card" onclick="showHistoryDetail(${h.id})">
         <div class="history-card-top">
           <span class="history-mode-badge" style="background:${modeColors[h.mode]}22;color:${modeColors[h.mode]}">${modeLabels[h.mode]}</span>
-          <span class="history-date">${d.toLocaleDateString('fr-CA')}</span>
+          <span class="history-date">${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
         </div>
         <div class="history-time">${fmtMs(h.elapsed)}</div>
       </div>`;
@@ -1784,20 +1850,20 @@ function showHistoryDetail(id) {
   document.getElementById('detailTitle').textContent = modeLabels[h.mode];
   let html = `
     <div class="detail-section">
-      <div class="detail-label">TEMPS TOTAL</div>
+      <div class="detail-label">TOTAL TIME</div>
       <div class="detail-value" style="color:${modeColors[h.mode]}">${fmtMs(h.elapsed)}</div>
     </div>`;
 
   if (h.setLaps?.length > 0) {
     const lapsHtml = h.setLaps.map(l => `
       <div class="detail-row">
-        <span class="detail-row-label">${l.type === 'set' ? 'Set ' + l.num : 'Repos'}</span>
+        <span class="detail-row-label">${l.type === 'set' ? 'Set ' + l.num : 'Rest'}</span>
         <span class="detail-row-val" style="color:${l.type === 'set' ? '#30d158' : 'var(--accent3)'}">${fmtMs(l.time)}</span>
       </div>`).join('');
-    html += `<div class="detail-section"><div class="detail-label">Détail des Séries</div>${lapsHtml}</div>`;
+    html += `<div class="detail-section"><div class="detail-label">Sets Breakdown</div>${lapsHtml}</div>`;
   }
 
-  html += `<button onclick="deleteHistoryItem(${h.id})" style="width:100%;padding:14px;background:none;border:1px solid var(--danger);border-radius:12px;color:var(--danger);cursor:pointer;font-family:'DM Mono',monospace;">SUPPRIMER</button>`;
+  html += `<button onclick="deleteHistoryItem(${h.id})" style="width:100%;padding:14px;background:none;border:1px solid var(--danger);border-radius:12px;color:var(--danger);cursor:pointer;font-family:'DM Mono',monospace;">DELETE ENTRY</button>`;
   document.getElementById('detailContent').innerHTML = html;
 }
 
@@ -1822,8 +1888,8 @@ function saveSettings() {
   const s = {
     countdown: parseInt(document.getElementById('settingCountdown').textContent),
     volume: parseInt(document.getElementById('volumeSlider').value) / 100,
-    beep: document.getElementById('settingBeepStatus').textContent === 'OUI',
-    flash: document.getElementById('settingFlashStatus').textContent === 'OUI',
+    beep: document.getElementById('settingBeepStatus').textContent === 'YES',
+    flash: document.getElementById('settingFlashStatus').textContent === 'YES',
     warnAt: parseInt(document.getElementById('settingWarnAt').textContent)
   };
   localStorage.setItem('wodtimerSettings', JSON.stringify(s));
@@ -1836,18 +1902,18 @@ function showSettings() {
   document.getElementById('settingWarnAt').textContent = s.warnAt ?? 10;
   document.getElementById('volumeSlider').value = Math.round((s.volume ?? 0.7) * 100);
   document.getElementById('volumeLabel').textContent = Math.round((s.volume ?? 0.7) * 100) + '%';
-  document.getElementById('settingBeepStatus').textContent = s.beep ? 'OUI' : 'NON';
-  document.getElementById('settingFlashStatus').textContent = s.flash ? 'OUI' : 'NON';
+  document.getElementById('settingBeepStatus').textContent = s.beep ? 'YES' : 'NO';
+  document.getElementById('settingFlashStatus').textContent = s.flash ? 'YES' : 'NO';
   showScreen('settings');
 }
 
 function toggleSettingBool(key) {
   if (key === 'beep') {
     const el = document.getElementById('settingBeepStatus');
-    el.textContent = el.textContent === 'OUI' ? 'NON' : 'OUI';
+    el.textContent = el.textContent === 'YES' ? 'NO' : 'YES';
   } else if (key === 'flash') {
     const el = document.getElementById('settingFlashStatus');
-    el.textContent = el.textContent === 'OUI' ? 'NON' : 'OUI';
+    el.textContent = el.textContent === 'YES' ? 'NO' : 'YES';
   }
 }
 
