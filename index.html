@@ -9,6 +9,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a0a0a">
 <title>WOD TIMER</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text x='50' y='58' font-size='52' font-family='Arial Black,sans-serif' font-weight='900' fill='%23e8ff00' text-anchor='middle'>⏱</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text x='50' y='58' font-size='52' font-family='Arial Black,sans-serif' font-weight='900' fill='%23e8ff00' text-anchor='middle'>⏱</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -32,11 +34,12 @@
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
     width: 100%;
-    height: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
     overflow-x: hidden;
   }
 
-  /* ÉCRANS */
+  /* SYSTÈME D'ÉCRANS */
   .screen {
     display: none;
     width: 100%;
@@ -45,7 +48,7 @@
     flex-direction: column;
   }
 
-  /* PLEIN ÉCRAN STRICT POUR LES TIMERS */
+  /* CHRONOS : PLEIN ÉCRAN STRICT SANS AUCUNE BARRE DÉFILANTE */
   .timer-screen-mode {
     display: none;
     position: fixed;
@@ -97,10 +100,11 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 22px 18px;
+    padding: 20px 18px;
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    transition: transform 0.1s;
   }
 
   .mode-card::before {
@@ -109,7 +113,7 @@
     top: 0; left: 0; right: 0;
     height: 3px;
     background: var(--card-color, var(--accent));
-    opacity: 0.8;
+    opacity: 0.85;
   }
 
   .mode-card:active { transform: scale(0.97); }
@@ -117,14 +121,17 @@
   .mode-card.emom { --card-color: var(--accent3); }
   .mode-card.fortime { --card-color: var(--accent2); }
   .mode-card.tabata { --card-color: #ff2d78; }
+  .mode-card.custom { --card-color: #bf5af2; }
   .mode-card.sets { --card-color: #30d158; }
+  .mode-card.saved { --card-color: var(--success); }
+  .mode-card.history { --card-color: #ff9f0a; }
   .mode-card.settings { --card-color: #8e8e93; }
 
   .mode-icon { font-size: 26px; margin-bottom: 6px; display: block; }
   .mode-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--text); display: block; }
   .mode-desc { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
 
-  /* SETUP */
+  /* SETUP & GESTION */
   .screen-header {
     display: flex;
     align-items: center;
@@ -142,9 +149,19 @@
     font-size: 20px;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
   }
 
   .screen-title { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 3px; }
+  .mode-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
 
   .setup-form { padding: 24px; flex: 1; overflow-y: auto; }
   .form-group { margin-bottom: 24px; }
@@ -181,6 +198,7 @@
     font-size: 11px;
     font-weight: 500;
     cursor: pointer;
+    transition: all 0.15s;
   }
 
   .segmented-btn.active {
@@ -206,6 +224,7 @@
     font-size: 22px;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
+    user-select: none;
   }
 
   .num-val {
@@ -222,6 +241,7 @@
     color: var(--muted);
     padding-right: 14px;
     font-family: 'DM Mono', monospace;
+    user-select: none;
   }
 
   .bottom-action {
@@ -243,7 +263,21 @@
     cursor: pointer;
   }
 
-  /* TIMERS INTERIEUR */
+  .save-row { display: flex; gap: 10px; margin-top: 10px; }
+  .save-btn {
+    flex: 1;
+    padding: 12px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+
+  /* TIMERS INTERNE */
   .timer-top { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .timer-mode-label { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 3px; color: var(--muted); }
   .timer-round-info { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 2px; color: var(--accent); }
@@ -260,7 +294,7 @@
 
   .timer-phase, .sets-phase {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(38px, 9vw, 68px);
+    font-size: clamp(34px, 8vw, 64px);
     letter-spacing: 4px;
     color: #000;
     background: var(--accent);
@@ -271,7 +305,7 @@
 
   .timer-display, .sets-display {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(100px, 30vw, 210px);
+    font-size: clamp(96px, 28vw, 200px);
     letter-spacing: 2px;
     line-height: 0.88;
     text-align: center;
@@ -281,20 +315,8 @@
   .timer-display.critical { color: var(--danger); }
   .sets-display.rest-phase { color: var(--accent3); }
 
-  .timer-pause-hint {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--muted);
-  }
-
-  .timer-sub, .sets-sub {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    color: var(--muted);
-    text-align: center;
-    min-height: 18px;
-  }
+  .timer-pause-hint { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 3px; color: var(--muted); }
+  .timer-sub, .sets-sub { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); text-align: center; min-height: 18px; }
 
   .timer-lap-compact {
     flex-shrink: 0;
@@ -355,7 +377,7 @@
   }
   .sets-lap-btn.rest-btn { background: var(--accent3); }
 
-  /* COUNTDOWN */
+  /* OVERLAYS */
   .countdown-overlay {
     position: fixed;
     inset: 0;
@@ -376,6 +398,133 @@
   }
   .countdown-label { font-family: 'DM Mono', monospace; font-size: 13px; letter-spacing: 3px; color: var(--muted); }
 
+  .beep-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(232, 255, 0, 0.15);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+    z-index: 200;
+  }
+  .beep-overlay.flash { opacity: 1; }
+
+  .finish-banner {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 250;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .finish-banner.active { display: flex; }
+  .finish-text { font-family: 'Bebas Neue', sans-serif; font-size: 80px; letter-spacing: 6px; color: var(--accent); }
+
+  /* MODALS */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 600;
+    display: none;
+    align-items: flex-end;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    width: 100%;
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 24px 24px 44px;
+  }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; margin-bottom: 16px; }
+  .text-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+    margin-bottom: 16px;
+  }
+  .modal-btns { display: flex; gap: 10px; }
+  .modal-btn {
+    flex: 1; padding: 16px;
+    border-radius: 12px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    border: none;
+  }
+  .modal-btn.confirm { background: var(--accent); color: #000; }
+  .modal-btn.cancel { background: var(--surface2); color: var(--text); }
+
+  /* CUSTOM INTERVALS LIST & PICKER */
+  .interval-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .interval-color { width: 10px; height: 10px; border-radius: 50%; }
+  .interval-name { flex: 1; font-size: 14px; font-weight: 500; }
+  .interval-time { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
+  .interval-del { background: none; border: none; color: var(--danger); font-size: 18px; cursor: pointer; }
+  .add-interval-btn {
+    width: 100%; padding: 14px; background: none;
+    border: 1px dashed var(--border); border-radius: 12px;
+    color: var(--muted); font-size: 13px; cursor: pointer;
+  }
+  .color-picker { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .color-opt {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+  }
+  .color-opt.selected { border-color: var(--text); transform: scale(1.1); }
+
+  /* HISTORY & SAVED */
+  .filter-pill {
+    padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
+    background: none; color: var(--muted); font-family: 'DM Mono', monospace;
+    font-size: 11px; cursor: pointer; white-space: nowrap;
+  }
+  .filter-pill.active { background: var(--surface2); color: var(--text); border-color: var(--text); }
+  .saved-list { padding: 16px 20px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  .saved-card, .history-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    cursor: pointer;
+  }
+  .history-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .history-mode-badge { font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+  .history-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-left: auto; }
+  .history-time { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 2px; line-height: 1; margin-bottom: 6px; }
+  .history-meta { font-size: 12px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; }
+  .history-splits-preview { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .split-pill { font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 8px; background: var(--surface2); border-radius: 4px; color: var(--muted); }
+  .split-pill.set-pill { color: #30d158; }
+  .split-pill.section-pill { color: var(--accent2); }
+
+  .detail-section { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 10px; }
+  .detail-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .detail-value { font-family: 'Bebas Neue', sans-serif; font-size: 38px; letter-spacing: 2px; line-height: 1; }
+  .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+  .detail-row-val { font-family: 'Bebas Neue', sans-serif; font-size: 20px; }
+
   /* DONE */
   #done {
     background: var(--bg);
@@ -389,16 +538,82 @@
   .done-stats { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 24px; width: 100%; max-width: 360px; margin: 0 auto 32px; max-height: 280px; overflow-y: auto; }
   .done-stat { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
   .done-stat:last-child { border-bottom: none; }
-  .done-stat-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+  .done-stat-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; }
   .done-stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; }
   .home-btn { padding: 16px 48px; background: var(--accent); border: none; border-radius: 14px; color: #000; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; cursor: pointer; }
+
+  .volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%; height: 6px; border-radius: 3px;
+    background: var(--surface2); outline: none; margin-top: 12px;
+  }
+  .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); cursor: pointer;
+  }
 </style>
 </head>
 <body>
 
+<div class="beep-overlay" id="beepOverlay"></div>
+
 <div class="countdown-overlay" id="countdownOverlay">
   <div class="countdown-num" id="countdownNum">3</div>
   <div class="countdown-label">GET READY</div>
+</div>
+
+<div class="finish-banner" id="finishBanner">
+  <div class="finish-text">TIME!</div>
+</div>
+
+<!-- SAVE MODAL -->
+<div class="modal-overlay" id="saveModal">
+  <div class="modal">
+    <div class="modal-title">SAVE WORKOUT</div>
+    <input type="text" class="text-input" id="saveNameInput" placeholder="Nom du workout..." maxlength="30">
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeSaveModal()">ANNULER</button>
+      <button class="modal-btn confirm" onclick="confirmSave()">ENREGISTRER</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD INTERVAL MODAL -->
+<div class="modal-overlay" id="intervalModal">
+  <div class="modal">
+    <div class="modal-title">NOUVEL INTERVALLE</div>
+    <input type="text" class="text-input" id="intervalNameInput" placeholder="Ex: Work, Rest, Row, Bike...">
+    <div class="form-label">DURÉE</div>
+    <div class="form-row" style="margin-bottom:20px">
+      <div class="num-input-wrap">
+        <button class="num-btn" onclick="adjInterval('min',-1)">−</button>
+        <span class="num-val" id="intMinVal">0</span>
+        <span class="num-unit">MIN</span>
+        <button class="num-btn" onclick="adjInterval('min',1)">+</button>
+      </div>
+      <div class="num-input-wrap">
+        <button class="num-btn" onclick="adjInterval('sec',-5)">−</button>
+        <span class="num-val" id="intSecVal">30</span>
+        <span class="num-unit">SEC</span>
+        <button class="num-btn" onclick="adjInterval('sec',5)">+</button>
+      </div>
+    </div>
+    <div class="form-label">COULEUR</div>
+    <div class="color-picker" id="colorPicker">
+      <div class="color-opt selected" data-color="#e8ff00" style="background:#e8ff00"></div>
+      <div class="color-opt" data-color="#00d4ff" style="background:#00d4ff"></div>
+      <div class="color-opt" data-color="#ff4d00" style="background:#ff4d00"></div>
+      <div class="color-opt" data-color="#30d158" style="background:#30d158"></div>
+      <div class="color-opt" data-color="#ff2d78" style="background:#ff2d78"></div>
+      <div class="color-opt" data-color="#bf5af2" style="background:#bf5af2"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeIntervalModal()">ANNULER</button>
+      <button class="modal-btn confirm" onclick="confirmInterval()">AJOUTER</button>
+    </div>
+  </div>
 </div>
 
 <!-- ===== HOME ===== -->
@@ -428,15 +643,30 @@
       <span class="mode-name">TABATA</span>
       <div class="mode-desc">Intervalles 20s/10s</div>
     </div>
+    <div class="mode-card custom" onclick="goSetup('custom')">
+      <span class="mode-icon">⚡</span>
+      <span class="mode-name">CUSTOM</span>
+      <div class="mode-desc">Séquences d'intervalles sur mesure</div>
+    </div>
     <div class="mode-card sets" onclick="goSetup('sets')">
       <span class="mode-icon">💪</span>
       <span class="mode-name">SETS</span>
       <div class="mode-desc">Chrono par set + repos fixe ou 1:1</div>
     </div>
-    <div class="mode-card settings" onclick="goSetup('amrap')">
+    <div class="mode-card saved" onclick="showSaved()">
+      <span class="mode-icon">📋</span>
+      <span class="mode-name">SAVED</span>
+      <div class="mode-desc">Workouts sauvegardés</div>
+    </div>
+    <div class="mode-card history" onclick="showHistory()">
+      <span class="mode-icon">📈</span>
+      <span class="mode-name">HISTORY</span>
+      <div class="mode-desc">Historique & splits</div>
+    </div>
+    <div class="mode-card settings" onclick="showSettings()">
       <span class="mode-icon">⚙️</span>
-      <span class="mode-name">RAPIDE</span>
-      <div class="mode-desc">Lancer direct 10 min</div>
+      <span class="mode-name">SETTINGS</span>
+      <div class="mode-desc">Bips, flash & options</div>
     </div>
   </div>
 </div>
@@ -446,14 +676,18 @@
   <div class="screen-header">
     <button class="back-btn" onclick="goHome()">←</button>
     <div class="screen-title" id="setupTitle">CONFIG</div>
+    <div class="mode-badge" id="modeBadge"></div>
   </div>
   <div class="setup-form" id="setupForm"></div>
   <div class="bottom-action">
     <button class="start-btn" onclick="beginCountdown()">START WORKOUT</button>
+    <div class="save-row">
+      <button class="save-btn" onclick="openSaveModal()">💾 SAUVEGARDER</button>
+    </div>
   </div>
 </div>
 
-<!-- ===== TIMER STANDARD ===== -->
+<!-- ===== TIMER STANDARD (AMRAP, EMOM, FOR TIME, TABATA, CUSTOM) ===== -->
 <div class="timer-screen-mode" id="timer">
   <div class="timer-top">
     <div class="timer-mode-label" id="timerModeLabel">AMRAP</div>
@@ -497,6 +731,85 @@
   </div>
 </div>
 
+<!-- ===== SAVED ===== -->
+<div class="screen" id="saved">
+  <div class="screen-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="screen-title">SAVED</div>
+  </div>
+  <div class="saved-list" id="savedList"></div>
+</div>
+
+<!-- ===== HISTORY ===== -->
+<div class="screen" id="history">
+  <div class="screen-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="screen-title">HISTORY</div>
+    <button onclick="clearAllHistory()" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;padding:6px 12px;cursor:pointer;font-family:'DM Mono',monospace;">EFFACER</button>
+  </div>
+  <div id="historyFilters" style="padding:14px 20px 0;display:flex;gap:8px;overflow-x:auto;"></div>
+  <div class="saved-list" id="historyList"></div>
+</div>
+
+<!-- ===== HISTORY DETAIL ===== -->
+<div class="screen" id="historyDetail">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showHistory()">←</button>
+    <div class="screen-title" id="detailTitle">DÉTAIL</div>
+  </div>
+  <div class="saved-list" id="detailContent"></div>
+</div>
+
+<!-- ===== SETTINGS ===== -->
+<div class="screen" id="settings">
+  <div class="screen-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="screen-title">SETTINGS</div>
+  </div>
+  <div class="setup-form">
+    <div class="form-group">
+      <label class="form-label">DÉCOMPTE DÉPART (SEC)</label>
+      <div class="num-input-wrap">
+        <button class="num-btn" onclick="adjSetting('countdown',-1,0,10)">−</button>
+        <span class="num-val" id="settingCountdown">3</span>
+        <span class="num-unit">SEC</span>
+        <button class="num-btn" onclick="adjSetting('countdown',1,0,10)">+</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" style="display:flex;justify-content:space-between">
+        <span>BIPS SONORES</span>
+        <span id="settingBeepStatus" style="color:var(--accent);cursor:pointer;" onclick="toggleSettingBool('beep')">OUI</span>
+      </label>
+    </div>
+    <div class="form-group">
+      <label class="form-label" style="display:flex;justify-content:space-between">
+        <span>FLASH ÉCRAN SUR CHANGEMENT</span>
+        <span id="settingFlashStatus" style="color:var(--accent);cursor:pointer;" onclick="toggleSettingBool('flash')">OUI</span>
+      </label>
+    </div>
+    <div class="form-group">
+      <label class="form-label" style="display:flex;justify-content:space-between">
+        <span>VOLUME DU BIP</span>
+        <span id="volumeLabel" style="color:var(--accent)">70%</span>
+      </label>
+      <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70" oninput="updateVolumeLabel(this.value)">
+    </div>
+    <div class="form-group">
+      <label class="form-label">AVERTISSEMENT TEMPS RESTANT</label>
+      <div class="num-input-wrap">
+        <button class="num-btn" onclick="adjSetting('warnAt',-5,5,30)">−</button>
+        <span class="num-val" id="settingWarnAt">10</span>
+        <span class="num-unit">SEC</span>
+        <button class="num-btn" onclick="adjSetting('warnAt',5,5,30)">+</button>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-action">
+    <button class="start-btn" onclick="saveSettings()">ENREGISTRER</button>
+  </div>
+</div>
+
 <!-- ===== DONE ===== -->
 <div class="screen" id="done">
   <div class="done-title">DONE!</div>
@@ -506,7 +819,7 @@
 </div>
 
 <script>
-// ─── AUDIO SÉCURISÉ ──────────────────────────────────────────────────────────
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
 let audioCtx = null;
 function getAudio() {
   try {
@@ -525,6 +838,8 @@ function getAudio() {
 
 function beep(freq = 880, dur = 0.1, vol = 0.5) {
   try {
+    const s = getSettings();
+    if (!s.beep) return;
     const ctx = getAudio();
     if (!ctx) return;
     const osc = ctx.createOscillator();
@@ -533,7 +848,7 @@ function beep(freq = 880, dur = 0.1, vol = 0.5) {
     gain.connect(ctx.destination);
     osc.frequency.value = freq;
     osc.type = 'square';
-    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.setValueAtTime(vol * (s.volume ?? 0.7), ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime + dur);
@@ -545,7 +860,21 @@ function goBeep() {
   setTimeout(() => beep(784, 0.4, 0.9), 160);
 }
 
-// ─── AFFICHAGE RÉSOLU (SANS CONFLIT DE DISPLAY) ──────────────────────────────
+function snapBeep() {
+  beep(1000, 0.05, 0.5);
+}
+
+function flashBeep() {
+  const s = getSettings();
+  if (!s.flash) return;
+  const overlay = document.getElementById('beepOverlay');
+  if (overlay) {
+    overlay.classList.add('flash');
+    setTimeout(() => overlay.classList.remove('flash'), 120);
+  }
+}
+
+// ─── GESTION D'AFFICHAGE FLUIDE ──────────────────────────────────────────────
 function hideAllScreens() {
   document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
   document.querySelectorAll('.timer-screen-mode').forEach(s => s.style.display = 'none');
@@ -574,6 +903,9 @@ let elapsed = 0;
 let pausedAt = 0;
 let totalDuration = 0;
 let currentRound = 1;
+let currentIntervalIdx = 0;
+let customIntervals = [];
+let selectedColor = '#e8ff00';
 let workoutConfig = {};
 
 let ftSplits = [];
@@ -594,43 +926,59 @@ let setsConfig = {};
 let setsPaused = false;
 let setsPausedAt = 0;
 let setsTimeOffset = 0;
+let lastWarnSec = -1;
 
 const modeLabels = {
   amrap: 'AMRAP', emom: 'EMOM', fortime: 'FOR TIME',
-  tabata: 'TABATA', sets: 'SETS'
+  tabata: 'TABATA', custom: 'CUSTOM', sets: 'SETS'
 };
 
-// ─── FORMULAIRES ─────────────────────────────────────────────────────────────
-let activeRestMode = 'fixed';
+const modeColors = {
+  amrap: '#e8ff00', emom: '#00d4ff', fortime: '#ff4d00',
+  tabata: '#ff2d78', custom: '#bf5af2', sets: '#30d158'
+};
+
+// ─── FORMULAIRES DE CONFIGURATION ────────────────────────────────────────────
+let activeRestMode = '1to1';
 let currentSplitsOption = true;
 
-function goSetup(mode) {
+function goSetup(mode, config = null) {
   currentMode = mode;
+  workoutConfig = config || {};
   showScreen('setup');
   document.getElementById('setupTitle').textContent = modeLabels[mode];
-  renderSetupForm(mode);
+  const badge = document.getElementById('modeBadge');
+  badge.textContent = mode.toUpperCase();
+  badge.style.background = modeColors[mode] + '22';
+  badge.style.color = modeColors[mode];
+  badge.style.border = '1px solid ' + modeColors[mode] + '44';
+  renderSetupForm(mode, config);
 }
 
-function renderSetupForm(mode) {
+function renderSetupForm(mode, config) {
   const form = document.getElementById('setupForm');
   if (mode === 'amrap') {
+    const mins = config?.mins ?? 10;
     form.innerHTML = `
       <div class="form-group">
         <label class="form-label">DURÉE (MINUTES)</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('amrapMins',-1,1,99)">−</button>
-          <span class="num-val" id="amrapMins">10</span>
+          <span class="num-val" id="amrapMins">${mins}</span>
           <span class="num-unit">MIN</span>
           <button class="num-btn" onclick="adj('amrapMins',1,1,99)">+</button>
         </div>
       </div>`;
   } else if (mode === 'emom') {
+    const mins = config?.mins ?? 10;
+    const ivMin = config?.ivMin ?? 1;
+    const ivSec = config?.ivSec ?? 0;
     form.innerHTML = `
       <div class="form-group">
         <label class="form-label">DURÉE TOTALE</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('emomMins',-1,1,99)">−</button>
-          <span class="num-val" id="emomMins">10</span>
+          <span class="num-val" id="emomMins">${mins}</span>
           <span class="num-unit">MIN</span>
           <button class="num-btn" onclick="adj('emomMins',1,1,99)">+</button>
         </div>
@@ -640,26 +988,28 @@ function renderSetupForm(mode) {
         <div class="form-row">
           <div class="num-input-wrap">
             <button class="num-btn" onclick="adj('emomIvMin',-1,0,59)">−</button>
-            <span class="num-val" id="emomIvMin">1</span>
+            <span class="num-val" id="emomIvMin">${ivMin}</span>
             <span class="num-unit">MIN</span>
             <button class="num-btn" onclick="adj('emomIvMin',1,0,59)">+</button>
           </div>
           <div class="num-input-wrap">
             <button class="num-btn" onclick="adj('emomIvSec',-5,0,55)">−</button>
-            <span class="num-val" id="emomIvSec">0</span>
+            <span class="num-val" id="emomIvSec">${ivSec}</span>
             <span class="num-unit">SEC</span>
             <button class="num-btn" onclick="adj('emomIvSec',5,0,55)">+</button>
           </div>
         </div>
       </div>`;
   } else if (mode === 'fortime') {
-    currentSplitsOption = true;
+    const cap = config?.cap ?? 20;
+    const splits = config?.splits ?? true;
+    currentSplitsOption = splits;
     form.innerHTML = `
       <div class="form-group">
         <label class="form-label">TIME CAP (0 = AUCUN)</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('ftCap',-1,0,99)">−</button>
-          <span class="num-val" id="ftCap">20</span>
+          <span class="num-val" id="ftCap">${cap}</span>
           <span class="num-unit">MIN</span>
           <button class="num-btn" onclick="adj('ftCap',1,0,99)">+</button>
         </div>
@@ -667,17 +1017,20 @@ function renderSetupForm(mode) {
       <div class="form-group">
         <label class="form-label">SPLITS PAR SECTION</label>
         <div class="segmented-control">
-          <button class="segmented-btn active" id="splitsOnBtn" onclick="setSplitsOption(true)">ACTIF</button>
-          <button class="segmented-btn" id="splitsOffBtn" onclick="setSplitsOption(false)">DÉSACTIVÉ</button>
+          <button class="segmented-btn ${splits ? 'active' : ''}" id="splitsOnBtn" onclick="setSplitsOption(true)">ACTIF</button>
+          <button class="segmented-btn ${!splits ? 'active' : ''}" id="splitsOffBtn" onclick="setSplitsOption(false)">DÉSACTIVÉ</button>
         </div>
       </div>`;
   } else if (mode === 'tabata') {
+    const rounds = config?.rounds ?? 8;
+    const workSec = config?.workSec ?? 20;
+    const restSec = config?.tabRestSec ?? 10;
     form.innerHTML = `
       <div class="form-group">
         <label class="form-label">ROUNDS</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('tabRounds',-1,1,30)">−</button>
-          <span class="num-val" id="tabRounds">8</span>
+          <span class="num-val" id="tabRounds">${rounds}</span>
           <span class="num-unit">RDS</span>
           <button class="num-btn" onclick="adj('tabRounds',1,1,30)">+</button>
         </div>
@@ -685,25 +1038,33 @@ function renderSetupForm(mode) {
       <div class="form-row">
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('tabWork',-5,5,180)">−</button>
-          <span class="num-val" id="tabWork">20</span>
+          <span class="num-val" id="tabWork">${workSec}</span>
           <span class="num-unit">TRAVAIL</span>
           <button class="num-btn" onclick="adj('tabWork',5,5,180)">+</button>
         </div>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('tabRest',-5,0,180)">−</button>
-          <span class="num-val" id="tabRest">10</span>
+          <span class="num-val" id="tabRest">${restSec}</span>
           <span class="num-unit">REPOS</span>
           <button class="num-btn" onclick="adj('tabRest',5,0,180)">+</button>
         </div>
       </div>`;
+  } else if (mode === 'custom') {
+    if (config?.intervals) customIntervals = [...config.intervals];
+    renderCustomForm();
   } else if (mode === 'sets') {
-    activeRestMode = '1to1';
+    const sets = config?.sets ?? 5;
+    const restType = config?.restType ?? '1to1';
+    const restMin = config?.restMin ?? 2;
+    const restSec = config?.restSec ?? 0;
+    activeRestMode = restType;
+
     form.innerHTML = `
       <div class="form-group">
         <label class="form-label">NOMBRE DE SÉRIES (SETS)</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('setsCount',-1,1,30)">−</button>
-          <span class="num-val" id="setsCount">5</span>
+          <span class="num-val" id="setsCount">${sets}</span>
           <span class="num-unit">SETS</span>
           <button class="num-btn" onclick="adj('setsCount',1,1,30)">+</button>
         </div>
@@ -711,29 +1072,108 @@ function renderSetupForm(mode) {
       <div class="form-group">
         <label class="form-label">MODE DE REPOS</label>
         <div class="segmented-control">
-          <button class="segmented-btn active" id="restBtn1to1" onclick="setRestMode('1to1')">REPOS 1:1</button>
-          <button class="segmented-btn" id="restBtnFixed" onclick="setRestMode('fixed')">FIXE</button>
-          <button class="segmented-btn" id="restBtnNone" onclick="setRestMode('none')">AUCUN</button>
+          <button class="segmented-btn ${restType === '1to1' ? 'active' : ''}" id="restBtn1to1" onclick="setRestMode('1to1')">REPOS 1:1</button>
+          <button class="segmented-btn ${restType === 'fixed' ? 'active' : ''}" id="restBtnFixed" onclick="setRestMode('fixed')">FIXE</button>
+          <button class="segmented-btn ${restType === 'none' ? 'active' : ''}" id="restBtnNone" onclick="setRestMode('none')">AUCUN</button>
         </div>
-        <div id="fixedRestInputs" style="display:none;gap:12px;margin-top:12px">
+        <div id="fixedRestInputs" style="display:${restType === 'fixed' ? 'flex' : 'none'};gap:12px;margin-top:12px">
           <div class="num-input-wrap">
             <button class="num-btn" onclick="adj('restMin',-1,0,59)">−</button>
-            <span class="num-val" id="restMin">2</span>
+            <span class="num-val" id="restMin">${restMin}</span>
             <span class="num-unit">MIN</span>
             <button class="num-btn" onclick="adj('restMin',1,0,59)">+</button>
           </div>
           <div class="num-input-wrap">
             <button class="num-btn" onclick="adj('restSec',-5,0,55)">−</button>
-            <span class="num-val" id="restSec">0</span>
+            <span class="num-val" id="restSec">${restSec}</span>
             <span class="num-unit">SEC</span>
             <button class="num-btn" onclick="adj('restSec',5,0,55)">+</button>
           </div>
         </div>
-        <div id="restHint1to1" style="display:block;margin-top:12px;font-size:12px;color:var(--accent3);line-height:1.5">
-          Le repos s'ajuste exactement à la durée de votre set précédent (1:1).
+        <div id="restHint1to1" style="display:${restType === '1to1' ? 'block' : 'none'};margin-top:12px;font-size:12px;color:var(--accent3);line-height:1.5">
+          Le repos s'ajuste exactement à la durée de votre série terminée (ratio 1:1).
         </div>
       </div>`;
   }
+}
+
+function renderCustomForm() {
+  const form = document.getElementById('setupForm');
+  const items = customIntervals.map((iv, i) => `
+    <div class="interval-item">
+      <div class="interval-color" style="background:${iv.color}"></div>
+      <div class="interval-name">${iv.name}</div>
+      <div class="interval-time">${fmtMs(iv.duration)}</div>
+      <button class="interval-del" onclick="removeInterval(${i})">×</button>
+    </div>`).join('');
+
+  const loops = workoutConfig.loops ?? 1;
+
+  form.innerHTML = `
+    <div class="form-group">
+      <label class="form-label">SÉQUENCE D'INTERVALLES</label>
+      <div style="margin-bottom:10px">${items || '<div style="color:var(--muted);font-size:13px;padding:8px 0">Aucun intervalle créé</div>'}</div>
+      <button class="add-interval-btn" onclick="openIntervalModal()">+ AJOUTER UN INTERVALLE</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">BOUCLES (RÉPÉTER LA SÉQUENCE)</label>
+      <div class="num-input-wrap">
+        <button class="num-btn" onclick="adjLoops(-1)">−</button>
+        <span class="num-val" id="loopsVal">${loops}</span>
+        <span class="num-unit">×</span>
+        <button class="num-btn" onclick="adjLoops(1)">+</button>
+      </div>
+    </div>`;
+}
+
+function adjLoops(d) {
+  const cur = workoutConfig.loops ?? 1;
+  workoutConfig.loops = Math.max(1, Math.min(20, cur + d));
+  document.getElementById('loopsVal').textContent = workoutConfig.loops;
+}
+
+let intMin = 0, intSec = 30;
+function openIntervalModal() {
+  intMin = 0; intSec = 30;
+  document.getElementById('intMinVal').textContent = '0';
+  document.getElementById('intSecVal').textContent = '30';
+  document.getElementById('intervalNameInput').value = '';
+  document.getElementById('intervalModal').classList.add('active');
+}
+
+function closeIntervalModal() {
+  document.getElementById('intervalModal').classList.remove('active');
+}
+
+function adjInterval(type, d) {
+  if (type === 'min') {
+    intMin = Math.max(0, Math.min(59, intMin + d));
+    document.getElementById('intMinVal').textContent = intMin;
+  } else {
+    intSec = Math.max(0, Math.min(59, intSec + d));
+    document.getElementById('intSecVal').textContent = intSec;
+  }
+}
+
+document.getElementById('colorPicker')?.addEventListener('click', e => {
+  const opt = e.target.closest('.color-opt');
+  if (!opt) return;
+  selectedColor = opt.dataset.color;
+  document.querySelectorAll('.color-opt').forEach(o => o.classList.toggle('selected', o === opt));
+});
+
+function confirmInterval() {
+  const name = document.getElementById('intervalNameInput').value.trim() || 'Interval';
+  const duration = (intMin * 60 + intSec) * 1000;
+  if (duration <= 0) return;
+  customIntervals.push({ name, duration, color: selectedColor });
+  closeIntervalModal();
+  renderCustomForm();
+}
+
+function removeInterval(i) {
+  customIntervals.splice(i, 1);
+  renderCustomForm();
 }
 
 function setSplitsOption(enabled) {
@@ -770,6 +1210,7 @@ function getConfig() {
     const ivSec = parseInt(document.getElementById('emomIvSec')?.textContent || 0);
     return {
       mins: parseInt(document.getElementById('emomMins')?.textContent || 10),
+      ivMin, ivSec,
       intervalMs: (ivMin * 60 + ivSec) * 1000 || 60000
     };
   }
@@ -786,6 +1227,9 @@ function getConfig() {
       tabRestSec: parseInt(document.getElementById('tabRest')?.textContent || 10)
     };
   }
+  if (currentMode === 'custom') {
+    return { intervals: [...customIntervals], loops: workoutConfig.loops ?? 1 };
+  }
   if (currentMode === 'sets') {
     return {
       sets: parseInt(document.getElementById('setsCount')?.textContent || 5),
@@ -801,7 +1245,14 @@ function getConfig() {
 function beginCountdown() {
   getAudio();
   workoutConfig = getConfig();
-  let count = 3;
+  const s = getSettings();
+  let count = s.countdown ?? 3;
+
+  if (count <= 0) {
+    goBeep();
+    currentMode === 'sets' ? startSetsTimer() : startTimer();
+    return;
+  }
 
   hideAllScreens();
   const overlay = document.getElementById('countdownOverlay');
@@ -828,7 +1279,7 @@ function beginCountdown() {
   }, 1000);
 }
 
-// ─── TIMER AMRAP / EMOM / FOR TIME / TABATA ──────────────────────────────────
+// ─── TIMER STANDARD (AMRAP, EMOM, FOR TIME, TABATA, CUSTOM) ──────────────────
 function startTimer() {
   hideAllScreens();
   document.getElementById('timer').style.display = 'flex';
@@ -836,6 +1287,7 @@ function startTimer() {
   elapsed = 0;
   startTime = Date.now();
   currentRound = 1;
+  currentIntervalIdx = 0;
   ftSplits = [];
   ftLastSplitTime = 0;
   ftSectionNum = 1;
@@ -857,6 +1309,8 @@ function setupModeDisplay() {
   const cfg = workoutConfig;
   const phase = document.getElementById('timerPhase');
   const roundInfo = document.getElementById('timerRoundInfo');
+  const sub = document.getElementById('timerSub');
+  sub.textContent = '';
 
   if (currentMode === 'amrap') {
     totalDuration = cfg.mins * 60 * 1000;
@@ -876,7 +1330,22 @@ function setupModeDisplay() {
     totalDuration = cfg.rounds * cycle;
     phase.textContent = 'WORK';
     roundInfo.textContent = `1 / ${cfg.rounds}`;
+  } else if (currentMode === 'custom') {
+    const singleLoop = cfg.intervals.reduce((s, iv) => s + iv.duration, 0);
+    totalDuration = singleLoop * (cfg.loops || 1);
+    if (cfg.intervals.length > 0) {
+      phase.textContent = cfg.intervals[0].name;
+      phase.style.background = cfg.intervals[0].color;
+      updateCustomNextText(0);
+    }
+    roundInfo.textContent = `BOUCLE 1 / ${cfg.loops || 1}`;
   }
+}
+
+function updateCustomNextText(idx) {
+  const cfg = workoutConfig;
+  const nextIdx = (idx + 1) % cfg.intervals.length;
+  document.getElementById('timerSub').textContent = `SUIVANT: ${cfg.intervals[nextIdx].name} (${fmtMs(cfg.intervals[nextIdx].duration)})`;
 }
 
 function tickTimer() {
@@ -886,7 +1355,9 @@ function tickTimer() {
   if (currentMode === 'amrap') {
     const remain = totalDuration - elapsed;
     if (remain <= 0) { endTimer(); return; }
-    document.getElementById('timerDisplay').textContent = fmtSecs(Math.ceil(remain / 1000));
+    const s = Math.ceil(remain / 1000);
+    document.getElementById('timerDisplay').textContent = fmtSecs(s);
+    handleWarnColors(s);
     document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
   } else if (currentMode === 'emom') {
     if (elapsed >= totalDuration) { endTimer(); return; }
@@ -894,16 +1365,20 @@ function tickTimer() {
     const round = Math.floor(elapsed / ivMs) + 1;
     if (round !== currentRound) {
       currentRound = round;
-      goBeep();
+      goBeep(); flashBeep();
       document.getElementById('timerRoundInfo').textContent = `${round} / ${Math.floor(totalDuration/ivMs)}`;
     }
     const remain = ivMs - (elapsed % ivMs);
-    document.getElementById('timerDisplay').textContent = fmtSecs(Math.ceil(remain / 1000));
+    const s = Math.ceil(remain / 1000);
+    document.getElementById('timerDisplay').textContent = fmtSecs(s);
+    handleWarnColors(s);
     document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
   } else if (currentMode === 'fortime') {
     if (workoutConfig.cap > 0 && elapsed >= totalDuration) { endTimer(); return; }
     document.getElementById('timerDisplay').textContent = fmtMs(elapsed);
     if (workoutConfig.cap > 0) {
+      const s = Math.ceil((totalDuration - elapsed) / 1000);
+      handleWarnColors(s);
       document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
     }
   } else if (currentMode === 'tabata') {
@@ -917,9 +1392,50 @@ function tickTimer() {
     document.getElementById('timerPhase').textContent = isWork ? 'TRAVAIL' : 'REPOS';
     document.getElementById('timerPhase').style.background = isWork ? 'var(--accent)' : 'var(--accent3)';
     const remain = isWork ? wMs - (elapsed % cycle) : cycle - (elapsed % cycle);
-    document.getElementById('timerDisplay').textContent = fmtSecs(Math.ceil(remain / 1000));
+    const s = Math.ceil(remain / 1000);
+    document.getElementById('timerDisplay').textContent = fmtSecs(s);
+    handleWarnColors(s);
+    document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
+  } else if (currentMode === 'custom') {
+    const cfg = workoutConfig;
+    const totalLoop = cfg.intervals.reduce((s, iv) => s + iv.duration, 0);
+    const loopIdx = Math.floor(elapsed / totalLoop);
+    if (loopIdx >= cfg.loops) { endTimer(); return; }
+
+    const loopElapsed = elapsed % totalLoop;
+    let acc = 0, ivIdx = 0;
+    for (let i = 0; i < cfg.intervals.length; i++) {
+      if (loopElapsed < acc + cfg.intervals[i].duration) { ivIdx = i; break; }
+      acc += cfg.intervals[i].duration;
+    }
+
+    if (ivIdx !== currentIntervalIdx) {
+      currentIntervalIdx = ivIdx;
+      goBeep(); flashBeep();
+      document.getElementById('timerPhase').textContent = cfg.intervals[ivIdx].name;
+      document.getElementById('timerPhase').style.background = cfg.intervals[ivIdx].color;
+      updateCustomNextText(ivIdx);
+    }
+
+    const remain = cfg.intervals[ivIdx].duration - (loopElapsed - acc);
+    const s = Math.ceil(remain / 1000);
+    document.getElementById('timerRoundInfo').textContent = `BOUCLE ${loopIdx + 1} / ${cfg.loops}`;
+    document.getElementById('timerDisplay').textContent = fmtSecs(s);
+    handleWarnColors(s);
     document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
   }
+}
+
+function handleWarnColors(s) {
+  const warnThreshold = getSettings().warnAt ?? 10;
+  const disp = document.getElementById('timerDisplay');
+  disp.classList.toggle('warning', s <= warnThreshold && s > 3);
+  disp.classList.toggle('critical', s <= 3 && s >= 1);
+  if (s <= 3 && s >= 1 && s !== lastWarnSec) {
+    lastWarnSec = s;
+    snapBeep();
+  }
+  if (s > 3) lastWarnSec = -1;
 }
 
 function recordSplit() {
@@ -927,7 +1443,7 @@ function recordSplit() {
   ftSplits.push({ num: ftSectionNum, duration: dur });
   ftLastSplitTime = elapsed;
   ftSectionNum++;
-  beep(1000, 0.05, 0.4);
+  snapBeep();
   renderCompactList('timerLapList', ftSplits, 'S', 'var(--accent2)');
 }
 
@@ -937,7 +1453,7 @@ function recordAmrapRound() {
   amrapRounds.push({ num: amrapRoundNum, duration: dur });
   amrapLastRoundTime = elapsed;
   document.getElementById('timerRoundInfo').textContent = `TOUR ${amrapRoundNum}`;
-  beep(1000, 0.05, 0.4);
+  snapBeep();
   renderCompactList('timerLapList', amrapRounds, 'R', 'var(--accent)');
 }
 
@@ -975,10 +1491,14 @@ function stopTimer() {
 function endTimer() {
   clearTimer();
   goBeep();
-  showSummary(false);
+  document.getElementById('finishBanner').classList.add('active');
+  setTimeout(() => {
+    document.getElementById('finishBanner').classList.remove('active');
+    showSummary(false);
+  }, 1200);
 }
 
-// ─── SETS TIMER AVEC REPOS 1:1 ───────────────────────────────────────────────
+// ─── SETS TIMER (OPTION 1:1 INTÉGRÉE) ────────────────────────────────────────
 function startSetsTimer() {
   hideAllScreens();
   document.getElementById('setsTimer').style.display = 'flex';
@@ -1011,8 +1531,14 @@ function tickSets() {
       startNextSet();
       return;
     }
-    document.getElementById('setsDisplay').textContent = fmtSecs(Math.ceil(remaining / 1000));
+    const s = Math.ceil(remaining / 1000);
+    document.getElementById('setsDisplay').textContent = fmtSecs(s);
     document.getElementById('setsDisplay').classList.add('rest-phase');
+
+    if (s <= 3 && s >= 1 && s !== lastWarnSec) {
+      lastWarnSec = s;
+      snapBeep();
+    }
   }
 }
 
@@ -1020,7 +1546,7 @@ function completeSet() {
   if (setsState === 'work') {
     const setTime = Date.now() - setsSetStart - setsTimeOffset;
     setsLaps.push({ type: 'set', num: setsCurrentSet, time: setTime });
-    beep(1000, 0.05, 0.5);
+    snapBeep(); flashBeep();
     renderSetsLaps();
 
     if (setsCurrentSet >= setsConfig.sets) {
@@ -1054,7 +1580,7 @@ function startNextSet() {
   setsState = 'work';
   setsSetStart = Date.now();
   setsTimeOffset = 0;
-  goBeep();
+  goBeep(); flashBeep();
   updateSetsUI();
   renderSetsLaps();
 }
@@ -1110,6 +1636,14 @@ function stopSets() {
 }
 
 function showSetsSummary(stopped = false) {
+  saveHistoryEntry({
+    mode: 'sets',
+    elapsed: setsLaps.reduce((acc, l) => acc + l.time, 0),
+    stopped,
+    config: setsConfig,
+    setLaps: [...setsLaps]
+  });
+
   showScreen('done');
   document.getElementById('doneSub').textContent = stopped ? 'SÉANCES ARRÊTÉES' : 'SETS COMPLÉTÉS';
   const sets = setsLaps.filter(l => l.type === 'set');
@@ -1122,12 +1656,206 @@ function showSetsSummary(stopped = false) {
 }
 
 function showSummary(stopped) {
+  saveHistoryEntry({
+    mode: currentMode,
+    elapsed: elapsed,
+    stopped,
+    config: workoutConfig,
+    splits: [...ftSplits],
+    amrapRounds: [...amrapRounds]
+  });
+
   showScreen('done');
   document.getElementById('doneSub').textContent = stopped ? 'ARRÊTÉ' : 'TERMINÉ';
   let html = `
     <div class="done-stat"><span class="done-stat-label">Mode</span><span class="done-stat-val">${modeLabels[currentMode]}</span></div>
     <div class="done-stat"><span class="done-stat-label">Temps</span><span class="done-stat-val">${fmtMs(elapsed)}</span></div>`;
+  if (currentMode === 'amrap') {
+    html += `<div class="done-stat"><span class="done-stat-label">Tours</span><span class="done-stat-val" style="color:var(--accent)">${amrapRoundNum}</span></div>`;
+  }
   document.getElementById('doneStats').innerHTML = html;
+}
+
+// ─── LOCAL STORAGE : SAVED & HISTORY ─────────────────────────────────────────
+function getSaved() {
+  try { return JSON.parse(localStorage.getItem('wodtimerSaved') || '[]'); } catch { return []; }
+}
+function setSaved(arr) { localStorage.setItem('wodtimerSaved', JSON.stringify(arr)); }
+
+function openSaveModal() {
+  document.getElementById('saveNameInput').value = '';
+  document.getElementById('saveModal').classList.add('active');
+}
+function closeSaveModal() { document.getElementById('saveModal').classList.remove('active'); }
+
+function confirmSave() {
+  const name = document.getElementById('saveNameInput').value.trim();
+  if (!name) return;
+  const config = getConfig();
+  const saved = getSaved();
+  saved.unshift({ name, mode: currentMode, config, id: Date.now() });
+  setSaved(saved);
+  closeSaveModal();
+}
+
+function showSaved() {
+  showScreen('saved');
+  const saved = getSaved();
+  const list = document.getElementById('savedList');
+  if (!saved.length) {
+    list.innerHTML = `<div style="text-align:center;color:var(--muted);padding:40px;">Aucun workout sauvegardé.</div>`;
+    return;
+  }
+  list.innerHTML = saved.map(w => `
+    <div class="saved-card" onclick="loadSaved(${w.id})">
+      <div style="font-weight:bold;font-size:16px;">${w.name}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">${modeLabels[w.mode]}</div>
+    </div>`).join('');
+}
+
+function loadSaved(id) {
+  const w = getSaved().find(s => s.id === id);
+  if (!w) return;
+  goSetup(w.mode, w.config);
+}
+
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('wodtimerHistory') || '[]'); } catch { return []; }
+}
+
+function saveHistoryEntry(entry) {
+  const hist = getHistory();
+  entry.id = Date.now();
+  entry.date = new Date().toISOString();
+  hist.unshift(entry);
+  if (hist.length > 100) hist.splice(100);
+  localStorage.setItem('wodtimerHistory', JSON.stringify(hist));
+}
+
+let activeHistoryFilter = 'all';
+function showHistory() {
+  showScreen('history');
+  renderHistoryFilters();
+  renderHistoryList();
+}
+
+function renderHistoryFilters() {
+  const hist = getHistory();
+  const modes = ['all', ...new Set(hist.map(h => h.mode))];
+  document.getElementById('historyFilters').innerHTML = modes.map(m => `
+    <button class="filter-pill ${m === activeHistoryFilter ? 'active' : ''}" onclick="filterHistory('${m}')">
+      ${m === 'all' ? 'TOUS' : modeLabels[m] || m.toUpperCase()}
+    </button>`).join('');
+}
+
+function filterHistory(m) {
+  activeHistoryFilter = m;
+  renderHistoryFilters();
+  renderHistoryList();
+}
+
+function renderHistoryList() {
+  const hist = getHistory();
+  const filtered = activeHistoryFilter === 'all' ? hist : hist.filter(h => h.mode === activeHistoryFilter);
+  const list = document.getElementById('historyList');
+
+  if (!filtered.length) {
+    list.innerHTML = `<div style="text-align:center;color:var(--muted);padding:40px;">Aucun entraînement archivé.</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(h => {
+    const d = new Date(h.date);
+    return `
+      <div class="history-card" onclick="showHistoryDetail(${h.id})">
+        <div class="history-card-top">
+          <span class="history-mode-badge" style="background:${modeColors[h.mode]}22;color:${modeColors[h.mode]}">${modeLabels[h.mode]}</span>
+          <span class="history-date">${d.toLocaleDateString('fr-CA')}</span>
+        </div>
+        <div class="history-time">${fmtMs(h.elapsed)}</div>
+      </div>`;
+  }).join('');
+}
+
+function showHistoryDetail(id) {
+  const h = getHistory().find(item => item.id === id);
+  if (!h) return;
+  showScreen('historyDetail');
+  document.getElementById('detailTitle').textContent = modeLabels[h.mode];
+  let html = `
+    <div class="detail-section">
+      <div class="detail-label">TEMPS TOTAL</div>
+      <div class="detail-value" style="color:${modeColors[h.mode]}">${fmtMs(h.elapsed)}</div>
+    </div>`;
+
+  if (h.setLaps?.length > 0) {
+    const lapsHtml = h.setLaps.map(l => `
+      <div class="detail-row">
+        <span class="detail-row-label">${l.type === 'set' ? 'Set ' + l.num : 'Repos'}</span>
+        <span class="detail-row-val" style="color:${l.type === 'set' ? '#30d158' : 'var(--accent3)'}">${fmtMs(l.time)}</span>
+      </div>`).join('');
+    html += `<div class="detail-section"><div class="detail-label">Détail des Séries</div>${lapsHtml}</div>`;
+  }
+
+  html += `<button onclick="deleteHistoryItem(${h.id})" style="width:100%;padding:14px;background:none;border:1px solid var(--danger);border-radius:12px;color:var(--danger);cursor:pointer;font-family:'DM Mono',monospace;">SUPPRIMER</button>`;
+  document.getElementById('detailContent').innerHTML = html;
+}
+
+function deleteHistoryItem(id) {
+  const hist = getHistory().filter(h => h.id !== id);
+  localStorage.setItem('wodtimerHistory', JSON.stringify(hist));
+  showHistory();
+}
+
+function clearAllHistory() {
+  localStorage.removeItem('wodtimerHistory');
+  showHistory();
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function getSettings() {
+  try { return JSON.parse(localStorage.getItem('wodtimerSettings') || '{"countdown":3,"volume":0.7,"beep":true,"flash":true,"warnAt":10}'); }
+  catch { return { countdown: 3, volume: 0.7, beep: true, flash: true, warnAt: 10 }; }
+}
+
+function saveSettings() {
+  const s = {
+    countdown: parseInt(document.getElementById('settingCountdown').textContent),
+    volume: parseInt(document.getElementById('volumeSlider').value) / 100,
+    beep: document.getElementById('settingBeepStatus').textContent === 'OUI',
+    flash: document.getElementById('settingFlashStatus').textContent === 'OUI',
+    warnAt: parseInt(document.getElementById('settingWarnAt').textContent)
+  };
+  localStorage.setItem('wodtimerSettings', JSON.stringify(s));
+  goHome();
+}
+
+function showSettings() {
+  const s = getSettings();
+  document.getElementById('settingCountdown').textContent = s.countdown;
+  document.getElementById('settingWarnAt').textContent = s.warnAt ?? 10;
+  document.getElementById('volumeSlider').value = Math.round((s.volume ?? 0.7) * 100);
+  document.getElementById('volumeLabel').textContent = Math.round((s.volume ?? 0.7) * 100) + '%';
+  document.getElementById('settingBeepStatus').textContent = s.beep ? 'OUI' : 'NON';
+  document.getElementById('settingFlashStatus').textContent = s.flash ? 'OUI' : 'NON';
+  showScreen('settings');
+}
+
+function toggleSettingBool(key) {
+  if (key === 'beep') {
+    const el = document.getElementById('settingBeepStatus');
+    el.textContent = el.textContent === 'OUI' ? 'NON' : 'OUI';
+  } else if (key === 'flash') {
+    const el = document.getElementById('settingFlashStatus');
+    el.textContent = el.textContent === 'OUI' ? 'NON' : 'OUI';
+  }
+}
+
+function updateVolumeLabel(v) { document.getElementById('volumeLabel').textContent = v + '%'; }
+
+function adjSetting(id, d, min, max) {
+  const el = document.getElementById('setting' + id.charAt(0).toUpperCase() + id.slice(1));
+  if (el) el.textContent = Math.max(min, Math.min(max, parseInt(el.textContent) + d));
 }
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
