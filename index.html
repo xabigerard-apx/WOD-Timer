@@ -987,12 +987,12 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const timerRef = db.ref("timer_state");
 
-let lastExecutedCommandTimestamp = 0;
+let lastExecutedCommandTimestamp = Date.now();
 
 // Listen for remote commands from the phone
 timerRef.on("value", (snapshot) => {
   const data = snapshot.val();
-  if (!data || !data.command || data.timestamp <= lastExecutedCommandTimestamp) return;
+  if (!data || !data.command || (data.timestamp && data.timestamp <= lastExecutedCommandTimestamp)) return;
   lastExecutedCommandTimestamp = data.timestamp;
 
   const cmd = data.command;
@@ -1742,43 +1742,53 @@ function setupModeDisplay() {
   const phase = document.getElementById('timerPhase');
   const roundInfo = document.getElementById('timerRoundInfo');
   const sub = document.getElementById('timerSub');
+  const disp = document.getElementById('timerDisplay');
   sub.textContent = '';
 
   if (currentMode === 'amrap') {
-    totalDuration = cfg.mins * 60 * 1000;
+    const m = cfg.mins || 10;
+    totalDuration = m * 60 * 1000;
     phase.textContent = 'AMRAP';
     phase.style.background = 'var(--accent)';
     roundInfo.textContent = 'ROUND 0';
+    disp.textContent = fmtSecs(m * 60);
   } else if (currentMode === 'emom') {
     const ivMs = cfg.intervalMs || 60000;
-    const totalRounds = cfg.rounds || Math.floor((cfg.mins * 60 * 1000) / ivMs);
+    const totalRounds = cfg.rounds || Math.floor(((cfg.mins || 10) * 60 * 1000) / ivMs);
     totalDuration = totalRounds * ivMs;
     phase.textContent = 'EMOM';
     phase.style.background = 'var(--accent3)';
     roundInfo.textContent = `1 / ${totalRounds}`;
+    disp.textContent = fmtSecs(Math.ceil(ivMs / 1000));
   } else if (currentMode === 'fortime') {
     totalDuration = cfg.cap > 0 ? cfg.cap * 60 * 1000 : 0;
     phase.textContent = 'FOR TIME';
     phase.style.background = 'var(--accent2)';
     roundInfo.textContent = cfg.cap ? `CAP ${cfg.cap}M` : 'NO CAP';
+    disp.textContent = "00:00";
   } else if (currentMode === 'tabata') {
-    const cycle = (cfg.workSec + cfg.tabRestSec) * 1000;
-    totalDuration = cfg.rounds * cycle;
+    const w = cfg.workSec || 20;
+    const r = cfg.tabRestSec || 10;
+    const cycle = (w + r) * 1000;
+    totalDuration = (cfg.rounds || 8) * cycle;
     phase.textContent = 'WORK';
     phase.style.background = 'var(--accent)';
-    roundInfo.textContent = `1 / ${cfg.rounds}`;
+    roundInfo.textContent = `1 / ${cfg.rounds || 8}`;
+    disp.textContent = fmtSecs(w);
   } else if (currentMode === 'custom') {
-    const singleLoop = cfg.intervals.reduce((s, iv) => s + iv.duration, 0);
+    const intervals = cfg.intervals || [];
+    const singleLoop = intervals.reduce((s, iv) => s + iv.duration, 0);
     totalDuration = singleLoop * (cfg.loops || 1);
-    if (cfg.intervals.length > 0) {
-      phase.textContent = cfg.intervals[0].name;
-      phase.style.background = cfg.intervals[0].color;
+    if (intervals.length > 0) {
+      phase.textContent = intervals[0].name;
+      phase.style.background = intervals[0].color;
+      disp.textContent = fmtSecs(Math.ceil(intervals[0].duration / 1000));
       updateCustomNextText(0);
     }
     roundInfo.textContent = `LOOP 1 / ${cfg.loops || 1}`;
   }
 }
-
+  
 function updateCustomNextText(idx) {
   const cfg = workoutConfig;
   const nextIdx = (idx + 1) % cfg.intervals.length;
