@@ -11,7 +11,7 @@
 <title>WOD TIMER</title>
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text x='50' y='58' font-size='52' font-family='Arial Black,sans-serif' font-weight='900' fill='%23e8ff00' text-anchor='middle'>⏱</text></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text x='50' y='58' font-size='52' font-family='Arial Black,sans-serif' font-weight='900' fill='%23e8ff00' text-anchor='middle'>⏱</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0a0a0a;
@@ -39,7 +39,6 @@
     overflow-x: hidden;
   }
 
-  /* SCREENS SYSTEM */
   .screen {
     display: none;
     width: 100%;
@@ -48,7 +47,7 @@
     flex-direction: column;
   }
 
-  /* FULLSCREEN STRICT TIMER MODES WITHOUT SCROLLBARS */
+  /* FULLSCREEN GYM DISPLAY MODE */
   .timer-screen-mode {
     display: none;
     position: fixed;
@@ -57,7 +56,7 @@
     height: 100vh;
     height: 100dvh;
     background: var(--bg);
-    padding: 24px 20px;
+    padding: 16px 20px 20px;
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden !important;
@@ -198,7 +197,6 @@
     font-size: 11px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s;
   }
 
   .segmented-btn.active {
@@ -277,10 +275,30 @@
     cursor: pointer;
   }
 
-  /* TIMERS INTERNAL UI */
-  .timer-top { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-  .timer-mode-label { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 3px; color: var(--muted); }
-  .timer-round-info { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 2px; color: var(--accent); }
+  /* TIMERS MASSIVE VISIBILITY ENGINE */
+  .timer-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    padding: 0 4px;
+  }
+
+  .timer-mode-label {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(13px, 2.2vw, 24px);
+    letter-spacing: 4px;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .timer-round-info {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(34px, 5.5vw, 68px);
+    letter-spacing: 3px;
+    color: var(--accent);
+    line-height: 1;
+  }
 
   .timer-center, .sets-center {
     flex: 1;
@@ -288,44 +306,63 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    gap: 8px;
     min-height: 0;
+    width: 100%;
   }
 
   .timer-phase, .sets-phase {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(34px, 8vw, 64px);
+    font-size: clamp(34px, 6vw, 76px);
     letter-spacing: 4px;
     color: #000;
     background: var(--accent);
-    border-radius: 24px;
-    padding: 6px 28px;
+    border-radius: 20px;
+    padding: 4px 30px;
     text-align: center;
+    line-height: 1;
+    margin-bottom: 4px;
   }
 
+  /* HUGE DIGITS FOR PHONE & TV/MONITOR */
   .timer-display, .sets-display {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(96px, 28vw, 200px);
-    letter-spacing: 2px;
-    line-height: 0.88;
+    font-size: clamp(120px, 35vw, 38vh);
+    letter-spacing: 1px;
+    line-height: 0.84;
     text-align: center;
+    font-weight: 900;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+    width: 100%;
   }
 
   .timer-display.warning { color: var(--accent2); }
   .timer-display.critical { color: var(--danger); }
   .sets-display.rest-phase { color: var(--accent3); }
 
-  .timer-pause-hint { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 3px; color: var(--muted); }
-  .timer-sub, .sets-sub { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); text-align: center; min-height: 18px; }
+  .timer-pause-hint {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(11px, 1.8vw, 16px);
+    letter-spacing: 3px;
+    color: var(--muted);
+  }
+
+  .timer-sub, .sets-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(12px, 2vw, 20px);
+    color: var(--muted);
+    text-align: center;
+    min-height: 16px;
+  }
 
   .timer-lap-compact {
     flex-shrink: 0;
-    max-height: 110px;
+    max-height: 90px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 6px;
-    margin: 6px 0;
+    margin: 4px 0 8px;
     scrollbar-width: none;
   }
   .timer-lap-compact::-webkit-scrollbar { display: none; }
@@ -334,7 +371,7 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 8px 14px;
+    padding: 6px 14px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -342,12 +379,12 @@
 
   .lap-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
   .lap-label { flex: 1; font-size: 12px; font-weight: 500; }
-  .lap-time { font-family: 'Bebas Neue', sans-serif; font-size: 19px; letter-spacing: 1px; color: #30d158; }
+  .lap-time { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: #30d158; }
   .lap-time.rest-time { color: var(--accent3); }
 
-  .progress-bar-wrap { width: 100%; margin-bottom: 10px; flex-shrink: 0; }
-  .progress-bar-bg { width: 100%; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
-  .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; }
+  .progress-bar-wrap { width: 100%; margin-bottom: 12px; flex-shrink: 0; }
+  .progress-bar-bg { width: 100%; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; }
 
   .timer-controls, .sets-controls { display: flex; gap: 12px; flex-shrink: 0; }
   .ctrl-btn {
@@ -358,26 +395,40 @@
     background: var(--surface);
     color: var(--text);
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px;
+    font-size: 22px;
     letter-spacing: 2px;
     cursor: pointer;
   }
   .ctrl-btn.danger { color: var(--danger); border-color: var(--danger); }
   .sets-lap-btn {
     flex: 2;
-    padding: 18px;
+    padding: 16px;
     background: #30d158;
     border: none;
     border-radius: 14px;
     color: #000;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
+    font-size: 24px;
     letter-spacing: 3px;
     cursor: pointer;
   }
   .sets-lap-btn.rest-btn { background: var(--accent3); }
 
-  /* COUNTDOWN OVERLAY */
+  /* DESKTOP & TV SPECIFIC OPTIMIZATION */
+  @media (min-width: 768px) {
+    .timer-screen-mode { padding: 24px 40px 30px; }
+    .timer-display, .sets-display {
+      font-size: min(46vh, 38vw);
+      line-height: 0.82;
+    }
+    .timer-lap-compact { max-height: 140px; }
+    .ctrl-btn, .sets-lap-btn {
+      padding: 22px;
+      font-size: 32px;
+    }
+  }
+
+  /* OVERLAYS */
   .countdown-overlay {
     position: fixed;
     inset: 0;
@@ -391,17 +442,17 @@
   }
   .countdown-num {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(140px, 40vw, 240px);
+    font-size: clamp(160px, 46vw, 320px);
     letter-spacing: 8px;
     color: var(--accent);
     line-height: 0.9;
   }
-  .countdown-label { font-family: 'DM Mono', monospace; font-size: 13px; letter-spacing: 3px; color: var(--muted); }
+  .countdown-label { font-family: 'DM Mono', monospace; font-size: 15px; letter-spacing: 4px; color: var(--muted); }
 
   .beep-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(232, 255, 0, 0.15);
+    background: rgba(232, 255, 0, 0.18);
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.1s;
@@ -412,7 +463,7 @@
   .finish-banner {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.88);
     z-index: 250;
     display: none;
     align-items: center;
@@ -420,7 +471,7 @@
     pointer-events: none;
   }
   .finish-banner.active { display: flex; }
-  .finish-text { font-family: 'Bebas Neue', sans-serif; font-size: 80px; letter-spacing: 6px; color: var(--accent); }
+  .finish-text { font-family: 'Bebas Neue', sans-serif; font-size: clamp(70px, 18vw, 150px); letter-spacing: 6px; color: var(--accent); }
 
   /* MODALS */
   .modal-overlay {
@@ -510,9 +561,14 @@
   .history-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
   .history-mode-badge { font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
   .history-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-left: auto; }
-  .history-time { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 2px; line-height: 1; margin-bottom: 6px; }
+  .history-time { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 2px; line-height: 1; margin-bottom: 4px; }
+  .history-meta { font-size: 12px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; }
+  .history-splits-preview { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .split-pill { font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 8px; background: var(--surface2); border-radius: 4px; color: var(--muted); }
+  .split-pill.set-pill { color: #30d158; }
+  .split-pill.section-pill { color: var(--accent2); }
 
-  .detail-section { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 10px; }
+  .detail-section { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 12px; }
   .detail-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
   .detail-value { font-family: 'Bebas Neue', sans-serif; font-size: 38px; letter-spacing: 2px; line-height: 1; }
   .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
@@ -520,7 +576,7 @@
   .detail-row-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
   .detail-row-val { font-family: 'Bebas Neue', sans-serif; font-size: 20px; }
 
-  /* DONE SCREEN */
+  /* DONE */
   #done {
     background: var(--bg);
     align-items: center;
@@ -529,8 +585,8 @@
     padding: 40px 24px;
   }
   .done-title { font-family: 'Bebas Neue', sans-serif; font-size: 72px; letter-spacing: 6px; color: var(--accent); line-height: 0.95; margin-bottom: 6px; }
-  .done-sub { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); letter-spacing: 2px; margin-bottom: 32px; }
-  .done-stats { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 24px; width: 100%; max-width: 360px; margin: 0 auto 32px; max-height: 280px; overflow-y: auto; }
+  .done-sub { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); letter-spacing: 2px; margin-bottom: 24px; }
+  .done-stats { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 24px; width: 100%; max-width: 400px; margin: 0 auto 32px; max-height: 320px; overflow-y: auto; }
   .done-stat { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
   .done-stat:last-child { border-bottom: none; }
   .done-stat-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; }
@@ -821,18 +877,14 @@ let wakeLock = null;
 let fallbackVideo = null;
 
 async function requestWakeLock() {
-  // 1. Native Screen Wake Lock API
   try {
     if ('wakeLock' in navigator && navigator.wakeLock.request) {
       wakeLock = await navigator.wakeLock.request('screen');
-      wakeLock.addEventListener('release', () => {
-        wakeLock = null;
-      });
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
       return;
     }
   } catch (err) {}
 
-  // 2. Fallback: Invisible micro-video playback loop (prevents sleep on older iOS Safari)
   try {
     if (!fallbackVideo) {
       fallbackVideo = document.createElement('video');
@@ -841,7 +893,6 @@ async function requestWakeLock() {
       fallbackVideo.muted = true;
       fallbackVideo.loop = true;
       fallbackVideo.style.cssText = 'position:fixed;width:1px;height:1px;top:-10px;left:-10px;opacity:0.01;pointer-events:none;';
-      // Blank 1-pixel webm stream data
       fallbackVideo.src = 'data:video/webm;base64,GkXfo0AgQoaBAUL3gQFC8oEEQvOBCEKCQAR3ZWJtQoeBAkKFgQIYU4BnQI0VSalmQCgq17GDD0JATYCGQ2hyb21lV0GGQ2hyb21lFlSua8WIhkK+17GDD0JAR4BNgEA8AQIAAAAA';
       document.body.appendChild(fallbackVideo);
     }
@@ -851,10 +902,7 @@ async function requestWakeLock() {
 
 function releaseWakeLock() {
   try {
-    if (wakeLock) {
-      wakeLock.release();
-      wakeLock = null;
-    }
+    if (wakeLock) { wakeLock.release(); wakeLock = null; }
   } catch (e) {}
 
   if (fallbackVideo) {
@@ -866,7 +914,6 @@ function releaseWakeLock() {
   }
 }
 
-// Automatically re-request wake lock when returning to visible tab
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     const isStandardTimerActive = document.getElementById('timer').style.display === 'flex';
@@ -914,12 +961,18 @@ function beep(freq = 880, dur = 0.1, vol = 0.5) {
 }
 
 function goBeep() {
-  beep(523, 0.15, 0.8);
-  setTimeout(() => beep(784, 0.4, 0.9), 160);
+  beep(523, 0.15, 0.85);
+  setTimeout(() => beep(784, 0.45, 0.95), 160);
 }
 
 function snapBeep() {
   beep(1000, 0.05, 0.5);
+}
+
+function stopBeep() {
+  // Low distinct double-thud confirming manual stop
+  beep(300, 0.12, 0.8);
+  setTimeout(() => beep(200, 0.25, 0.9), 120);
 }
 
 function flashBeep() {
@@ -1303,7 +1356,7 @@ function getConfig() {
 // ─── COUNTDOWN ───────────────────────────────────────────────────────────────
 function beginCountdown() {
   getAudio();
-  requestWakeLock(); // Request screen keep-awake on direct user interaction
+  requestWakeLock();
   workoutConfig = getConfig();
   const s = getSettings();
   let count = s.countdown ?? 3;
@@ -1545,6 +1598,7 @@ function clearTimer() {
 }
 
 function stopTimer() {
+  stopBeep();
   clearTimer();
   releaseWakeLock();
   showSummary(true);
@@ -1696,12 +1750,21 @@ function renderSetsLaps() {
 }
 
 function stopSets() {
+  stopBeep();
   if (setsInterval) clearInterval(setsInterval);
   releaseWakeLock();
   showSetsSummary(true);
 }
 
 function showSetsSummary(stopped = false) {
+  // Save remaining work set if stopped during work phase
+  if (setsState === 'work') {
+    const curTime = Date.now() - setsSetStart - setsTimeOffset;
+    if (curTime > 2000) {
+      setsLaps.push({ type: 'set', num: setsCurrentSet, time: curTime });
+    }
+  }
+
   saveHistoryEntry({
     mode: 'sets',
     elapsed: setsLaps.reduce((acc, l) => acc + l.time, 0),
@@ -1722,6 +1785,22 @@ function showSetsSummary(stopped = false) {
 }
 
 function showSummary(stopped) {
+  // Final section calculation for For Time
+  if (currentMode === 'fortime' && ftSplits.length > 0) {
+    const finalSection = elapsed - ftLastSplitTime;
+    if (finalSection > 1000) {
+      ftSplits.push({ num: ftSectionNum, duration: finalSection });
+    }
+  }
+
+  // Final partial round calculation for AMRAP
+  if (currentMode === 'amrap' && amrapRounds.length > 0) {
+    const finalPartial = elapsed - amrapLastRoundTime;
+    if (finalPartial > 2000) {
+      amrapRounds.push({ num: 'Partial', duration: finalPartial });
+    }
+  }
+
   saveHistoryEntry({
     mode: currentMode,
     elapsed: elapsed,
@@ -1742,7 +1821,7 @@ function showSummary(stopped) {
   document.getElementById('doneStats').innerHTML = html;
 }
 
-// ─── LOCAL STORAGE: SAVED & HISTORY ──────────────────────────────────────────
+// ─── LOCAL STORAGE: SAVED & DETAILED HISTORY ─────────────────────────────────
 function getSaved() {
   try { return JSON.parse(localStorage.getItem('wodtimerSaved') || '[]'); } catch { return []; }
 }
@@ -1832,6 +1911,23 @@ function renderHistoryList() {
 
   list.innerHTML = filtered.map(h => {
     const d = new Date(h.date);
+    let splitsPreview = '';
+
+    if (h.splits?.length > 0) {
+      splitsPreview = `<div class="history-splits-preview">` + 
+        h.splits.map(s => `<span class="split-pill section-pill">S${s.num} ${fmtMs(s.duration)}</span>`).join('') + 
+      `</div>`;
+    } else if (h.amrapRounds?.length > 0) {
+      splitsPreview = `<div class="history-splits-preview">` + 
+        h.amrapRounds.map(r => `<span class="split-pill" style="color:var(--accent)">R${r.num} ${fmtMs(r.duration)}</span>`).join('') + 
+      `</div>`;
+    } else if (h.setLaps?.length > 0) {
+      const setsOnly = h.setLaps.filter(l => l.type === 'set');
+      splitsPreview = `<div class="history-splits-preview">` + 
+        setsOnly.map(s => `<span class="split-pill set-pill">Set${s.num} ${fmtMs(s.time)}</span>`).join('') + 
+      `</div>`;
+    }
+
     return `
       <div class="history-card" onclick="showHistoryDetail(${h.id})">
         <div class="history-card-top">
@@ -1839,6 +1935,7 @@ function renderHistoryList() {
           <span class="history-date">${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
         </div>
         <div class="history-time">${fmtMs(h.elapsed)}</div>
+        ${splitsPreview}
       </div>`;
   }).join('');
 }
@@ -1848,22 +1945,45 @@ function showHistoryDetail(id) {
   if (!h) return;
   showScreen('historyDetail');
   document.getElementById('detailTitle').textContent = modeLabels[h.mode];
+  
   let html = `
     <div class="detail-section">
       <div class="detail-label">TOTAL TIME</div>
       <div class="detail-value" style="color:${modeColors[h.mode]}">${fmtMs(h.elapsed)}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px">${new Date(h.date).toLocaleString()}</div>
     </div>`;
 
+  // For Time Splits Breakdown
+  if (h.splits?.length > 0) {
+    const splitsRows = h.splits.map(s => `
+      <div class="detail-row">
+        <span class="detail-row-label">Section ${s.num}</span>
+        <span class="detail-row-val" style="color:var(--accent2)">${fmtMs(s.duration)}</span>
+      </div>`).join('');
+    html += `<div class="detail-section"><div class="detail-label">Section Splits</div>${splitsRows}</div>`;
+  }
+
+  // AMRAP Rounds Breakdown
+  if (h.amrapRounds?.length > 0) {
+    const roundRows = h.amrapRounds.map(r => `
+      <div class="detail-row">
+        <span class="detail-row-label">Round ${r.num}</span>
+        <span class="detail-row-val" style="color:var(--accent)">${fmtMs(r.duration)}</span>
+      </div>`).join('');
+    html += `<div class="detail-section"><div class="detail-label">Rounds Breakdown</div>${roundRows}</div>`;
+  }
+
+  // Sets Breakdown (Work & Rest)
   if (h.setLaps?.length > 0) {
     const lapsHtml = h.setLaps.map(l => `
       <div class="detail-row">
-        <span class="detail-row-label">${l.type === 'set' ? 'Set ' + l.num : 'Rest'}</span>
+        <span class="detail-row-label">${l.type === 'set' ? 'Set ' + l.num + ' (Work)' : 'Rest after Set ' + l.num}</span>
         <span class="detail-row-val" style="color:${l.type === 'set' ? '#30d158' : 'var(--accent3)'}">${fmtMs(l.time)}</span>
       </div>`).join('');
     html += `<div class="detail-section"><div class="detail-label">Sets Breakdown</div>${lapsHtml}</div>`;
   }
 
-  html += `<button onclick="deleteHistoryItem(${h.id})" style="width:100%;padding:14px;background:none;border:1px solid var(--danger);border-radius:12px;color:var(--danger);cursor:pointer;font-family:'DM Mono',monospace;">DELETE ENTRY</button>`;
+  html += `<button onclick="deleteHistoryItem(${h.id})" style="width:100%;padding:14px;background:none;border:1px solid var(--danger);border-radius:12px;color:var(--danger);cursor:pointer;font-family:'DM Mono',monospace;margin-top:8px;">DELETE ENTRY</button>`;
   document.getElementById('detailContent').innerHTML = html;
 }
 
