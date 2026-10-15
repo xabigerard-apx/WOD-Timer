@@ -1,0 +1,18 @@
+{
+  "name": "APX WOD Timer",
+  "short_name": "APX Timer",
+  "description": "Chronomètre d'entraînement et WOD pour Centre Fonctionnel APX",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a0a",
+  "theme_color": "#613795",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
