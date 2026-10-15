@@ -951,10 +951,10 @@
     <div class="form-group">
       <label class="form-label">WARN WHEN TIME REMAINING</label>
       <div class="num-input-wrap">
-        <button class="num-btn" onclick="adjSetting('warnAt',-5,5,30)">−</button>
-        <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="settingWarnAt" value="10" onfocus="this.select()" oninput="manualSetSetting('warnAt', this.value, 5, 30)">
+        <button class="num-btn" onclick="adjSetting('warnAt',-1,1,60)">−</button>
+        <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="settingWarnAt" value="10" onfocus="this.select()" oninput="manualSetSetting('warnAt', this.value, 1, 60)">
         <span class="num-unit">SEC</span>
-        <button class="num-btn" onclick="adjSetting('warnAt',5,5,30)">+</button>
+        <button class="num-btn" onclick="adjSetting('warnAt',1,1,60)">+</button>
       </div>
     </div>
   </div>
@@ -1827,7 +1827,11 @@ function tickTimer() {
     handleWarnColors(s);
     document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
   } else if (currentMode === 'fortime') {
-    if (workoutConfig.cap > 0 && elapsed >= totalDuration) { endTimer(); return; }
+    if (workoutConfig.cap > 0 && elapsed >= totalDuration) {
+      document.getElementById('timerDisplay').textContent = fmtMs(totalDuration);
+      endTimer();
+      return;
+    }
     formattedDisplay = fmtMs(elapsed);
     document.getElementById('timerDisplay').textContent = formattedDisplay;
     if (workoutConfig.cap > 0) {
@@ -1835,6 +1839,7 @@ function tickTimer() {
       handleWarnColors(s);
       document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
     }
+  }
   } else if (currentMode === 'tabata') {
     const wMs = workoutConfig.workSec * 1000;
     const rMs = workoutConfig.tabRestSec * 1000;
@@ -1892,20 +1897,18 @@ function tickTimer() {
 function handleWarnColors(s) {
   const warnThreshold = getSettings().warnAt ?? 10;
   const disp = document.getElementById('timerDisplay');
+  
+  // Couleur orange pour tout le compte à rebours de la zone d'alerte, rouge pour les 3 dernières sec
   disp.classList.toggle('warning', s <= warnThreshold && s > 3);
   disp.classList.toggle('critical', s <= 3 && s >= 1);
 
-  // Bip d'avertissement au seuil configuré (ex: à 10s pile)
-  if (s === warnThreshold && s !== lastWarnSec) {
-    lastWarnSec = s;
-    beep(600, 0.2, 0.7);
-    flashBeep();
-  } else if (s <= 3 && s >= 1 && s !== lastWarnSec) {
-    // Décompte final 3, 2, 1
+  // Bips et flashs cadencés à chaque seconde du seuil configuré (ex: 5, 4, 3, 2, 1)
+  if (s <= warnThreshold && s >= 1 && s !== lastWarnSec) {
     lastWarnSec = s;
     snapBeep();
-  } else if (s > warnThreshold || (s < warnThreshold && s > 3)) {
-    if (lastWarnSec === warnThreshold) lastWarnSec = -1;
+    flashBeep();
+  } else if (s > warnThreshold || s <= 0) {
+    lastWarnSec = -1;
   }
 }
 
