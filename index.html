@@ -1,685 +1,678 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-  
-  <!-- Icône et Manifest PWA -->
-<link rel="icon" type="image/png" href="logo.png">
-<link rel="apple-touch-icon" href="logo.png">
-<link rel="manifest" href="manifest.json">
-  
-<meta name="theme-color" content="#613795">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="WOD Timer">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0a0a0a">
-<title>WOD TIMER</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text x='50' y='58' font-size='52' font-family='Arial Black,sans-serif' font-weight='900' fill='%23e8ff00' text-anchor='middle'>⏱</text></svg>">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text x='50' y='58' font-size='52' font-family='Arial Black,sans-serif' font-weight='900' fill='%23e8ff00' text-anchor='middle'>⏱</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0a0a0a;
-    --surface: #141414;
-    --surface2: #1e1e1e;
-    --border: #2a2a2a;
-    --accent: #e8ff00;
-    --accent2: #ff4d00;
-    --accent3: #00d4ff;
-    --text: #f0f0f0;
-    --muted: #777;
-    --danger: #ff3b30;
-    --success: #30d158;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="APX Timer">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#613795">
+  <title>APX WOD TIMER</title>
 
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  <!-- Icônes et Manifest PWA -->
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="manifest" href="manifest.json">
 
-  html, body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    width: 100%;
-    min-height: 100vh;
-    min-height: 100dvh;
-    overflow-x: hidden;
-  }
+  <!-- Polices Google -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-  .screen {
-    display: none;
-    width: 100%;
-    min-height: 100vh;
-    min-height: 100dvh;
-    flex-direction: column;
-  }
+  <!-- Scripts Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-  /* FULLSCREEN GYM DISPLAY MODE */
-  .timer-screen-mode {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
-    background: var(--bg);
-    padding: 16px 16px 20px;
-    flex-direction: column;
-    justify-content: space-between;
-    overflow: hidden !important;
-    z-index: 100;
-  }
-
-  /* HOME */
-  .home-header {
-    padding: 44px 24px 24px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 46px;
-    letter-spacing: 2px;
-    color: var(--accent);
-    line-height: 0.95;
-  }
-
-  .logo span { color: var(--text); }
-
-  .tagline {
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    margin-top: 6px;
-    font-family: 'DM Mono', monospace;
-  }
-
-  .mode-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    padding: 20px;
-  }
-
-  .mode-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 20px 18px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.1s;
-  }
-
-  .mode-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: var(--card-color, var(--accent));
-    opacity: 0.85;
-  }
-
-  .mode-card:active { transform: scale(0.97); }
-  .mode-card.amrap { --card-color: var(--accent); }
-  .mode-card.emom { --card-color: var(--accent3); }
-  .mode-card.fortime { --card-color: var(--accent2); }
-  .mode-card.tabata { --card-color: #ff2d78; }
-  .mode-card.custom { --card-color: #bf5af2; }
-  .mode-card.sets { --card-color: #30d158; }
-  .mode-card.saved { --card-color: var(--success); }
-  .mode-card.history { --card-color: #ff9f0a; }
-  .mode-card.settings { --card-color: #8e8e93; }
-
-  .mode-icon { font-size: 26px; margin-bottom: 6px; display: block; }
-  .mode-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--text); display: block; }
-  .mode-desc { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
-
-  /* SETUP */
-  .screen-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 40px 24px 20px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .back-btn {
-    width: 40px; height: 40px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--surface);
-    color: var(--text);
-    font-size: 20px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .screen-title { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 3px; }
-  .mode-badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    padding: 4px 10px;
-    border-radius: 6px;
-    text-transform: uppercase;
-    margin-left: auto;
-  }
-
-  .setup-form { padding: 24px; flex: 1; overflow-y: auto; }
-  .form-group { margin-bottom: 24px; }
-  .form-label {
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-    margin-bottom: 10px;
-    display: block;
-  }
-
-  .form-row { display: flex; gap: 12px; }
-
-  .segmented-control {
-    display: flex;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 4px;
-    gap: 4px;
-    margin-bottom: 12px;
-  }
-
-  .segmented-btn {
-    flex: 1;
-    padding: 10px 8px;
-    background: transparent;
-    border: none;
-    border-radius: 8px;
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .segmented-btn.active {
-    background: var(--surface2);
-    color: var(--accent);
-  }
-
-  .num-input-wrap {
-    flex: 1;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-  }
-
-  .num-btn {
-    width: 48px; height: 54px;
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-size: 22px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    user-select: none;
-  }
-
-  .num-val {
-    flex: 1;
-    text-align: center;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 30px;
-    letter-spacing: 2px;
-    color: var(--text);
-  }
-
-  .num-unit {
-    font-size: 11px;
-    color: var(--muted);
-    padding-right: 14px;
-    font-family: 'DM Mono', monospace;
-    user-select: none;
-  }
-
-  .bottom-action {
-    padding: 16px 24px 32px;
-    border-top: 1px solid var(--border);
-    background: var(--bg);
-  }
-
-  .start-btn {
-    width: 100%;
-    padding: 18px;
-    background: var(--accent);
-    border: none;
-    border-radius: 14px;
-    color: #000;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    letter-spacing: 3px;
-    cursor: pointer;
-  }
-
-  .save-row { display: flex; gap: 10px; margin-top: 10px; }
-  .save-btn {
-    flex: 1;
-    padding: 12px;
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 1px;
-    cursor: pointer;
-  }
-
-  /* ═══════════════════════════════════════════════════════════════════════════
-     TIMER INTERFACE (CELLULAIRE PAR DÉFAUT - HAUTEUR MAXIMISÉE)
-     ═══════════════════════════════════════════════════════════════════════════ */
-  .cell-header-labels {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    padding: 0 4px;
-    flex-shrink: 0;
-  }
-
-  .timer-mode-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 2.5px;
-    color: #777;
-    font-weight: 700;
-  }
-
-  .timer-round-info {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px;
-    letter-spacing: 2px;
-    color: #e8ff00;
-    line-height: 1;
-  }
-
-  /* Zone haute : centre la pastille à mi-chemin entre le haut et les chiffres */
-  .cell-pill-zone {
-    flex: 0 0 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    position: relative;
-  }
-
-  .pill-element {
-    background: #e8ff00;
-    color: #000;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px;
-    letter-spacing: 3px;
-    padding: 4px 28px;
-    border-radius: 12px;
-    line-height: 1.1;
-    white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-  }
-
-  .timer-center, .sets-center {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 0;
-    width: 100%;
-  }
-
-/* Chiffres cellulaires étirés en hauteur (+12% largeur, +18% hauteur) */
-  .timer-display, .sets-display {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(155px, 42.5vw, 28vh);
-    line-height: 0.74;
-    color: #fff;
-    text-align: center;
-    letter-spacing: 0.5px;
-    font-weight: 900;
-    width: 100%;
-    transform: scaleY(1.55);
-    transform-origin: center;
-    margin: auto 0;
-    text-shadow: 0 4px 20px rgba(0,0,0,0.8);
-  }
-
-  .timer-display.warning { color: var(--accent2); }
-  .timer-display.critical { color: var(--danger); }
-  .sets-display.rest-phase { color: var(--accent3); }
-
-  .timer-pause-hint {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: #666;
-    text-align: center;
-    margin-top: 10px;
-    margin-bottom: 6px;
-  }
-
-  .timer-sub, .sets-sub {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    color: var(--muted);
-    text-align: center;
-    min-height: 16px;
-    margin-bottom: 6px;
-  }
-
-  .timer-lap-compact {
-    flex-shrink: 0;
-    max-height: 75px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin: 2px 0 6px;
-    scrollbar-width: none;
-  }
-  .timer-lap-compact::-webkit-scrollbar { display: none; }
-
-  .lap-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .lap-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
-  .lap-label { flex: 1; font-size: 12px; font-weight: 500; }
-  .lap-time { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: #30d158; }
-  .lap-time.rest-time { color: var(--accent3); }
-
-  .progress-bar-wrap { width: 100%; margin-bottom: 12px; flex-shrink: 0; }
-  .progress-bar-bg { width: 100%; height: 5px; background: #222; border-radius: 3px; overflow: hidden; }
-  .progress-bar-fill { height: 100%; background: #e8ff00; border-radius: 3px; width: 0%; }
-
-  .timer-controls, .sets-controls { display: flex; gap: 12px; width: 100%; flex-shrink: 0; }
-  .ctrl-btn {
-    flex: 1;
-    padding: 14px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: var(--surface);
-    color: var(--text);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    text-align: center;
-  }
-  .ctrl-btn.danger { color: #ff3b30; border-color: #ff3b30; }
-  .sets-lap-btn {
-    flex: 2;
-    padding: 14px;
-    background: #30d158;
-    border: none;
-    border-radius: 12px;
-    color: #000;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    text-align: center;
-  }
-  .sets-lap-btn.rest-btn { background: var(--accent3); }
-
-  /* ═══════════════════════════════════════════════════════════════════════════
-     ÉCRAN LARGE (TV / ORDINATEUR) - FORMAT VALIDÉ 34vh / 25vw
-     ═══════════════════════════════════════════════════════════════════════════ */
-  @media (min-width: 768px) {
-    .timer-screen-mode {
-      padding: 24px 32px;
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface2: #1e1e1e;
+      --border: #2a2a2a;
+      --accent: #e8ff00;
+      --accent2: #ff4d00;
+      --accent3: #00d4ff;
+      --text: #f0f0f0;
+      --muted: #777;
+      --danger: #ff3b30;
+      --success: #30d158;
     }
 
-    .cell-header-labels {
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      flex-direction: column;
+    }
+
+    /* FULLSCREEN GYM DISPLAY MODE */
+    .timer-screen-mode {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      background: var(--bg);
+      padding: 16px 16px 20px;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden !important;
+      z-index: 100;
+    }
+
+    /* HOME */
+    .home-header {
+      padding: 44px 24px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 46px;
+      letter-spacing: 2px;
+      color: var(--accent);
+      line-height: 0.95;
+    }
+
+    .logo span { color: var(--text); }
+
+    .tagline {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-top: 6px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 20px;
+    }
+
+    .mode-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 18px;
+      cursor: pointer;
       position: relative;
-      min-height: 40px;
+      overflow: hidden;
+      transition: transform 0.1s;
+    }
+
+    .mode-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--card-color, var(--accent));
+      opacity: 0.85;
+    }
+
+    .mode-card:active { transform: scale(0.97); }
+    .mode-card.amrap { --card-color: var(--accent); }
+    .mode-card.emom { --card-color: var(--accent3); }
+    .mode-card.fortime { --card-color: var(--accent2); }
+    .mode-card.tabata { --card-color: #ff2d78; }
+    .mode-card.custom { --card-color: #bf5af2; }
+    .mode-card.sets { --card-color: #30d158; }
+    .mode-card.saved { --card-color: var(--success); }
+    .mode-card.history { --card-color: #ff9f0a; }
+    .mode-card.settings { --card-color: #8e8e93; }
+
+    .mode-icon { font-size: 26px; margin-bottom: 6px; display: block; }
+    .mode-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--text); display: block; }
+    .mode-desc { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
+
+    /* SETUP */
+    .screen-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 40px 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .back-btn {
+      width: 40px; height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .screen-title { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 3px; }
+    .mode-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      margin-left: auto;
+    }
+
+    .setup-form { padding: 24px; flex: 1; overflow-y: auto; }
+    .form-group { margin-bottom: 24px; }
+    .form-label {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .form-row { display: flex; gap: 12px; }
+
+    .segmented-control {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .segmented-btn {
+      flex: 1;
+      padding: 10px 8px;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .segmented-btn.active {
+      background: var(--surface2);
+      color: var(--accent);
+    }
+
+    .num-input-wrap {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .num-btn {
+      width: 48px; height: 54px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 22px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      user-select: none;
+    }
+
+    .num-val {
+      flex: 1;
+      text-align: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 30px;
+      letter-spacing: 2px;
+      color: var(--text);
+    }
+
+    .num-unit {
+      font-size: 11px;
+      color: var(--muted);
+      padding-right: 14px;
+      font-family: 'DM Mono', monospace;
+      user-select: none;
+    }
+
+    .bottom-action {
+      padding: 16px 24px 32px;
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .start-btn {
+      width: 100%;
+      padding: 18px;
+      background: var(--accent);
+      border: none;
+      border-radius: 14px;
+      color: #000;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 3px;
+      cursor: pointer;
+    }
+
+    .save-row { display: flex; gap: 10px; margin-top: 10px; }
+    .save-btn {
+      flex: 1;
+      padding: 12px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+
+    /* TIMER INTERFACE */
+    .cell-header-labels {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: 0 4px;
+      flex-shrink: 0;
     }
 
     .timer-mode-label {
-      font-size: 14px;
-      letter-spacing: 3px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 2.5px;
+      color: #777;
+      font-weight: 700;
     }
 
     .timer-round-info {
-      font-size: 32px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
       letter-spacing: 2px;
+      color: #e8ff00;
+      line-height: 1;
     }
 
     .cell-pill-zone {
-      position: absolute;
-      top: 24px;
-      left: 0;
-      right: 0;
-      height: 40px;
-      flex: none;
-      pointer-events: none;
+      flex: 0 0 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      position: relative;
     }
 
     .pill-element {
-      font-size: clamp(18px, 2vw, 24px);
-      letter-spacing: 2px;
-      padding: 2px 18px;
-      border-radius: 10px;
-      box-shadow: none;
+      background: #e8ff00;
+      color: #000;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: 3px;
+      padding: 4px 28px;
+      border-radius: 12px;
+      line-height: 1.1;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .timer-center, .sets-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+      width: 100%;
     }
 
     .timer-display, .sets-display {
-      font-size: min(54vh, 40vw);
-      line-height: 0.82;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(155px, 42.5vw, 28vh);
+      line-height: 0.74;
+      color: #fff;
+      text-align: center;
+      letter-spacing: 0.5px;
+      font-weight: 900;
+      width: 100%;
+      transform: scaleY(1.55);
+      transform-origin: center;
+      margin: auto 0;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+    }
+
+    .timer-display.warning { color: var(--accent2); }
+    .timer-display.critical { color: var(--danger); }
+    .sets-display.rest-phase { color: var(--accent3); }
+
+    .timer-pause-hint {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #666;
+      text-align: center;
+      margin-top: 10px;
+      margin-bottom: 6px;
+    }
+
+    .timer-sub, .sets-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      min-height: 16px;
+      margin-bottom: 6px;
+    }
+
+    .timer-lap-compact {
+      flex-shrink: 0;
+      max-height: 75px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin: 2px 0 6px;
+      scrollbar-width: none;
+    }
+    .timer-lap-compact::-webkit-scrollbar { display: none; }
+
+    .lap-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .lap-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+    .lap-label { flex: 1; font-size: 12px; font-weight: 500; }
+    .lap-time { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: #30d158; }
+    .lap-time.rest-time { color: var(--accent3); }
+
+    .progress-bar-wrap { width: 100%; margin-bottom: 12px; flex-shrink: 0; }
+    .progress-bar-bg { width: 100%; height: 5px; background: #222; border-radius: 3px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: #e8ff00; border-radius: 3px; width: 0%; }
+
+    .timer-controls, .sets-controls { display: flex; gap: 12px; width: 100%; flex-shrink: 0; }
+    .ctrl-btn {
+      flex: 1;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      color: var(--text);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
       letter-spacing: 2px;
-      transform: none; /* Pas d'élongation sur TV */
+      cursor: pointer;
+      text-align: center;
+    }
+    .ctrl-btn.danger { color: #ff3b30; border-color: #ff3b30; }
+    .sets-lap-btn {
+      flex: 2;
+      padding: 14px;
+      background: #30d158;
+      border: none;
+      border-radius: 12px;
+      color: #000;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .sets-lap-btn.rest-btn { background: var(--accent3); }
+
+    /* ÉCRAN LARGE (TV / CHROMEBOOK) */
+    @media (min-width: 768px) {
+      .timer-screen-mode {
+        padding: 24px 32px;
+      }
+
+      .cell-header-labels {
+        position: relative;
+        min-height: 40px;
+      }
+
+      .timer-mode-label {
+        font-size: 14px;
+        letter-spacing: 3px;
+      }
+
+      .timer-round-info {
+        font-size: 32px;
+        letter-spacing: 2px;
+      }
+
+      .cell-pill-zone {
+        position: absolute;
+        top: 24px;
+        left: 0;
+        right: 0;
+        height: 40px;
+        flex: none;
+        pointer-events: none;
+      }
+
+      .pill-element {
+        font-size: clamp(18px, 2vw, 24px);
+        letter-spacing: 2px;
+        padding: 2px 18px;
+        border-radius: 10px;
+        box-shadow: none;
+      }
+
+      .timer-display, .sets-display {
+        font-size: min(54vh, 40vw);
+        line-height: 0.82;
+        letter-spacing: 2px;
+        transform: none;
+      }
+
+      .timer-lap-compact { max-height: 110px; }
+      .ctrl-btn, .sets-lap-btn {
+        padding: 18px;
+        font-size: 26px;
+      }
     }
 
-    .timer-lap-compact { max-height: 110px; }
-    .ctrl-btn, .sets-lap-btn {
-      padding: 18px;
-      font-size: 26px;
+    /* OVERLAYS */
+    .countdown-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
     }
-  }
+    .countdown-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(160px, 46vw, 320px);
+      letter-spacing: 8px;
+      color: var(--accent);
+      line-height: 0.9;
+    }
+    .countdown-label { font-family: 'DM Mono', monospace; font-size: 15px; letter-spacing: 4px; color: var(--muted); }
 
-  /* OVERLAYS */
-  .countdown-overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    z-index: 500;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .countdown-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(160px, 46vw, 320px);
-    letter-spacing: 8px;
-    color: var(--accent);
-    line-height: 0.9;
-  }
-  .countdown-label { font-family: 'DM Mono', monospace; font-size: 15px; letter-spacing: 4px; color: var(--muted); }
+    .beep-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(232, 255, 0, 0.18);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s;
+      z-index: 200;
+    }
+    .beep-overlay.flash { opacity: 1; }
 
-  .beep-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(232, 255, 0, 0.18);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.1s;
-    z-index: 200;
-  }
-  .beep-overlay.flash { opacity: 1; }
+    .finish-banner {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 250;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .finish-banner.active { display: flex; }
+    .finish-text { font-family: 'Bebas Neue', sans-serif; font-size: clamp(70px, 18vw, 150px); letter-spacing: 6px; color: var(--accent); }
 
-  .finish-banner {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.88);
-    z-index: 250;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-  }
-  .finish-banner.active { display: flex; }
-  .finish-text { font-family: 'Bebas Neue', sans-serif; font-size: clamp(70px, 18vw, 150px); letter-spacing: 6px; color: var(--accent); }
+    /* MODALS */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 600;
+      display: none;
+      align-items: flex-end;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      width: 100%;
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      padding: 24px 24px 44px;
+    }
+    .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; margin-bottom: 16px; }
+    .text-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      margin-bottom: 16px;
+    }
+    .modal-btns { display: flex; gap: 10px; }
+    .modal-btn {
+      flex: 1; padding: 16px;
+      border-radius: 12px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      border: none;
+    }
+    .modal-btn.confirm { background: var(--accent); color: #000; }
+    .modal-btn.cancel { background: var(--surface2); color: var(--text); }
 
-  /* MODALS */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    z-index: 600;
-    display: none;
-    align-items: flex-end;
-  }
-  .modal-overlay.active { display: flex; }
-  .modal {
-    width: 100%;
-    background: var(--surface);
-    border-radius: 20px 20px 0 0;
-    padding: 24px 24px 44px;
-  }
-  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; margin-bottom: 16px; }
-  .text-input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-    color: var(--text);
-    font-size: 15px;
-    outline: none;
-    margin-bottom: 16px;
-  }
-  .modal-btns { display: flex; gap: 10px; }
-  .modal-btn {
-    flex: 1; padding: 16px;
-    border-radius: 12px;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    border: none;
-  }
-  .modal-btn.confirm { background: var(--accent); color: #000; }
-  .modal-btn.cancel { background: var(--surface2); color: var(--text); }
+    /* CUSTOM INTERVALS */
+    .interval-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .interval-color { width: 10px; height: 10px; border-radius: 50%; }
+    .interval-name { flex: 1; font-size: 14px; font-weight: 500; }
+    .interval-time { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
+    .interval-del { background: none; border: none; color: var(--danger); font-size: 18px; cursor: pointer; }
+    .add-interval-btn {
+      width: 100%; padding: 14px; background: none;
+      border: 1px dashed var(--border); border-radius: 12px;
+      color: var(--muted); font-size: 13px; cursor: pointer;
+    }
+    .color-picker { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .color-opt {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    .color-opt.selected { border-color: var(--text); transform: scale(1.1); }
 
-  /* CUSTOM INTERVALS */
-  .interval-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 8px;
-  }
-  .interval-color { width: 10px; height: 10px; border-radius: 50%; }
-  .interval-name { flex: 1; font-size: 14px; font-weight: 500; }
-  .interval-time { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
-  .interval-del { background: none; border: none; color: var(--danger); font-size: 18px; cursor: pointer; }
-  .add-interval-btn {
-    width: 100%; padding: 14px; background: none;
-    border: 1px dashed var(--border); border-radius: 12px;
-    color: var(--muted); font-size: 13px; cursor: pointer;
-  }
-  .color-picker { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-  .color-opt {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid transparent;
-  }
-  .color-opt.selected { border-color: var(--text); transform: scale(1.1); }
+    /* HISTORY & SAVED CARDS */
+    .filter-pill {
+      padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
+      background: none; color: var(--muted); font-family: 'DM Mono', monospace;
+      font-size: 11px; cursor: pointer; white-space: nowrap;
+    }
+    .filter-pill.active { background: var(--surface2); color: var(--text); border-color: var(--text); }
+    .saved-list { padding: 16px 20px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .saved-card, .history-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      cursor: pointer;
+    }
+    .history-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .history-mode-badge { font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+    .history-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-left: auto; }
+    .history-time { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 2px; line-height: 1; margin-bottom: 4px; }
+    .history-meta { font-size: 12px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; }
+    .history-splits-preview { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .split-pill { font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 8px; background: var(--surface2); border-radius: 4px; color: var(--muted); }
+    .split-pill.set-pill { color: #30d158; }
+    .split-pill.section-pill { color: var(--accent2); }
 
-  /* HISTORY & SAVED CARDS */
-  .filter-pill {
-    padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
-    background: none; color: var(--muted); font-family: 'DM Mono', monospace;
-    font-size: 11px; cursor: pointer; white-space: nowrap;
-  }
-  .filter-pill.active { background: var(--surface2); color: var(--text); border-color: var(--text); }
-  .saved-list { padding: 16px 20px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-  .saved-card, .history-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px 18px;
-    cursor: pointer;
-  }
-  .history-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-  .history-mode-badge { font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
-  .history-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-left: auto; }
-  .history-time { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 2px; line-height: 1; margin-bottom: 4px; }
-  .history-meta { font-size: 12px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; }
-  .history-splits-preview { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
-  .split-pill { font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 8px; background: var(--surface2); border-radius: 4px; color: var(--muted); }
-  .split-pill.set-pill { color: #30d158; }
-  .split-pill.section-pill { color: var(--accent2); }
+    .detail-section { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 12px; }
+    .detail-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+    .detail-value { font-family: 'Bebas Neue', sans-serif; font-size: 38px; letter-spacing: 2px; line-height: 1; }
+    .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+    .detail-row-val { font-family: 'Bebas Neue', sans-serif; font-size: 20px; }
 
-  .detail-section { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 12px; }
-  .detail-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
-  .detail-value { font-family: 'Bebas Neue', sans-serif; font-size: 38px; letter-spacing: 2px; line-height: 1; }
-  .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
-  .detail-row:last-child { border-bottom: none; }
-  .detail-row-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
-  .detail-row-val { font-family: 'Bebas Neue', sans-serif; font-size: 20px; }
+    /* DONE */
+    #done {
+      background: var(--bg);
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 24px;
+    }
+    .done-title { font-family: 'Bebas Neue', sans-serif; font-size: 72px; letter-spacing: 6px; color: var(--accent); line-height: 0.95; margin-bottom: 6px; }
+    .done-sub { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); letter-spacing: 2px; margin-bottom: 24px; }
+    .done-stats { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 24px; width: 100%; max-width: 400px; margin: 0 auto 32px; max-height: 320px; overflow-y: auto; }
+    .done-stat { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .done-stat:last-child { border-bottom: none; }
+    .done-stat-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; }
+    .done-stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; }
+    .home-btn { padding: 16px 48px; background: var(--accent); border: none; border-radius: 14px; color: #000; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; cursor: pointer; }
 
-  /* DONE */
-  #done {
-    background: var(--bg);
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 40px 24px;
-  }
-  .done-title { font-family: 'Bebas Neue', sans-serif; font-size: 72px; letter-spacing: 6px; color: var(--accent); line-height: 0.95; margin-bottom: 6px; }
-  .done-sub { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); letter-spacing: 2px; margin-bottom: 24px; }
-  .done-stats { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 24px; width: 100%; max-width: 400px; margin: 0 auto 32px; max-height: 320px; overflow-y: auto; }
-  .done-stat { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .done-stat:last-child { border-bottom: none; }
-  .done-stat-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; }
-  .done-stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; }
-  .home-btn { padding: 16px 48px; background: var(--accent); border: none; border-radius: 14px; color: #000; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; cursor: pointer; }
-
-  .volume-slider {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%; height: 6px; border-radius: 3px;
-    background: var(--surface2); outline: none; margin-top: 12px;
-  }
-  .volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none;
-    width: 22px; height: 22px; border-radius: 50%;
-    background: var(--accent); cursor: pointer;
-  }
-  
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  
-</style>
+    .volume-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%; height: 6px; border-radius: 3px;
+      background: var(--surface2); outline: none; margin-top: 12px;
+    }
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--accent); cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 
@@ -748,7 +741,7 @@
 <div class="screen" id="home" style="display:flex">
   <div class="home-header">
     <div class="logo">WOD<span>TIMER</span></div>
-    <div class="tagline">Build · Train · Suffer</div>
+    <div class="tagline">Centre Fonctionnel APX</div>
   </div>
   <div class="mode-grid">
     <div class="mode-card amrap" onclick="goSetup('amrap')">
@@ -960,7 +953,7 @@
 </div>
 
 <script>
-  // Initialisation Firebase pour l'affichage TV
+// ─── INITIALISATION FIREBASE & SYNCHRONISATION ──────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyC6e1z1cYuq5q9IPGqp1ZLMcv-n0B1ttDo",
   authDomain: "apx-wod-timer.firebaseapp.com",
@@ -975,11 +968,51 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const timerRef = db.ref("timer_state");
 
-// Écoute les commandes envoyées par le cellulaire
-timerRef.on("child_changed", (snapshot) => {
-  // Déclenche startTimer(), pauseTimer(), resetTimer() selon snapshot.val()
+let lastExecutedCommandTimestamp = 0;
+
+// Écoute les commandes envoyées par la télécommande mobile
+timerRef.on("value", (snapshot) => {
+  const data = snapshot.val();
+  if (!data || !data.command || data.timestamp <= lastExecutedCommandTimestamp) return;
+  lastExecutedCommandTimestamp = data.timestamp;
+
+  const cmd = data.command;
+  const isTimerActive = document.getElementById('timer').style.display === 'flex' || 
+                        document.getElementById('setsTimer').style.display === 'flex';
+
+  if (cmd === "START") {
+    if (!isTimerActive) {
+      beginCountdown();
+    } else if (isPaused) {
+      togglePause();
+    }
+  } else if (cmd === "PAUSE") {
+    if (isTimerActive && !isPaused) {
+      togglePause();
+    }
+  } else if (cmd === "RESET") {
+    if (isTimerActive) {
+      stopTimer();
+    }
+    goHome();
+    broadcastState("00:00", false, modeLabels[currentMode]);
+  } else if (cmd === "SET_MODE" && data.mode) {
+    const modeKey = data.mode.toLowerCase().replace(' ', '');
+    if (modeLabels[modeKey]) {
+      goSetup(modeKey);
+      broadcastState("00:00", false, modeLabels[modeKey]);
+    }
+  }
 });
-  
+
+function broadcastState(timeStr, running, modeStr) {
+  timerRef.update({
+    timeFormatted: timeStr,
+    isRunning: running,
+    mode: modeStr
+  }).catch(() => {});
+}
+
 // ─── SCREEN WAKE LOCK MANAGER ────────────────────────────────────────────────
 let wakeLock = null;
 let fallbackVideo = null;
@@ -1100,7 +1133,6 @@ function hideAllScreens() {
   if (cd) cd.style.display = 'none';
 }
 
-// ─── GESTION DE LA NAVIGATION ET DU BOUTON RETOUR CELLULAIRE ─────────────────
 let isHandlingPopState = false;
 
 function showScreen(id) {
@@ -1108,19 +1140,13 @@ function showScreen(id) {
   const el = document.getElementById(id);
   if (el) el.style.display = 'flex';
 
-  // Si on navigue vers un écran secondaire (autre que 'home'), on enregistre un état dans l'historique
-  if (!isHandlingPopState) {
-    if (id !== 'home') {
-      history.pushState({ screen: id }, '');
-    }
+  if (!isHandlingPopState && id !== 'home') {
+    history.pushState({ screen: id }, '');
   }
 }
 
-// Intercepte le bouton retour physique ou gestuel du téléphone
 window.addEventListener('popstate', (e) => {
   isHandlingPopState = true;
-
-  // Si un timer est en cours d'exécution, on évite un arrêt accidentel ou on nettoie
   const isTimerRunning = document.getElementById('timer').style.display === 'flex' || 
                          document.getElementById('setsTimer').style.display === 'flex';
 
@@ -1129,9 +1155,7 @@ window.addEventListener('popstate', (e) => {
     stopSets();
   }
 
-  // Si l'utilisateur revient en arrière, on le ramène directement au menu d'accueil
   goHome();
-
   isHandlingPopState = false;
 });
 
@@ -1140,6 +1164,7 @@ function goHome() {
   if (setsInterval) { clearInterval(setsInterval); setsInterval = null; }
   releaseWakeLock();
   showScreen('home');
+  broadcastState("00:00", false, modeLabels[currentMode]);
 }
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -1186,7 +1211,6 @@ const modeColors = {
   tabata: '#ff2d78', custom: '#bf5af2', sets: '#30d158'
 };
 
-// ─── SETUP FORMS ─────────────────────────────────────────────────────────────
 let activeRestMode = '1to1';
 let currentSplitsOption = true;
 
@@ -1201,6 +1225,7 @@ function goSetup(mode, config = null) {
   badge.style.color = modeColors[mode];
   badge.style.border = '1px solid ' + modeColors[mode] + '44';
   renderSetupForm(mode, config);
+  broadcastState("00:00", false, modeLabels[mode]);
 }
 
 function renderSetupForm(mode, config) {
@@ -1553,6 +1578,7 @@ function startTimer() {
   setupModeDisplay();
   clearTimer();
   timerInterval = setInterval(tickTimer, 100);
+  broadcastState("00:00", true, modeLabels[currentMode]);
 }
 
 function setupModeDisplay() {
@@ -1602,15 +1628,19 @@ function updateCustomNextText(idx) {
   document.getElementById('timerSub').textContent = `NEXT: ${cfg.intervals[nextIdx].name} (${fmtMs(cfg.intervals[nextIdx].duration)})`;
 }
 
+let lastReportSec = -1;
+
 function tickTimer() {
   if (isPaused) return;
   elapsed = Date.now() - startTime;
+  let formattedDisplay = "00:00";
 
   if (currentMode === 'amrap') {
     const remain = totalDuration - elapsed;
     if (remain <= 0) { endTimer(); return; }
     const s = Math.ceil(remain / 1000);
-    document.getElementById('timerDisplay').textContent = fmtSecs(s);
+    formattedDisplay = fmtSecs(s);
+    document.getElementById('timerDisplay').textContent = formattedDisplay;
     handleWarnColors(s);
     document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
   } else if (currentMode === 'emom') {
@@ -1624,12 +1654,14 @@ function tickTimer() {
     }
     const remain = ivMs - (elapsed % ivMs);
     const s = Math.ceil(remain / 1000);
-    document.getElementById('timerDisplay').textContent = fmtSecs(s);
+    formattedDisplay = fmtSecs(s);
+    document.getElementById('timerDisplay').textContent = formattedDisplay;
     handleWarnColors(s);
     document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
   } else if (currentMode === 'fortime') {
     if (workoutConfig.cap > 0 && elapsed >= totalDuration) { endTimer(); return; }
-    document.getElementById('timerDisplay').textContent = fmtMs(elapsed);
+    formattedDisplay = fmtMs(elapsed);
+    document.getElementById('timerDisplay').textContent = formattedDisplay;
     if (workoutConfig.cap > 0) {
       const s = Math.ceil((totalDuration - elapsed) / 1000);
       handleWarnColors(s);
@@ -1647,7 +1679,8 @@ function tickTimer() {
     document.getElementById('timerPhase').style.background = isWork ? 'var(--accent)' : 'var(--accent3)';
     const remain = isWork ? wMs - (elapsed % cycle) : cycle - (elapsed % cycle);
     const s = Math.ceil(remain / 1000);
-    document.getElementById('timerDisplay').textContent = fmtSecs(s);
+    formattedDisplay = fmtSecs(s);
+    document.getElementById('timerDisplay').textContent = formattedDisplay;
     handleWarnColors(s);
     document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
   } else if (currentMode === 'custom') {
@@ -1674,9 +1707,17 @@ function tickTimer() {
     const remain = cfg.intervals[ivIdx].duration - (loopElapsed - acc);
     const s = Math.ceil(remain / 1000);
     document.getElementById('timerRoundInfo').textContent = `LOOP ${loopIdx + 1} / ${cfg.loops}`;
-    document.getElementById('timerDisplay').textContent = fmtSecs(s);
+    formattedDisplay = fmtSecs(s);
+    document.getElementById('timerDisplay').textContent = formattedDisplay;
     handleWarnColors(s);
     document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
+  }
+
+  // Synchronise le temps avec le mobile chaque seconde
+  const currentSec = Math.floor(elapsed / 1000);
+  if (currentSec !== lastReportSec) {
+    lastReportSec = currentSec;
+    broadcastState(formattedDisplay, true, modeLabels[currentMode]);
   }
 }
 
@@ -1727,9 +1768,11 @@ function togglePause() {
   if (isPaused) {
     pausedAt = Date.now();
     hint.textContent = 'PAUSED - TAP TO RESUME';
+    broadcastState(document.getElementById('timerDisplay').textContent, false, modeLabels[currentMode]);
   } else {
     startTime += (Date.now() - pausedAt);
     hint.textContent = 'TAP TO PAUSE';
+    broadcastState(document.getElementById('timerDisplay').textContent, true, modeLabels[currentMode]);
   }
 }
 
@@ -1741,6 +1784,7 @@ function stopTimer() {
   stopBeep();
   clearTimer();
   releaseWakeLock();
+  broadcastState("00:00", false, modeLabels[currentMode]);
   showSummary(true);
 }
 
@@ -1748,6 +1792,7 @@ function endTimer() {
   clearTimer();
   releaseWakeLock();
   goBeep();
+  broadcastState("00:00", false, modeLabels[currentMode]);
   document.getElementById('finishBanner').classList.add('active');
   setTimeout(() => {
     document.getElementById('finishBanner').classList.remove('active');
@@ -1771,15 +1816,18 @@ function startSetsTimer() {
   updateSetsUI();
   if (setsInterval) clearInterval(setsInterval);
   setsInterval = setInterval(tickSets, 100);
+  broadcastState("00:00", true, "SETS");
 }
 
 function tickSets() {
   if (setsPaused) return;
   const now = Date.now();
+  let formattedDisplay = "00:00";
 
   if (setsState === 'work') {
     const curElapsed = now - setsSetStart - setsTimeOffset;
-    document.getElementById('setsDisplay').textContent = fmtMs(curElapsed);
+    formattedDisplay = fmtMs(curElapsed);
+    document.getElementById('setsDisplay').textContent = formattedDisplay;
     document.getElementById('setsDisplay').classList.remove('rest-phase');
   } else {
     const restElapsed = now - setsRestStart - setsTimeOffset;
@@ -1790,13 +1838,20 @@ function tickSets() {
       return;
     }
     const s = Math.ceil(remaining / 1000);
-    document.getElementById('setsDisplay').textContent = fmtSecs(s);
+    formattedDisplay = fmtSecs(s);
+    document.getElementById('setsDisplay').textContent = formattedDisplay;
     document.getElementById('setsDisplay').classList.add('rest-phase');
 
     if (s <= 3 && s >= 1 && s !== lastWarnSec) {
       lastWarnSec = s;
       snapBeep();
     }
+  }
+
+  const currentSec = Math.floor((now - setsSetStart) / 1000);
+  if (currentSec !== lastReportSec) {
+    lastReportSec = currentSec;
+    broadcastState(formattedDisplay, true, "SETS");
   }
 }
 
@@ -1871,9 +1926,11 @@ function toggleSetsPause() {
   if (setsPaused) {
     setsPausedAt = Date.now();
     hint.textContent = 'PAUSED - TAP TO RESUME';
+    broadcastState(document.getElementById('setsDisplay').textContent, false, "SETS");
   } else {
     setsTimeOffset += (Date.now() - setsPausedAt);
     hint.textContent = 'TAP TO PAUSE';
+    broadcastState(document.getElementById('setsDisplay').textContent, true, "SETS");
   }
 }
 
@@ -1893,6 +1950,7 @@ function stopSets() {
   stopBeep();
   if (setsInterval) clearInterval(setsInterval);
   releaseWakeLock();
+  broadcastState("00:00", false, "SETS");
   showSetsSummary(true);
 }
 
@@ -2188,10 +2246,10 @@ function fmtSecs(s) {
 function fmtMs(ms) {
   return fmtSecs(Math.floor(ms / 1000));
 }
-  // Enregistrement de base pour l'installation de l'application (PWA)
+
+// Enregistrement de base pour l'installation de l'application (PWA)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Prépare l'application pour l'affichage plein écran hors navigateur
     console.log('APX Timer prêt pour installation.');
   });
 }
