@@ -1894,11 +1894,19 @@ function handleWarnColors(s) {
   const disp = document.getElementById('timerDisplay');
   disp.classList.toggle('warning', s <= warnThreshold && s > 3);
   disp.classList.toggle('critical', s <= 3 && s >= 1);
-  if (s <= 3 && s >= 1 && s !== lastWarnSec) {
+
+  // Bip d'avertissement au seuil configuré (ex: à 10s pile)
+  if (s === warnThreshold && s !== lastWarnSec) {
+    lastWarnSec = s;
+    beep(600, 0.2, 0.7);
+    flashBeep();
+  } else if (s <= 3 && s >= 1 && s !== lastWarnSec) {
+    // Décompte final 3, 2, 1
     lastWarnSec = s;
     snapBeep();
+  } else if (s > warnThreshold || (s < warnThreshold && s > 3)) {
+    if (lastWarnSec === warnThreshold) lastWarnSec = -1;
   }
-  if (s > 3) lastWarnSec = -1;
 }
 
 function recordSplit() {
