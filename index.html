@@ -1069,11 +1069,40 @@ function hideAllScreens() {
   if (cd) cd.style.display = 'none';
 }
 
+// ─── GESTION DE LA NAVIGATION ET DU BOUTON RETOUR CELLULAIRE ─────────────────
+let isHandlingPopState = false;
+
 function showScreen(id) {
   hideAllScreens();
   const el = document.getElementById(id);
   if (el) el.style.display = 'flex';
+
+  // Si on navigue vers un écran secondaire (autre que 'home'), on enregistre un état dans l'historique
+  if (!isHandlingPopState) {
+    if (id !== 'home') {
+      history.pushState({ screen: id }, '');
+    }
+  }
 }
+
+// Intercepte le bouton retour physique ou gestuel du téléphone
+window.addEventListener('popstate', (e) => {
+  isHandlingPopState = true;
+
+  // Si un timer est en cours d'exécution, on évite un arrêt accidentel ou on nettoie
+  const isTimerRunning = document.getElementById('timer').style.display === 'flex' || 
+                         document.getElementById('setsTimer').style.display === 'flex';
+
+  if (isTimerRunning) {
+    stopTimer();
+    stopSets();
+  }
+
+  // Si l'utilisateur revient en arrière, on le ramène directement au menu d'accueil
+  goHome();
+
+  isHandlingPopState = false;
+});
 
 function goHome() {
   clearTimer();
