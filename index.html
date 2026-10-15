@@ -1839,7 +1839,6 @@ function tickTimer() {
       handleWarnColors(s);
       document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
     }
-  }
   } else if (currentMode === 'tabata') {
     const wMs = workoutConfig.workSec * 1000;
     const rMs = workoutConfig.tabRestSec * 1000;
