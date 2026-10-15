@@ -56,7 +56,7 @@
     height: 100vh;
     height: 100dvh;
     background: var(--bg);
-    padding: 16px 20px 20px;
+    padding: 16px 16px 20px;
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden !important;
@@ -275,7 +275,7 @@
     cursor: pointer;
   }
 
-  /* TIMERS MASSIVE VISIBILITY ENGINE */
+  /* TIMERS LAYOUT WITH ELEVATED PILL AND MASSIVE DIGITS */
   .timer-top {
     display: flex;
     align-items: center;
@@ -306,30 +306,31 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
     min-height: 0;
     width: 100%;
   }
 
+  /* ELEVATED PILL SEPARATED FROM DIGITS */
   .timer-phase, .sets-phase {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(34px, 6vw, 76px);
+    font-size: clamp(28px, 5.5vw, 56px);
     letter-spacing: 4px;
     color: #000;
     background: var(--accent);
     border-radius: 20px;
-    padding: 4px 30px;
+    padding: 5px 28px;
     text-align: center;
-    line-height: 1;
-    margin-bottom: 4px;
+    line-height: 1.05;
+    margin-bottom: clamp(16px, 3vh, 36px);
+    display: inline-block;
   }
 
-  /* HUGE DIGITS FOR PHONE & TV/MONITOR */
+  /* HUGE DIGITS FOR MOBILE & DESKTOP */
   .timer-display, .sets-display {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(120px, 35vw, 38vh);
+    font-size: clamp(130px, 39vw, 42vh);
     letter-spacing: 1px;
-    line-height: 0.84;
+    line-height: 0.82;
     text-align: center;
     font-weight: 900;
     text-shadow: 0 4px 20px rgba(0,0,0,0.8);
@@ -342,26 +343,28 @@
 
   .timer-pause-hint {
     font-family: 'DM Mono', monospace;
-    font-size: clamp(11px, 1.8vw, 16px);
+    font-size: clamp(11px, 1.8vw, 15px);
     letter-spacing: 3px;
     color: var(--muted);
+    margin-top: clamp(8px, 1.5vh, 18px);
   }
 
   .timer-sub, .sets-sub {
     font-family: 'DM Mono', monospace;
-    font-size: clamp(12px, 2vw, 20px);
+    font-size: clamp(12px, 2vw, 18px);
     color: var(--muted);
     text-align: center;
     min-height: 16px;
+    margin-top: 4px;
   }
 
   .timer-lap-compact {
     flex-shrink: 0;
-    max-height: 90px;
+    max-height: 80px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     margin: 4px 0 8px;
     scrollbar-width: none;
   }
@@ -382,7 +385,7 @@
   .lap-time { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: #30d158; }
   .lap-time.rest-time { color: var(--accent3); }
 
-  .progress-bar-wrap { width: 100%; margin-bottom: 12px; flex-shrink: 0; }
+  .progress-bar-wrap { width: 100%; margin-bottom: 10px; flex-shrink: 0; }
   .progress-bar-bg { width: 100%; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
   .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; }
 
@@ -416,12 +419,16 @@
 
   /* DESKTOP & TV SPECIFIC OPTIMIZATION */
   @media (min-width: 768px) {
-    .timer-screen-mode { padding: 24px 40px 30px; }
-    .timer-display, .sets-display {
-      font-size: min(46vh, 38vw);
-      line-height: 0.82;
+    .timer-screen-mode { padding: 24px 44px 30px; }
+    .timer-phase, .sets-phase {
+      margin-bottom: clamp(24px, 4vh, 48px);
+      font-size: clamp(34px, 3.8vw, 64px);
     }
-    .timer-lap-compact { max-height: 140px; }
+    .timer-display, .sets-display {
+      font-size: min(54vh, 42vw);
+      line-height: 0.80;
+    }
+    .timer-lap-compact { max-height: 120px; }
     .ctrl-btn, .sets-lap-btn {
       padding: 22px;
       font-size: 32px;
@@ -740,7 +747,7 @@
   </div>
 </div>
 
-<!-- ===== STANDARD TIMER SCREEN (AMRAP, EMOM, FOR TIME, TABATA, CUSTOM) ===== -->
+<!-- ===== STANDARD TIMER SCREEN ===== -->
 <div class="timer-screen-mode" id="timer">
   <div class="timer-top">
     <div class="timer-mode-label" id="timerModeLabel">AMRAP</div>
@@ -765,7 +772,7 @@
   </div>
 </div>
 
-<!-- ===== SETS TIMER SCREEN (1:1 REST RATIO SUPPORTED) ===== -->
+<!-- ===== SETS TIMER SCREEN ===== -->
 <div class="timer-screen-mode" id="setsTimer">
   <div class="timer-top">
     <div class="timer-mode-label">SETS</div>
@@ -970,7 +977,6 @@ function snapBeep() {
 }
 
 function stopBeep() {
-  // Low distinct double-thud confirming manual stop
   beep(300, 0.12, 0.8);
   setTimeout(() => beep(200, 0.25, 0.9), 120);
 }
@@ -1757,7 +1763,6 @@ function stopSets() {
 }
 
 function showSetsSummary(stopped = false) {
-  // Save remaining work set if stopped during work phase
   if (setsState === 'work') {
     const curTime = Date.now() - setsSetStart - setsTimeOffset;
     if (curTime > 2000) {
@@ -1785,7 +1790,6 @@ function showSetsSummary(stopped = false) {
 }
 
 function showSummary(stopped) {
-  // Final section calculation for For Time
   if (currentMode === 'fortime' && ftSplits.length > 0) {
     const finalSection = elapsed - ftLastSplitTime;
     if (finalSection > 1000) {
@@ -1793,7 +1797,6 @@ function showSummary(stopped) {
     }
   }
 
-  // Final partial round calculation for AMRAP
   if (currentMode === 'amrap' && amrapRounds.length > 0) {
     const finalPartial = elapsed - amrapLastRoundTime;
     if (finalPartial > 2000) {
@@ -1953,7 +1956,6 @@ function showHistoryDetail(id) {
       <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px">${new Date(h.date).toLocaleString()}</div>
     </div>`;
 
-  // For Time Splits Breakdown
   if (h.splits?.length > 0) {
     const splitsRows = h.splits.map(s => `
       <div class="detail-row">
@@ -1963,7 +1965,6 @@ function showHistoryDetail(id) {
     html += `<div class="detail-section"><div class="detail-label">Section Splits</div>${splitsRows}</div>`;
   }
 
-  // AMRAP Rounds Breakdown
   if (h.amrapRounds?.length > 0) {
     const roundRows = h.amrapRounds.map(r => `
       <div class="detail-row">
@@ -1973,7 +1974,6 @@ function showHistoryDetail(id) {
     html += `<div class="detail-section"><div class="detail-label">Rounds Breakdown</div>${roundRows}</div>`;
   }
 
-  // Sets Breakdown (Work & Rest)
   if (h.setLaps?.length > 0) {
     const lapsHtml = h.setLaps.map(l => `
       <div class="detail-row">
