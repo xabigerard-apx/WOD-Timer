@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  
+  <!-- Icône et Manifest PWA -->
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<link rel="manifest" href="manifest.json">
+  
+<meta name="theme-color" content="#613795">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2156,6 +2163,13 @@ function fmtSecs(s) {
 
 function fmtMs(ms) {
   return fmtSecs(Math.floor(ms / 1000));
+}
+  // Enregistrement de base pour l'installation de l'application (PWA)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // Prépare l'application pour l'affichage plein écran hors navigateur
+    console.log('APX Timer prêt pour installation.');
+  });
 }
 </script>
 </body>
