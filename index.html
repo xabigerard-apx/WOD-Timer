@@ -56,7 +56,7 @@
     height: 100vh;
     height: 100dvh;
     background: var(--bg);
-    padding: 16px 16px 20px;
+    padding: 20px 16px 20px;
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden !important;
@@ -197,6 +197,7 @@
     font-size: 11px;
     font-weight: 500;
     cursor: pointer;
+    transition: all 0.15s;
   }
 
   .segmented-btn.active {
@@ -275,29 +276,55 @@
     cursor: pointer;
   }
 
-  /* TIMERS LAYOUT WITH ELEVATED PILL AND MASSIVE DIGITS */
-  .timer-top {
+  /* ═══════════════════════════════════════════════════════════════════════════
+     TIMER INTERFACE (CELLULAIRE PAR DÉFAUT - CONFORME À TA RETOUCHE PAINT)
+     ═══════════════════════════════════════════════════════════════════════════ */
+  .cell-header-labels {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    flex-shrink: 0;
+    align-items: center;
+    width: 100%;
     padding: 0 4px;
+    flex-shrink: 0;
   }
 
   .timer-mode-label {
     font-family: 'DM Mono', monospace;
-    font-size: clamp(13px, 2.2vw, 24px);
-    letter-spacing: 4px;
-    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 2.5px;
+    color: #777;
     font-weight: 700;
   }
 
   .timer-round-info {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(34px, 5.5vw, 68px);
-    letter-spacing: 3px;
-    color: var(--accent);
+    font-size: 24px;
+    letter-spacing: 2px;
+    color: #e8ff00;
     line-height: 1;
+  }
+
+  /* Zone haute flexible pour centrer la pastille à mi-chemin */
+  .cell-pill-zone {
+    flex: 0 0 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    position: relative;
+  }
+
+  .pill-element {
+    background: #e8ff00;
+    color: #000;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 3px;
+    padding: 4px 28px;
+    border-radius: 12px;
+    line-height: 1.1;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   }
 
   .timer-center, .sets-center {
@@ -310,31 +337,20 @@
     width: 100%;
   }
 
-  /* ELEVATED PILL SEPARATED FROM DIGITS */
-  .timer-phase, .sets-phase {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(28px, 5.5vw, 56px);
-    letter-spacing: 4px;
-    color: #000;
-    background: var(--accent);
-    border-radius: 20px;
-    padding: 5px 28px;
-    text-align: center;
-    line-height: 1.05;
-    margin-bottom: clamp(16px, 3vh, 36px);
-    display: inline-block;
-  }
-
-  /* HUGE DIGITS FOR MOBILE & DESKTOP */
+  /* Chiffres cellulaires étirés verticalement */
   .timer-display, .sets-display {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(130px, 39vw, 42vh);
-    letter-spacing: 1px;
-    line-height: 0.82;
+    font-size: 154px;
+    line-height: 0.80;
+    color: #fff;
     text-align: center;
+    letter-spacing: 0.5px;
     font-weight: 900;
-    text-shadow: 0 4px 20px rgba(0,0,0,0.8);
     width: 100%;
+    transform: scaleY(1.36);
+    transform-origin: center;
+    margin: auto 0;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.8);
   }
 
   .timer-display.warning { color: var(--accent2); }
@@ -343,29 +359,30 @@
 
   .timer-pause-hint {
     font-family: 'DM Mono', monospace;
-    font-size: clamp(11px, 1.8vw, 15px);
+    font-size: 11px;
     letter-spacing: 3px;
-    color: var(--muted);
-    margin-top: clamp(8px, 1.5vh, 18px);
+    color: #666;
+    text-align: center;
+    margin-bottom: 8px;
   }
 
   .timer-sub, .sets-sub {
     font-family: 'DM Mono', monospace;
-    font-size: clamp(12px, 2vw, 18px);
+    font-size: 13px;
     color: var(--muted);
     text-align: center;
     min-height: 16px;
-    margin-top: 4px;
+    margin-bottom: 6px;
   }
 
   .timer-lap-compact {
     flex-shrink: 0;
-    max-height: 80px;
+    max-height: 75px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 4px;
-    margin: 4px 0 8px;
+    margin: 4px 0 6px;
     scrollbar-width: none;
   }
   .timer-lap-compact::-webkit-scrollbar { display: none; }
@@ -385,53 +402,93 @@
   .lap-time { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: #30d158; }
   .lap-time.rest-time { color: var(--accent3); }
 
-  .progress-bar-wrap { width: 100%; margin-bottom: 10px; flex-shrink: 0; }
-  .progress-bar-bg { width: 100%; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
-  .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; }
+  .progress-bar-wrap { width: 100%; margin-bottom: 12px; flex-shrink: 0; }
+  .progress-bar-bg { width: 100%; height: 5px; background: #222; border-radius: 3px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: #e8ff00; border-radius: 3px; width: 0%; }
 
-  .timer-controls, .sets-controls { display: flex; gap: 12px; flex-shrink: 0; }
+  .timer-controls, .sets-controls { display: flex; gap: 12px; width: 100%; flex-shrink: 0; }
   .ctrl-btn {
     flex: 1;
-    padding: 16px;
+    padding: 14px;
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 12px;
     background: var(--surface);
     color: var(--text);
     font-family: 'Bebas Neue', sans-serif;
     font-size: 22px;
     letter-spacing: 2px;
     cursor: pointer;
+    text-align: center;
   }
-  .ctrl-btn.danger { color: var(--danger); border-color: var(--danger); }
+  .ctrl-btn.danger { color: #ff3b30; border-color: #ff3b30; }
   .sets-lap-btn {
     flex: 2;
-    padding: 16px;
+    padding: 14px;
     background: #30d158;
     border: none;
-    border-radius: 14px;
+    border-radius: 12px;
     color: #000;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px;
-    letter-spacing: 3px;
+    font-size: 22px;
+    letter-spacing: 2px;
     cursor: pointer;
+    text-align: center;
   }
   .sets-lap-btn.rest-btn { background: var(--accent3); }
 
-  /* DESKTOP & TV SPECIFIC OPTIMIZATION */
+  /* ═══════════════════════════════════════════════════════════════════════════
+     ÉCRAN LARGE (TV / ORDINATEUR) - FORMAT VALIDÉ 34vh / 25vw
+     ═══════════════════════════════════════════════════════════════════════════ */
   @media (min-width: 768px) {
-    .timer-screen-mode { padding: 24px 44px 30px; }
-    .timer-phase, .sets-phase {
-      margin-bottom: clamp(24px, 4vh, 48px);
-      font-size: clamp(34px, 3.8vw, 64px);
+    .timer-screen-mode {
+      padding: 24px 32px;
     }
-    .timer-display, .sets-display {
-      font-size: min(54vh, 42vw);
-      line-height: 0.80;
+
+    .cell-header-labels {
+      position: relative;
+      min-height: 40px;
     }
-    .timer-lap-compact { max-height: 120px; }
-    .ctrl-btn, .sets-lap-btn {
-      padding: 22px;
+
+    .timer-mode-label {
+      font-size: 14px;
+      letter-spacing: 3px;
+    }
+
+    .timer-round-info {
       font-size: 32px;
+      letter-spacing: 2px;
+    }
+
+    /* Sur TV, la pastille est strictement centrée dans la barre du haut */
+    .cell-pill-zone {
+      position: absolute;
+      top: 24px;
+      left: 0;
+      right: 0;
+      height: 40px;
+      flex: none;
+      pointer-events: none;
+    }
+
+    .pill-element {
+      font-size: clamp(18px, 2vw, 24px);
+      letter-spacing: 2px;
+      padding: 2px 18px;
+      border-radius: 10px;
+      box-shadow: none;
+    }
+
+    .timer-display, .sets-display {
+      font-size: min(34vh, 25vw);
+      line-height: 0.88;
+      letter-spacing: 2px;
+      transform: none; /* Pas d'étirement sur TV, format proportionnel */
+    }
+
+    .timer-lap-compact { max-height: 110px; }
+    .ctrl-btn, .sets-lap-btn {
+      padding: 18px;
+      font-size: 26px;
     }
   }
 
@@ -749,22 +806,29 @@
 
 <!-- ===== STANDARD TIMER SCREEN ===== -->
 <div class="timer-screen-mode" id="timer">
-  <div class="timer-top">
-    <div class="timer-mode-label" id="timerModeLabel">AMRAP</div>
-    <div class="timer-round-info" id="timerRoundInfo"></div>
+  <div class="cell-header-labels">
+    <span class="timer-mode-label" id="timerModeLabel">AMRAP</span>
+    <span class="timer-round-info" id="timerRoundInfo">ROUND 0</span>
   </div>
+
+  <div class="cell-pill-zone">
+    <div class="pill-element" id="timerPhase">AMRAP</div>
+  </div>
+
   <div class="timer-center" id="timerTapZone" onclick="togglePause()" style="cursor:pointer">
-    <div class="timer-phase" id="timerPhase">WORK</div>
     <div class="timer-display" id="timerDisplay">00:00</div>
     <div class="timer-pause-hint" id="timerPauseHint">TAP TO PAUSE</div>
     <div class="timer-sub" id="timerSub"></div>
   </div>
+
   <div class="timer-lap-compact" id="timerLapList"></div>
+
   <div class="progress-bar-wrap">
     <div class="progress-bar-bg">
       <div class="progress-bar-fill" id="progressFill"></div>
     </div>
   </div>
+
   <div class="timer-controls">
     <button class="ctrl-btn danger" onclick="stopTimer(); event.stopPropagation()">STOP</button>
     <button class="ctrl-btn" id="splitBtn" onclick="recordSplit(); event.stopPropagation()" style="display:none;background:var(--success);color:#000">SPLIT</button>
@@ -774,17 +838,23 @@
 
 <!-- ===== SETS TIMER SCREEN ===== -->
 <div class="timer-screen-mode" id="setsTimer">
-  <div class="timer-top">
-    <div class="timer-mode-label">SETS</div>
-    <div class="timer-round-info" id="setsRoundInfo">SET 1 / 5</div>
+  <div class="cell-header-labels">
+    <span class="timer-mode-label">SETS</span>
+    <span class="timer-round-info" id="setsRoundInfo">SET 1 / 5</span>
   </div>
+
+  <div class="cell-pill-zone">
+    <div class="pill-element" id="setsPhase" style="background:#30d158">SET 1</div>
+  </div>
+
   <div class="sets-center" id="setsTapZone" onclick="toggleSetsPause()" style="cursor:pointer">
-    <div class="sets-phase" id="setsPhase">SET 1</div>
     <div class="sets-display" id="setsDisplay">00:00</div>
     <div class="timer-pause-hint" id="setsPauseHint">TAP TO PAUSE</div>
     <div class="sets-sub" id="setsSub">Tap DONE SET when finished</div>
   </div>
+
   <div class="timer-lap-compact" id="setsLapList"></div>
+
   <div class="sets-controls">
     <button class="ctrl-btn danger" onclick="stopSets(); event.stopPropagation()">STOP</button>
     <button class="sets-lap-btn" id="setsLapBtn" onclick="completeSet(); event.stopPropagation()">DONE SET</button>
@@ -1435,20 +1505,24 @@ function setupModeDisplay() {
   if (currentMode === 'amrap') {
     totalDuration = cfg.mins * 60 * 1000;
     phase.textContent = 'AMRAP';
+    phase.style.background = 'var(--accent)';
     roundInfo.textContent = 'ROUND 0';
   } else if (currentMode === 'emom') {
     totalDuration = cfg.mins * 60 * 1000;
     const totalRounds = Math.floor(totalDuration / (cfg.intervalMs || 60000));
     phase.textContent = 'EMOM';
+    phase.style.background = 'var(--accent3)';
     roundInfo.textContent = `1 / ${totalRounds}`;
   } else if (currentMode === 'fortime') {
     totalDuration = cfg.cap > 0 ? cfg.cap * 60 * 1000 : 0;
     phase.textContent = 'FOR TIME';
+    phase.style.background = 'var(--accent2)';
     roundInfo.textContent = cfg.cap ? `CAP ${cfg.cap}M` : 'NO CAP';
   } else if (currentMode === 'tabata') {
     const cycle = (cfg.workSec + cfg.tabRestSec) * 1000;
     totalDuration = cfg.rounds * cycle;
     phase.textContent = 'WORK';
+    phase.style.background = 'var(--accent)';
     roundInfo.textContent = `1 / ${cfg.rounds}`;
   } else if (currentMode === 'custom') {
     const singleLoop = cfg.intervals.reduce((s, iv) => s + iv.duration, 0);
@@ -1721,7 +1795,7 @@ function updateSetsUI() {
     phase.style.background = '#30d158';
     btn.textContent = 'DONE SET';
     btn.className = 'sets-lap-btn';
-    sub.textContent = 'Counting up · Tap DONE SET when set is finished';
+    sub.textContent = 'Counting up · Tap DONE SET when finished';
   } else {
     phase.textContent = 'REST';
     phase.style.background = 'var(--accent3)';
