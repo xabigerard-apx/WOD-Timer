@@ -675,6 +675,10 @@
     width: 22px; height: 22px; border-radius: 50%;
     background: var(--accent); cursor: pointer;
   }
+  
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  
 </style>
 </head>
 <body>
@@ -956,6 +960,26 @@
 </div>
 
 <script>
+  // Initialisation Firebase pour l'affichage TV
+const firebaseConfig = {
+  apiKey: "AIzaSyC6e1z1cYuq5q9IPGqp1ZLMcv-n0B1ttDo",
+  authDomain: "apx-wod-timer.firebaseapp.com",
+  databaseURL: "https://apx-wod-timer-default-rtdb.firebaseio.com",
+  projectId: "apx-wod-timer",
+  storageBucket: "apx-wod-timer.firebasestorage.app",
+  messagingSenderId: "798211091297",
+  appId: "1:798211091297:web:2333c0480ba17accafb320"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const timerRef = db.ref("timer_state");
+
+// Écoute les commandes envoyées par le cellulaire
+timerRef.on("child_changed", (snapshot) => {
+  // Déclenche startTimer(), pauseTimer(), resetTimer() selon snapshot.val()
+});
+  
 // ─── SCREEN WAKE LOCK MANAGER ────────────────────────────────────────────────
 let wakeLock = null;
 let fallbackVideo = null;
