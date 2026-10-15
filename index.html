@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -10,15 +10,15 @@
   <meta name="theme-color" content="#613795">
   <title>APX WOD TIMER</title>
 
-  <!-- Icônes et Manifest PWA -->
+  <!-- Icons & PWA Manifest -->
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="apple-touch-icon" href="logo.png">
   <link rel="manifest" href="manifest.json">
 
-  <!-- Polices Google -->
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-  <!-- Scripts Firebase SDK -->
+  <!-- Firebase SDK Compat -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -234,15 +234,33 @@
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       user-select: none;
+      flex-shrink: 0;
     }
 
-    .num-val {
+    .num-input-val {
       flex: 1;
+      width: 100%;
+      min-width: 0;
+      background: transparent;
+      border: none;
+      outline: none;
       text-align: center;
       font-family: 'Bebas Neue', sans-serif;
       font-size: 30px;
       letter-spacing: 2px;
       color: var(--text);
+      user-select: text;
+      -webkit-user-select: text;
+      padding: 0;
+      margin: 0;
+    }
+    .num-input-val::-webkit-outer-spin-button,
+    .num-input-val::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .num-input-val[type=number] {
+      -moz-appearance: textfield;
     }
 
     .num-unit {
@@ -251,6 +269,7 @@
       padding-right: 14px;
       font-family: 'DM Mono', monospace;
       user-select: none;
+      flex-shrink: 0;
     }
 
     .bottom-action {
@@ -443,7 +462,7 @@
     }
     .sets-lap-btn.rest-btn { background: var(--accent3); }
 
-    /* ÉCRAN LARGE (TV / CHROMEBOOK) */
+    /* WIDE SCREEN (TV / CHROMEBOOK) */
     @media (min-width: 768px) {
       .timer-screen-mode {
         padding: 24px 32px;
@@ -710,13 +729,13 @@
     <div class="form-row" style="margin-bottom:20px">
       <div class="num-input-wrap">
         <button class="num-btn" onclick="adjInterval('min',-1)">−</button>
-        <span class="num-val" id="intMinVal">0</span>
+        <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="intMinVal" value="0" onfocus="this.select()" oninput="manualSetInterval('min', this.value)">
         <span class="num-unit">MIN</span>
         <button class="num-btn" onclick="adjInterval('min',1)">+</button>
       </div>
       <div class="num-input-wrap">
         <button class="num-btn" onclick="adjInterval('sec',-5)">−</button>
-        <span class="num-val" id="intSecVal">30</span>
+        <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="intSecVal" value="30" onfocus="this.select()" oninput="manualSetInterval('sec', this.value)">
         <span class="num-unit">SEC</span>
         <button class="num-btn" onclick="adjInterval('sec',5)">+</button>
       </div>
@@ -741,7 +760,7 @@
 <div class="screen" id="home" style="display:flex">
   <div class="home-header">
     <div class="logo">WOD<span>TIMER</span></div>
-    <div class="tagline">Centre Fonctionnel APX</div>
+    <div class="tagline">Build · Train · Suffer</div>
   </div>
   <div class="mode-grid">
     <div class="mode-card amrap" onclick="goSetup('amrap')">
@@ -905,7 +924,7 @@
       <label class="form-label">COUNTDOWN DURATION (SEC)</label>
       <div class="num-input-wrap">
         <button class="num-btn" onclick="adjSetting('countdown',-1,0,10)">−</button>
-        <span class="num-val" id="settingCountdown">3</span>
+        <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="settingCountdown" value="3" onfocus="this.select()" oninput="manualSetSetting('countdown', this.value, 0, 10)">
         <span class="num-unit">SEC</span>
         <button class="num-btn" onclick="adjSetting('countdown',1,0,10)">+</button>
       </div>
@@ -933,7 +952,7 @@
       <label class="form-label">WARN WHEN TIME REMAINING</label>
       <div class="num-input-wrap">
         <button class="num-btn" onclick="adjSetting('warnAt',-5,5,30)">−</button>
-        <span class="num-val" id="settingWarnAt">10</span>
+        <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="settingWarnAt" value="10" onfocus="this.select()" oninput="manualSetSetting('warnAt', this.value, 5, 30)">
         <span class="num-unit">SEC</span>
         <button class="num-btn" onclick="adjSetting('warnAt',5,5,30)">+</button>
       </div>
@@ -953,7 +972,7 @@
 </div>
 
 <script>
-// ─── INITIALISATION FIREBASE & SYNCHRONISATION ──────────────────────────────
+// ─── FIREBASE REALTIME DATABASE SYNC ─────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyC6e1z1cYuq5q9IPGqp1ZLMcv-n0B1ttDo",
   authDomain: "apx-wod-timer.firebaseapp.com",
@@ -970,7 +989,7 @@ const timerRef = db.ref("timer_state");
 
 let lastExecutedCommandTimestamp = 0;
 
-// Écoute les commandes envoyées par la télécommande mobile
+// Listen for remote commands from the phone
 timerRef.on("value", (snapshot) => {
   const data = snapshot.val();
   if (!data || !data.command || data.timestamp <= lastExecutedCommandTimestamp) return;
@@ -980,22 +999,39 @@ timerRef.on("value", (snapshot) => {
   const isTimerActive = document.getElementById('timer').style.display === 'flex' || 
                         document.getElementById('setsTimer').style.display === 'flex';
 
-  if (cmd === "START") {
+  if (cmd === "CONFIG_AND_START") {
+    const modeKey = data.mode ? data.mode.toLowerCase().replace(' ', '') : 'amrap';
+    currentMode = modeKey;
+    workoutConfig = data.config || {};
+    beginCountdown();
+  } else if (cmd === "START") {
     if (!isTimerActive) {
       beginCountdown();
     } else if (isPaused) {
       togglePause();
+    } else if (currentMode === 'sets' && setsPaused) {
+      toggleSetsPause();
     }
   } else if (cmd === "PAUSE") {
-    if (isTimerActive && !isPaused) {
+    if (isTimerActive && !isPaused && currentMode !== 'sets') {
       togglePause();
+    } else if (isTimerActive && !setsPaused && currentMode === 'sets') {
+      toggleSetsPause();
     }
   } else if (cmd === "RESET") {
     if (isTimerActive) {
-      stopTimer();
+      currentMode === 'sets' ? stopSets() : stopTimer();
     }
     goHome();
     broadcastState("00:00", false, modeLabels[currentMode]);
+  } else if (cmd === "CONTEXT_ACTION") {
+    if (currentMode === 'fortime') {
+      recordSplit();
+    } else if (currentMode === 'amrap') {
+      recordAmrapRound();
+    } else if (currentMode === 'sets') {
+      completeSet();
+    }
   } else if (cmd === "SET_MODE" && data.mode) {
     const modeKey = data.mode.toLowerCase().replace(' ', '');
     if (modeLabels[modeKey]) {
@@ -1214,6 +1250,7 @@ const modeColors = {
 let activeRestMode = '1to1';
 let currentSplitsOption = true;
 
+// ─── SETUP FORMS WITH DIRECT NUMERIC INPUT ───────────────────────────────────
 function goSetup(mode, config = null) {
   currentMode = mode;
   workoutConfig = config || {};
@@ -1237,40 +1274,52 @@ function renderSetupForm(mode, config) {
         <label class="form-label">DURATION (MINUTES)</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('amrapMins',-1,1,99)">−</button>
-          <span class="num-val" id="amrapMins">${mins}</span>
+          <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="amrapMins" value="${mins}" onfocus="this.select()" oninput="manualSet('amrapMins', this.value, 1, 99)">
           <span class="num-unit">MIN</span>
           <button class="num-btn" onclick="adj('amrapMins',1,1,99)">+</button>
         </div>
       </div>`;
   } else if (mode === 'emom') {
-    const mins = config?.mins ?? 10;
     const ivMin = config?.ivMin ?? 1;
     const ivSec = config?.ivSec ?? 0;
+    const ivTotalSec = (ivMin * 60) + ivSec || 60;
+    const mins = config?.mins ?? 10;
+    const rounds = config?.rounds ?? Math.max(1, Math.floor((mins * 60) / ivTotalSec));
+
     form.innerHTML = `
       <div class="form-group">
-        <label class="form-label">TOTAL DURATION</label>
-        <div class="num-input-wrap">
-          <button class="num-btn" onclick="adj('emomMins',-1,1,99)">−</button>
-          <span class="num-val" id="emomMins">${mins}</span>
-          <span class="num-unit">MIN</span>
-          <button class="num-btn" onclick="adj('emomMins',1,1,99)">+</button>
+        <label class="form-label">FREQUENCY (EVERY...)</label>
+        <div class="form-row">
+          <div class="num-input-wrap">
+            <button class="num-btn" onclick="adjEmomInterval('emomIvMin',-1,0,59)">−</button>
+            <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="emomIvMin" value="${ivMin}" onfocus="this.select()" oninput="manualSetEmomInterval('emomIvMin', this.value, 0, 59)">
+            <span class="num-unit">MIN</span>
+            <button class="num-btn" onclick="adjEmomInterval('emomIvMin',1,0,59)">+</button>
+          </div>
+          <div class="num-input-wrap">
+            <button class="num-btn" onclick="adjEmomInterval('emomIvSec',-5,0,55)">−</button>
+            <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="emomIvSec" value="${ivSec}" onfocus="this.select()" oninput="manualSetEmomInterval('emomIvSec', this.value, 0, 55)">
+            <span class="num-unit">SEC</span>
+            <button class="num-btn" onclick="adjEmomInterval('emomIvSec',5,0,55)">+</button>
+          </div>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">INTERVAL FREQUENCY</label>
-        <div class="form-row">
-          <div class="num-input-wrap">
-            <button class="num-btn" onclick="adj('emomIvMin',-1,0,59)">−</button>
-            <span class="num-val" id="emomIvMin">${ivMin}</span>
-            <span class="num-unit">MIN</span>
-            <button class="num-btn" onclick="adj('emomIvMin',1,0,59)">+</button>
-          </div>
-          <div class="num-input-wrap">
-            <button class="num-btn" onclick="adj('emomIvSec',-5,0,55)">−</button>
-            <span class="num-val" id="emomIvSec">${ivSec}</span>
-            <span class="num-unit">SEC</span>
-            <button class="num-btn" onclick="adj('emomIvSec',5,0,55)">+</button>
-          </div>
+        <label class="form-label">NUMBER OF ROUNDS</label>
+        <div class="num-input-wrap">
+          <button class="num-btn" onclick="adjEmomRounds(-1)">−</button>
+          <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="emomRounds" value="${rounds}" onfocus="this.select()" oninput="manualSetEmomRounds(this.value)">
+          <span class="num-unit">×</span>
+          <button class="num-btn" onclick="adjEmomRounds(1)">+</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">TOTAL DURATION</label>
+        <div class="num-input-wrap" style="border-color: rgba(0, 212, 255, 0.5);">
+          <button class="num-btn" onclick="adjEmomMins(-1)">−</button>
+          <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="emomMins" value="${mins}" onfocus="this.select()" oninput="manualSetEmomMins(this.value)" style="color: var(--accent3);">
+          <span class="num-unit" style="color: var(--accent3);">MIN</span>
+          <button class="num-btn" onclick="adjEmomMins(1)">+</button>
         </div>
       </div>`;
   } else if (mode === 'fortime') {
@@ -1282,7 +1331,7 @@ function renderSetupForm(mode, config) {
         <label class="form-label">TIME CAP (0 = NO CAP)</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('ftCap',-1,0,99)">−</button>
-          <span class="num-val" id="ftCap">${cap}</span>
+          <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="ftCap" value="${cap}" onfocus="this.select()" oninput="manualSet('ftCap', this.value, 0, 99)">
           <span class="num-unit">MIN</span>
           <button class="num-btn" onclick="adj('ftCap',1,0,99)">+</button>
         </div>
@@ -1303,7 +1352,7 @@ function renderSetupForm(mode, config) {
         <label class="form-label">ROUNDS</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('tabRounds',-1,1,30)">−</button>
-          <span class="num-val" id="tabRounds">${rounds}</span>
+          <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="tabRounds" value="${rounds}" onfocus="this.select()" oninput="manualSet('tabRounds', this.value, 1, 30)">
           <span class="num-unit">RDS</span>
           <button class="num-btn" onclick="adj('tabRounds',1,1,30)">+</button>
         </div>
@@ -1311,13 +1360,13 @@ function renderSetupForm(mode, config) {
       <div class="form-row">
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('tabWork',-5,5,180)">−</button>
-          <span class="num-val" id="tabWork">${workSec}</span>
+          <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="tabWork" value="${workSec}" onfocus="this.select()" oninput="manualSet('tabWork', this.value, 5, 180)">
           <span class="num-unit">WORK</span>
           <button class="num-btn" onclick="adj('tabWork',5,5,180)">+</button>
         </div>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('tabRest',-5,0,180)">−</button>
-          <span class="num-val" id="tabRest">${restSec}</span>
+          <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="tabRest" value="${restSec}" onfocus="this.select()" oninput="manualSet('tabRest', this.value, 0, 180)">
           <span class="num-unit">REST</span>
           <button class="num-btn" onclick="adj('tabRest',5,0,180)">+</button>
         </div>
@@ -1337,7 +1386,7 @@ function renderSetupForm(mode, config) {
         <label class="form-label">NUMBER OF SETS</label>
         <div class="num-input-wrap">
           <button class="num-btn" onclick="adj('setsCount',-1,1,30)">−</button>
-          <span class="num-val" id="setsCount">${sets}</span>
+          <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="setsCount" value="${sets}" onfocus="this.select()" oninput="manualSet('setsCount', this.value, 1, 30)">
           <span class="num-unit">SETS</span>
           <button class="num-btn" onclick="adj('setsCount',1,1,30)">+</button>
         </div>
@@ -1352,13 +1401,13 @@ function renderSetupForm(mode, config) {
         <div id="fixedRestInputs" style="display:${restType === 'fixed' ? 'flex' : 'none'};gap:12px;margin-top:12px">
           <div class="num-input-wrap">
             <button class="num-btn" onclick="adj('restMin',-1,0,59)">−</button>
-            <span class="num-val" id="restMin">${restMin}</span>
+            <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="restMin" value="${restMin}" onfocus="this.select()" oninput="manualSet('restMin', this.value, 0, 59)">
             <span class="num-unit">MIN</span>
             <button class="num-btn" onclick="adj('restMin',1,0,59)">+</button>
           </div>
           <div class="num-input-wrap">
             <button class="num-btn" onclick="adj('restSec',-5,0,55)">−</button>
-            <span class="num-val" id="restSec">${restSec}</span>
+            <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="restSec" value="${restSec}" onfocus="this.select()" oninput="manualSet('restSec', this.value, 0, 55)">
             <span class="num-unit">SEC</span>
             <button class="num-btn" onclick="adj('restSec',5,0,55)">+</button>
           </div>
@@ -1392,24 +1441,121 @@ function renderCustomForm() {
       <label class="form-label">LOOPS (REPEAT SEQUENCE)</label>
       <div class="num-input-wrap">
         <button class="num-btn" onclick="adjLoops(-1)">−</button>
-        <span class="num-val" id="loopsVal">${loops}</span>
+        <input type="number" inputmode="numeric" pattern="[0-9]*" class="num-input-val" id="loopsVal" value="${loops}" onfocus="this.select()" oninput="manualSetLoops(this.value)">
         <span class="num-unit">×</span>
         <button class="num-btn" onclick="adjLoops(1)">+</button>
       </div>
     </div>`;
 }
 
+// ─── NUMERIC INPUT HANDLERS ──────────────────────────────────────────────────
+function adj(id, delta, min, max) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const cur = parseInt(el.value || 0);
+  el.value = Math.max(min, Math.min(max, cur + delta));
+}
+
+function manualSet(id, rawVal, min, max) {
+  if (rawVal === '') return;
+  const el = document.getElementById(id);
+  let parsed = parseInt(rawVal);
+  if (isNaN(parsed)) parsed = min;
+  el.value = Math.max(min, Math.min(max, parsed));
+}
+
+// ─── BIDIRECTIONAL EMOM LOGIC ────────────────────────────────────────────────
+function getEmomFrequencySec() {
+  const m = parseInt(document.getElementById('emomIvMin')?.value || 1);
+  const s = parseInt(document.getElementById('emomIvSec')?.value || 0);
+  return (m * 60 + s) || 60;
+}
+
+function adjEmomInterval(id, delta, min, max) {
+  adj(id, delta, min, max);
+  recalcEmomMinsFromRounds();
+}
+
+function manualSetEmomInterval(id, rawVal, min, max) {
+  manualSet(id, rawVal, min, max);
+  recalcEmomMinsFromRounds();
+}
+
+function adjEmomRounds(delta) {
+  const el = document.getElementById('emomRounds');
+  if (!el) return;
+  const cur = parseInt(el.value || 1);
+  el.value = Math.max(1, Math.min(99, cur + delta));
+  recalcEmomMinsFromRounds();
+}
+
+function manualSetEmomRounds(rawVal) {
+  if (rawVal === '') return;
+  const el = document.getElementById('emomRounds');
+  let parsed = parseInt(rawVal);
+  if (isNaN(parsed)) parsed = 1;
+  el.value = Math.max(1, Math.min(99, parsed));
+  recalcEmomMinsFromRounds();
+}
+
+function recalcEmomMinsFromRounds() {
+  const freq = getEmomFrequencySec();
+  const rds = parseInt(document.getElementById('emomRounds')?.value || 1);
+  const totalMin = Math.ceil((freq * rds) / 60);
+  const minsEl = document.getElementById('emomMins');
+  if (minsEl) minsEl.value = totalMin;
+}
+
+function adjEmomMins(delta) {
+  const el = document.getElementById('emomMins');
+  if (!el) return;
+  const cur = parseInt(el.value || 1);
+  el.value = Math.max(1, Math.min(99, cur + delta));
+  recalcEmomRoundsFromMins();
+}
+
+function manualSetEmomMins(rawVal) {
+  if (rawVal === '') return;
+  const el = document.getElementById('emomMins');
+  let parsed = parseInt(rawVal);
+  if (isNaN(parsed)) parsed = 1;
+  el.value = Math.max(1, Math.min(99, parsed));
+  recalcEmomRoundsFromMins();
+}
+
+function recalcEmomRoundsFromMins() {
+  const freq = getEmomFrequencySec();
+  const totalSec = parseInt(document.getElementById('emomMins')?.value || 1) * 60;
+  const rounds = Math.max(1, Math.floor(totalSec / freq));
+  const rdsEl = document.getElementById('emomRounds');
+  if (rdsEl) rdsEl.value = rounds;
+}
+
+// ─── LOOPS & INTERVAL MODAL ──────────────────────────────────────────────────
 function adjLoops(d) {
-  const cur = workoutConfig.loops ?? 1;
-  workoutConfig.loops = Math.max(1, Math.min(20, cur + d));
-  document.getElementById('loopsVal').textContent = workoutConfig.loops;
+  const el = document.getElementById('loopsVal');
+  if (!el) return;
+  const cur = parseInt(el.value || 1);
+  const next = Math.max(1, Math.min(30, cur + d));
+  el.value = next;
+  workoutConfig.loops = next;
+}
+
+function manualSetLoops(rawVal) {
+  if (rawVal === '') return;
+  const el = document.getElementById('loopsVal');
+  let parsed = parseInt(rawVal);
+  if (isNaN(parsed)) parsed = 1;
+  const next = Math.max(1, Math.min(30, parsed));
+  el.value = next;
+  workoutConfig.loops = next;
 }
 
 let intMin = 0, intSec = 30;
 function openIntervalModal() {
   intMin = 0; intSec = 30;
-  document.getElementById('intMinVal').textContent = '0';
-  document.getElementById('intSecVal').textContent = '30';
+  document.getElementById('intMinVal').value = '0';
+  document.getElementById('intSecVal').value = '30';
   document.getElementById('intervalNameInput').value = '';
   document.getElementById('intervalModal').classList.add('active');
 }
@@ -1421,10 +1567,21 @@ function closeIntervalModal() {
 function adjInterval(type, d) {
   if (type === 'min') {
     intMin = Math.max(0, Math.min(59, intMin + d));
-    document.getElementById('intMinVal').textContent = intMin;
+    document.getElementById('intMinVal').value = intMin;
   } else {
     intSec = Math.max(0, Math.min(59, intSec + d));
-    document.getElementById('intSecVal').textContent = intSec;
+    document.getElementById('intSecVal').value = intSec;
+  }
+}
+
+function manualSetInterval(type, rawVal) {
+  if (rawVal === '') return;
+  let parsed = parseInt(rawVal);
+  if (isNaN(parsed)) parsed = 0;
+  if (type === 'min') {
+    intMin = Math.max(0, Math.min(59, parsed));
+  } else {
+    intSec = Math.max(0, Math.min(59, parsed));
   }
 }
 
@@ -1467,48 +1624,47 @@ function setRestMode(type) {
   if (hint11) hint11.style.display = type === '1to1' ? 'block' : 'none';
 }
 
-function adj(id, delta, min, max) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const val = Math.max(min, Math.min(max, parseInt(el.textContent) + delta));
-  el.textContent = val;
-}
-
 function getConfig() {
   if (currentMode === 'amrap') {
-    return { mins: parseInt(document.getElementById('amrapMins')?.textContent || 10) };
+    return { mins: parseInt(document.getElementById('amrapMins')?.value || 10) };
   }
   if (currentMode === 'emom') {
-    const ivMin = parseInt(document.getElementById('emomIvMin')?.textContent || 1);
-    const ivSec = parseInt(document.getElementById('emomIvSec')?.textContent || 0);
+    const ivMin = parseInt(document.getElementById('emomIvMin')?.value || 1);
+    const ivSec = parseInt(document.getElementById('emomIvSec')?.value || 0);
+    const rounds = parseInt(document.getElementById('emomRounds')?.value || 10);
+    const mins = parseInt(document.getElementById('emomMins')?.value || 10);
     return {
-      mins: parseInt(document.getElementById('emomMins')?.textContent || 10),
+      mins,
+      rounds,
       ivMin, ivSec,
       intervalMs: (ivMin * 60 + ivSec) * 1000 || 60000
     };
   }
   if (currentMode === 'fortime') {
     return {
-      cap: parseInt(document.getElementById('ftCap')?.textContent || 0),
+      cap: parseInt(document.getElementById('ftCap')?.value || 0),
       splits: currentSplitsOption
     };
   }
   if (currentMode === 'tabata') {
     return {
-      rounds: parseInt(document.getElementById('tabRounds')?.textContent || 8),
-      workSec: parseInt(document.getElementById('tabWork')?.textContent || 20),
-      tabRestSec: parseInt(document.getElementById('tabRest')?.textContent || 10)
+      rounds: parseInt(document.getElementById('tabRounds')?.value || 8),
+      workSec: parseInt(document.getElementById('tabWork')?.value || 20),
+      tabRestSec: parseInt(document.getElementById('tabRest')?.value || 10)
     };
   }
   if (currentMode === 'custom') {
-    return { intervals: [...customIntervals], loops: workoutConfig.loops ?? 1 };
+    return { 
+      intervals: [...customIntervals], 
+      loops: parseInt(document.getElementById('loopsVal')?.value || workoutConfig.loops || 1) 
+    };
   }
   if (currentMode === 'sets') {
     return {
-      sets: parseInt(document.getElementById('setsCount')?.textContent || 5),
+      sets: parseInt(document.getElementById('setsCount')?.value || 5),
       restType: activeRestMode,
-      restMin: parseInt(document.getElementById('restMin')?.textContent || 2),
-      restSec: parseInt(document.getElementById('restSec')?.textContent || 0)
+      restMin: parseInt(document.getElementById('restMin')?.value || 2),
+      restSec: parseInt(document.getElementById('restSec')?.value || 0)
     };
   }
   return {};
@@ -1518,7 +1674,7 @@ function getConfig() {
 function beginCountdown() {
   getAudio();
   requestWakeLock();
-  workoutConfig = getConfig();
+  workoutConfig = Object.keys(workoutConfig).length ? workoutConfig : getConfig();
   const s = getSettings();
   let count = s.countdown ?? 3;
 
@@ -1594,8 +1750,9 @@ function setupModeDisplay() {
     phase.style.background = 'var(--accent)';
     roundInfo.textContent = 'ROUND 0';
   } else if (currentMode === 'emom') {
-    totalDuration = cfg.mins * 60 * 1000;
-    const totalRounds = Math.floor(totalDuration / (cfg.intervalMs || 60000));
+    const ivMs = cfg.intervalMs || 60000;
+    const totalRounds = cfg.rounds || Math.floor((cfg.mins * 60 * 1000) / ivMs);
+    totalDuration = totalRounds * ivMs;
     phase.textContent = 'EMOM';
     phase.style.background = 'var(--accent3)';
     roundInfo.textContent = `1 / ${totalRounds}`;
@@ -1647,10 +1804,11 @@ function tickTimer() {
     if (elapsed >= totalDuration) { endTimer(); return; }
     const ivMs = workoutConfig.intervalMs || 60000;
     const round = Math.floor(elapsed / ivMs) + 1;
+    const totalRounds = workoutConfig.rounds || Math.floor(totalDuration / ivMs);
     if (round !== currentRound) {
       currentRound = round;
       goBeep(); flashBeep();
-      document.getElementById('timerRoundInfo').textContent = `${round} / ${Math.floor(totalDuration/ivMs)}`;
+      document.getElementById('timerRoundInfo').textContent = `${round} / ${totalRounds}`;
     }
     const remain = ivMs - (elapsed % ivMs);
     const s = Math.ceil(remain / 1000);
@@ -1713,7 +1871,7 @@ function tickTimer() {
     document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
   }
 
-  // Synchronise le temps avec le mobile chaque seconde
+  // Broadcast time status every second
   const currentSec = Math.floor(elapsed / 1000);
   if (currentSec !== lastReportSec) {
     lastReportSec = currentSec;
@@ -2198,11 +2356,11 @@ function getSettings() {
 
 function saveSettings() {
   const s = {
-    countdown: parseInt(document.getElementById('settingCountdown').textContent),
+    countdown: parseInt(document.getElementById('settingCountdown').value || 3),
     volume: parseInt(document.getElementById('volumeSlider').value) / 100,
     beep: document.getElementById('settingBeepStatus').textContent === 'YES',
     flash: document.getElementById('settingFlashStatus').textContent === 'YES',
-    warnAt: parseInt(document.getElementById('settingWarnAt').textContent)
+    warnAt: parseInt(document.getElementById('settingWarnAt').value || 10)
   };
   localStorage.setItem('wodtimerSettings', JSON.stringify(s));
   goHome();
@@ -2210,8 +2368,8 @@ function saveSettings() {
 
 function showSettings() {
   const s = getSettings();
-  document.getElementById('settingCountdown').textContent = s.countdown;
-  document.getElementById('settingWarnAt').textContent = s.warnAt ?? 10;
+  document.getElementById('settingCountdown').value = s.countdown;
+  document.getElementById('settingWarnAt').value = s.warnAt ?? 10;
   document.getElementById('volumeSlider').value = Math.round((s.volume ?? 0.7) * 100);
   document.getElementById('volumeLabel').textContent = Math.round((s.volume ?? 0.7) * 100) + '%';
   document.getElementById('settingBeepStatus').textContent = s.beep ? 'YES' : 'NO';
@@ -2233,7 +2391,18 @@ function updateVolumeLabel(v) { document.getElementById('volumeLabel').textConte
 
 function adjSetting(id, d, min, max) {
   const el = document.getElementById('setting' + id.charAt(0).toUpperCase() + id.slice(1));
-  if (el) el.textContent = Math.max(min, Math.min(max, parseInt(el.textContent) + d));
+  if (!el) return;
+  const cur = parseInt(el.value || 0);
+  el.value = Math.max(min, Math.min(max, cur + d));
+}
+
+function manualSetSetting(id, rawVal, min, max) {
+  if (rawVal === '') return;
+  const el = document.getElementById('setting' + id.charAt(0).toUpperCase() + id.slice(1));
+  if (!el) return;
+  let parsed = parseInt(rawVal);
+  if (isNaN(parsed)) parsed = min;
+  el.value = Math.max(min, Math.min(max, parsed));
 }
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
@@ -2247,10 +2416,9 @@ function fmtMs(ms) {
   return fmtSecs(Math.floor(ms / 1000));
 }
 
-// Enregistrement de base pour l'installation de l'application (PWA)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    console.log('APX Timer prêt pour installation.');
+    console.log('APX Timer ready.');
   });
 }
 </script>
