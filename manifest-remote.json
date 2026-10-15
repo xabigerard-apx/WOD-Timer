@@ -1,0 +1,18 @@
+{
+  "name": "APX Remote",
+  "short_name": "APX Remote",
+  "description": "Télécommande WOD Timer pour Centre Fonctionnel APX",
+  "start_url": "./remote.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0d11",
+  "theme_color": "#613795",
+  "icons": [
+    {
+      "src": "remote-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
