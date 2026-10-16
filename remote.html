@@ -41,7 +41,7 @@
     }
 
     .header {
-      padding: 20px 20px 14px;
+      padding: 18px 20px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -54,6 +54,26 @@
       color: var(--accent);
     }
     .logo span { color: var(--text); }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .settings-btn-icon {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .status-badge {
       display: flex;
       align-items: center;
@@ -73,43 +93,14 @@
     }
     .status-dot.online { background: var(--success); }
 
-    .nav-tabs {
-      display: flex;
-      background: var(--surface);
-      padding: 4px;
-      border-bottom: 1px solid var(--border);
-      gap: 4px;
-    }
-    .nav-tab {
-      flex: 1;
-      padding: 10px;
-      background: transparent;
-      border: none;
-      border-radius: 8px;
-      color: var(--muted);
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.2s;
-    }
-    .nav-tab.active {
-      background: var(--surface2);
-      color: var(--accent);
-    }
-
     .main-content {
       flex: 1;
       padding: 20px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
-
-    .screen-view { display: none; flex-direction: column; gap: 20px; width: 100%; }
-    .screen-view.active { display: flex; }
 
     /* MIRROR DISPLAY CARD */
     .tv-mirror-card {
@@ -121,18 +112,17 @@
       flex-direction: column;
       align-items: center;
       position: relative;
-      overflow: hidden;
     }
     .tv-mirror-label {
       font-family: 'DM Mono', monospace;
       font-size: 10px;
       letter-spacing: 2px;
       color: var(--muted);
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
     .tv-mirror-digits {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 64px;
+      font-size: 66px;
       line-height: 1;
       letter-spacing: 2px;
       color: #fff;
@@ -148,10 +138,10 @@
     .remote-ctrl-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 10px;
     }
     .remote-btn {
-      padding: 16px;
+      padding: 14px;
       border-radius: 12px;
       border: 1px solid var(--border);
       background: var(--surface);
@@ -171,8 +161,8 @@
       background: var(--accent);
       color: #000;
       border: none;
-      font-size: 24px;
-      padding: 18px;
+      font-size: 22px;
+      padding: 16px;
     }
     .remote-btn.danger { color: var(--danger); border-color: var(--danger); }
     .remote-btn.action-btn {
@@ -180,7 +170,16 @@
       background: var(--success);
       color: #000;
       border: none;
-      font-size: 22px;
+      font-size: 20px;
+    }
+
+    .section-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-top: 6px;
     }
 
     /* MODE SELECTOR */
@@ -207,7 +206,7 @@
       color: var(--accent);
     }
 
-    /* FORM ELEMENTS WITH DIRECT INPUT */
+    /* FORM ELEMENTS */
     .form-group { display: flex; flex-direction: column; gap: 8px; }
     .form-label {
       font-family: 'DM Mono', monospace;
@@ -271,7 +270,67 @@
     .color-dot { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
     .color-dot.selected { border-color: #fff; transform: scale(1.1); }
 
-    /* SETTINGS SLIDER */
+    /* SAVED WORKOUTS CARDS */
+    .saved-list { display: flex; flex-direction: column; gap: 8px; }
+    .saved-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .saved-card:active { background: var(--surface2); }
+    .saved-card-title { font-weight: 700; font-size: 14px; color: var(--text); }
+    .saved-card-meta { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* MODALS */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 600;
+      display: none;
+      align-items: flex-end;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      width: 100%;
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      padding: 24px 24px 38px;
+    }
+    .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; margin-bottom: 16px; }
+    .text-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      margin-bottom: 16px;
+    }
+    .modal-btns { display: flex; gap: 10px; }
+
+    /* SETTINGS VIEW OVERLAY */
+    #settingsScreen {
+      display: none;
+      position: fixed; inset: 0;
+      background: var(--bg);
+      z-index: 500;
+      flex-direction: column;
+    }
+    #settingsScreen.active { display: flex; }
+    .settings-header {
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
     .volume-slider {
       -webkit-appearance: none; appearance: none;
       width: 100%; height: 6px; border-radius: 3px;
@@ -288,54 +347,72 @@
 
   <div class="header">
     <div class="logo">APX<span>REMOTE</span></div>
-    <div class="status-badge">
-      <div class="status-dot" id="connDot"></div>
-      <span id="connText">TV STANDBY</span>
+    <div class="header-actions">
+      <div class="status-badge">
+        <div class="status-dot" id="connDot"></div>
+        <span id="connText">STANDBY</span>
+      </div>
+      <button class="settings-btn-icon" onclick="openSettings()">⚙️</button>
     </div>
-  </div>
-
-  <div class="nav-tabs">
-    <button class="nav-tab active" id="tabControl" onclick="switchTab('control')">CONTROLLER</button>
-    <button class="nav-tab" id="tabConfigure" onclick="switchTab('configure')">CONFIGURE</button>
-    <button class="nav-tab" id="tabSettings" onclick="switchTab('settings')">SETTINGS ⚙️</button>
   </div>
 
   <div class="main-content">
-    <!-- CONTROLLER VIEW -->
-    <div class="screen-view active" id="viewControl">
-      <div class="tv-mirror-card">
-        <div class="tv-mirror-label" id="mirrorMode">WOD TIMER</div>
-        <div class="tv-mirror-digits" id="mirrorDigits">00:00</div>
-        <div class="tv-mirror-sub" id="mirrorStatus">DISCONNECTED</div>
-      </div>
-
-      <div class="remote-ctrl-grid">
-        <button class="remote-btn start-btn" onclick="sendCmd('START')">▶ RESUME / START</button>
-        <button class="remote-btn" onclick="sendCmd('PAUSE')">⏸ PAUSE</button>
-        <button class="remote-btn danger" onclick="sendCmd('RESET')">↺ RESET TV</button>
-        <button class="remote-btn action-btn" id="contextActionBtn" onclick="sendCmd('CONTEXT_ACTION')">SPLIT / ROUND</button>
-      </div>
+    <!-- LIVE MIRROR TV DISPLAY -->
+    <div class="tv-mirror-card">
+      <div class="tv-mirror-label" id="mirrorMode">WOD TIMER</div>
+      <div class="tv-mirror-digits" id="mirrorDigits">00:00</div>
+      <div class="tv-mirror-sub" id="mirrorStatus">DISCONNECTED</div>
     </div>
 
-    <!-- CONFIGURE VIEW -->
-    <div class="screen-view" id="viewConfigure">
-      <div class="form-label">CHOOSE MODE TO LOAD ON TV</div>
-      <div class="mode-select-grid">
-        <button class="mode-select-btn active" id="btnModeFortime" onclick="selectMode('fortime')">FOR TIME</button>
-        <button class="mode-select-btn" id="btnModeAmrap" onclick="selectMode('amrap')">AMRAP</button>
-        <button class="mode-select-btn" id="btnModeEmom" onclick="selectMode('emom')">EMOM</button>
-        <button class="mode-select-btn" id="btnModeTabata" onclick="selectMode('tabata')">TABATA</button>
-        <button class="mode-select-btn" id="btnModeSets" onclick="selectMode('sets')">SETS</button>
-        <button class="mode-select-btn" id="btnModeCustom" onclick="selectMode('custom')">CUSTOM</button>
-      </div>
-
-      <div id="configFormContent"></div>
-
-      <button class="remote-btn start-btn" onclick="sendConfigAndStart()">🚀 START ON TV</button>
+    <!-- CONTROLS DIRECTS -->
+    <div class="remote-ctrl-grid">
+      <button class="remote-btn" onclick="sendCmd('START')">▶ START / RESUME</button>
+      <button class="remote-btn" onclick="sendCmd('PAUSE')">⏸ PAUSE</button>
+      <button class="remote-btn danger" onclick="sendCmd('RESET')">↺ RESET TV</button>
+      <button class="remote-btn" onclick="openSaveModal()">💾 SAVE WOD</button>
+      <button class="remote-btn action-btn" id="contextActionBtn" onclick="sendCmd('CONTEXT_ACTION')">SPLIT / ROUND</button>
     </div>
 
-    <!-- SETTINGS VIEW -->
-    <div class="screen-view" id="viewSettings">
+    <!-- SELECTION DU MODE -->
+    <div class="section-title">CONFIGURE TV WORKOUT</div>
+    <div class="mode-select-grid">
+      <button class="mode-select-btn active" id="btnModeFortime" onclick="selectMode('fortime')">FOR TIME</button>
+      <button class="mode-select-btn" id="btnModeAmrap" onclick="selectMode('amrap')">AMRAP</button>
+      <button class="mode-select-btn" id="btnModeEmom" onclick="selectMode('emom')">EMOM</button>
+      <button class="mode-select-btn" id="btnModeTabata" onclick="selectMode('tabata')">TABATA</button>
+      <button class="mode-select-btn" id="btnModeSets" onclick="selectMode('sets')">SETS</button>
+      <button class="mode-select-btn" id="btnModeCustom" onclick="selectMode('custom')">CUSTOM</button>
+    </div>
+
+    <!-- CONFIG DU MODE SÉLECTIONNÉ -->
+    <div id="configFormContent"></div>
+
+    <button class="remote-btn start-btn" onclick="sendConfigAndStart()">🚀 START ON TV</button>
+
+    <!-- WORKOUTS SAUVEGARDÉS -->
+    <div class="section-title">SAVED WORKOUTS</div>
+    <div class="saved-list" id="savedWorkoutsList"></div>
+  </div>
+
+  <!-- MODAL SAVE -->
+  <div class="modal-overlay" id="saveModal">
+    <div class="modal">
+      <div class="modal-title">SAVE WORKOUT TO REMOTE</div>
+      <input type="text" class="text-input" id="saveWodName" placeholder="Workout name (e.g. Christine, Friday EMOM...)">
+      <div class="modal-btns">
+        <button class="remote-btn" onclick="closeSaveModal()">CANCEL</button>
+        <button class="remote-btn" onclick="confirmSaveWod()" style="background:var(--accent); color:#000;">SAVE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÉCRAN SETTINGS FULLSCREEN -->
+  <div id="settingsScreen">
+    <div class="settings-header">
+      <div class="logo">TV<span>SETTINGS</span></div>
+      <button class="settings-btn-icon" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="main-content">
       <div class="form-group">
         <label class="form-label">COUNTDOWN DURATION</label>
         <div class="num-input-wrap">
@@ -401,6 +478,7 @@
     ];
     let selectedColor = '#e8ff00';
 
+    // Synchronisation en direct depuis la TV
     timerRef.on("value", (snap) => {
       const data = snap.val();
       if (!data) return;
@@ -427,6 +505,7 @@
       }
     });
 
+    // Chargement des Settings TV
     settingsRef.once("value").then(snap => {
       const s = snap.val();
       if (s) {
@@ -439,69 +518,61 @@
       }
     });
 
-    function switchTab(t) {
-      document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.screen-view').forEach(v => v.classList.remove('active'));
-
-      if (t === 'control') {
-        document.getElementById('tabControl').classList.add('active');
-        document.getElementById('viewControl').classList.add('active');
-      } else if (t === 'configure') {
-        document.getElementById('tabConfigure').classList.add('active');
-        document.getElementById('viewConfigure').classList.add('active');
-        renderConfigForm();
-      } else if (t === 'settings') {
-        document.getElementById('tabSettings').classList.add('active');
-        document.getElementById('viewSettings').classList.add('active');
-      }
-    }
-
-    function selectMode(m) {
+    function selectMode(m, config = null) {
       configuredMode = m;
       document.querySelectorAll('.mode-select-btn').forEach(b => b.classList.remove('active'));
       const activeBtn = document.getElementById('btnMode' + m.charAt(0).toUpperCase() + m.slice(1));
       if (activeBtn) activeBtn.classList.add('active');
-      renderConfigForm();
+      renderConfigForm(config);
     }
 
-    function renderConfigForm() {
+    function renderConfigForm(cfg = null) {
       const container = document.getElementById('configFormContent');
       if (configuredMode === 'fortime') {
+        const cap = cfg?.cap ?? 15;
         container.innerHTML = `
           <div class="form-group">
             <label class="form-label">TIME CAP (0 = NO CAP)</label>
             <div class="num-input-wrap">
               <button class="num-btn" onclick="adjVal('ftCap',-1,0,99)">−</button>
-              <input type="number" class="num-input-val" id="ftCap" value="15" onfocus="this.select()">
+              <input type="number" class="num-input-val" id="ftCap" value="${cap}" onfocus="this.select()">
               <span class="num-unit">MIN</span>
               <button class="num-btn" onclick="adjVal('ftCap',1,0,99)">+</button>
             </div>
           </div>`;
       } else if (configuredMode === 'amrap') {
+        const mins = cfg?.mins ?? 12;
         container.innerHTML = `
           <div class="form-group">
             <label class="form-label">DURATION (MINUTES)</label>
             <div class="num-input-wrap">
               <button class="num-btn" onclick="adjVal('amrapMins',-1,1,99)">−</button>
-              <input type="number" class="num-input-val" id="amrapMins" value="12" onfocus="this.select()">
+              <input type="number" class="num-input-val" id="amrapMins" value="${mins}" onfocus="this.select()">
               <span class="num-unit">MIN</span>
               <button class="num-btn" onclick="adjVal('amrapMins',1,1,99)">+</button>
             </div>
           </div>`;
       } else if (configuredMode === 'emom') {
+        const rds = cfg?.rounds ?? 10;
+        const mins = cfg?.mins ?? 10;
+        const ivMs = cfg?.intervalMs ?? 60000;
+        const totalSec = Math.floor(ivMs / 1000);
+        const ivMin = Math.floor(totalSec / 60);
+        const ivSec = totalSec % 60;
+
         container.innerHTML = `
           <div class="form-group">
             <label class="form-label">FREQUENCY</label>
             <div style="display:flex; gap:8px;">
               <div class="num-input-wrap" style="flex:1;">
                 <button class="num-btn" onclick="adjVal('emomMin',-1,0,59); syncEmomDuration();">−</button>
-                <input type="number" class="num-input-val" id="emomMin" value="1" onfocus="this.select()" oninput="syncEmomDuration()">
+                <input type="number" class="num-input-val" id="emomMin" value="${ivMin}" onfocus="this.select()" oninput="syncEmomDuration()">
                 <span class="num-unit">MIN</span>
                 <button class="num-btn" onclick="adjVal('emomMin',1,0,59); syncEmomDuration();">+</button>
               </div>
               <div class="num-input-wrap" style="flex:1;">
                 <button class="num-btn" onclick="adjVal('emomSec',-5,0,55); syncEmomDuration();">−</button>
-                <input type="number" class="num-input-val" id="emomSec" value="0" onfocus="this.select()" oninput="syncEmomDuration()">
+                <input type="number" class="num-input-val" id="emomSec" value="${ivSec}" onfocus="this.select()" oninput="syncEmomDuration()">
                 <span class="num-unit">SEC</span>
                 <button class="num-btn" onclick="adjVal('emomSec',5,0,55); syncEmomDuration();">+</button>
               </div>
@@ -511,7 +582,7 @@
             <label class="form-label">NUMBER OF ROUNDS</label>
             <div class="num-input-wrap">
               <button class="num-btn" onclick="adjVal('emomRounds',-1,1,99); syncEmomDuration();">−</button>
-              <input type="number" class="num-input-val" id="emomRounds" value="10" onfocus="this.select()" oninput="syncEmomDuration()">
+              <input type="number" class="num-input-val" id="emomRounds" value="${rds}" onfocus="this.select()" oninput="syncEmomDuration()">
               <span class="num-unit">RDS</span>
               <button class="num-btn" onclick="adjVal('emomRounds',1,1,99); syncEmomDuration();">+</button>
             </div>
@@ -520,18 +591,21 @@
             <label class="form-label">TOTAL TIME</label>
             <div class="num-input-wrap" style="border-color:var(--accent3);">
               <button class="num-btn" onclick="adjVal('emomMinsTotal',-1,1,99); syncEmomRounds();">−</button>
-              <input type="number" class="num-input-val" id="emomMinsTotal" value="10" onfocus="this.select()" oninput="syncEmomRounds()" style="color:var(--accent3);">
+              <input type="number" class="num-input-val" id="emomMinsTotal" value="${mins}" onfocus="this.select()" oninput="syncEmomRounds()" style="color:var(--accent3);">
               <span class="num-unit" style="color:var(--accent3);">MIN</span>
               <button class="num-btn" onclick="adjVal('emomMinsTotal',1,1,99); syncEmomRounds();">+</button>
             </div>
           </div>`;
       } else if (configuredMode === 'tabata') {
+        const rds = cfg?.rounds ?? 8;
+        const work = cfg?.workSec ?? 20;
+        const rest = cfg?.tabRestSec ?? 10;
         container.innerHTML = `
           <div class="form-group">
             <label class="form-label">ROUNDS</label>
             <div class="num-input-wrap">
               <button class="num-btn" onclick="adjVal('tabRounds',-1,1,30)">−</button>
-              <input type="number" class="num-input-val" id="tabRounds" value="8" onfocus="this.select()">
+              <input type="number" class="num-input-val" id="tabRounds" value="${rds}" onfocus="this.select()">
               <span class="num-unit">RDS</span>
               <button class="num-btn" onclick="adjVal('tabRounds',1,1,30)">+</button>
             </div>
@@ -539,34 +613,36 @@
           <div style="display:flex; gap:8px;">
             <div class="num-input-wrap" style="flex:1;">
               <button class="num-btn" onclick="adjVal('tabWork',-5,5,180)">−</button>
-              <input type="number" class="num-input-val" id="tabWork" value="20" onfocus="this.select()">
+              <input type="number" class="num-input-val" id="tabWork" value="${work}" onfocus="this.select()">
               <span class="num-unit">WORK</span>
               <button class="num-btn" onclick="adjVal('tabWork',5,5,180)">+</button>
             </div>
             <div class="num-input-wrap" style="flex:1;">
               <button class="num-btn" onclick="adjVal('tabRest',-5,0,180)">−</button>
-              <input type="number" class="num-input-val" id="tabRest" value="10" onfocus="this.select()">
+              <input type="number" class="num-input-val" id="tabRest" value="${rest}" onfocus="this.select()">
               <span class="num-unit">REST</span>
               <button class="num-btn" onclick="adjVal('tabRest',5,0,180)">+</button>
             </div>
           </div>`;
       } else if (configuredMode === 'sets') {
+        const sets = cfg?.sets ?? 5;
         container.innerHTML = `
           <div class="form-group">
             <label class="form-label">NUMBER OF SETS</label>
             <div class="num-input-wrap">
               <button class="num-btn" onclick="adjVal('setsCount',-1,1,30)">−</button>
-              <input type="number" class="num-input-val" id="setsCount" value="5" onfocus="this.select()">
+              <input type="number" class="num-input-val" id="setsCount" value="${sets}" onfocus="this.select()">
               <span class="num-unit">SETS</span>
               <button class="num-btn" onclick="adjVal('setsCount',1,1,30)">+</button>
             </div>
           </div>`;
       } else if (configuredMode === 'custom') {
-        renderCustomList();
+        if (cfg?.intervals) customList = [...cfg.intervals];
+        renderCustomList(cfg?.loops);
       }
     }
 
-    function renderCustomList() {
+    function renderCustomList(loops = 3) {
       const container = document.getElementById('configFormContent');
       let itemsHtml = customList.map((iv, i) => `
         <div class="interval-pill">
@@ -584,7 +660,7 @@
           <div>${itemsHtml || '<div style="color:var(--muted);font-size:12px;margin-bottom:8px;">No intervals yet</div>'}</div>
           
           <div style="background:var(--surface); padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:8px;">
-            <input type="text" id="customNameInput" placeholder="Name (e.g. Work, Rest, Row...)" style="width:100%; padding:10px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:#fff; font-size:14px; margin-bottom:8px; outline:none;">
+            <input type="text" id="customNameInput" placeholder="Name (e.g. Row, Work, Sled...)" style="width:100%; padding:10px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:#fff; font-size:14px; margin-bottom:8px; outline:none;">
             <div style="display:flex; gap:8px;">
               <div class="num-input-wrap" style="flex:1;">
                 <input type="number" class="num-input-val" id="customSecInput" value="30" onfocus="this.select()">
@@ -604,7 +680,7 @@
           <label class="form-label">LOOPS</label>
           <div class="num-input-wrap">
             <button class="num-btn" onclick="adjVal('customLoops',-1,1,30)">−</button>
-            <input type="number" class="num-input-val" id="customLoops" value="3" onfocus="this.select()">
+            <input type="number" class="num-input-val" id="customLoops" value="${loops}" onfocus="this.select()">
             <span class="num-unit">LOOPS</span>
             <button class="num-btn" onclick="adjVal('customLoops',1,1,30)">+</button>
           </div>
@@ -621,12 +697,14 @@
       const name = document.getElementById('customNameInput').value.trim() || 'Interval';
       const sec = parseInt(document.getElementById('customSecInput').value) || 30;
       customList.push({ name, duration: sec * 1000, color: selectedColor });
-      renderCustomList();
+      const curLoops = parseInt(document.getElementById('customLoops')?.value || 3);
+      renderCustomList(curLoops);
     }
 
     function removeCustom(i) {
       customList.splice(i, 1);
-      renderCustomList();
+      const curLoops = parseInt(document.getElementById('customLoops')?.value || 3);
+      renderCustomList(curLoops);
     }
 
     function adjVal(id, delta, min, max) {
@@ -663,44 +741,106 @@
       });
     }
 
-    function sendConfigAndStart() {
-      let cfg = {};
+    function getCurrentFormConfig() {
       if (configuredMode === 'fortime') {
-        cfg = { cap: parseInt(document.getElementById('ftCap')?.value || 0) };
+        return { cap: parseInt(document.getElementById('ftCap')?.value || 0) };
       } else if (configuredMode === 'amrap') {
-        cfg = { mins: parseInt(document.getElementById('amrapMins')?.value || 10) };
+        return { mins: parseInt(document.getElementById('amrapMins')?.value || 10) };
       } else if (configuredMode === 'emom') {
         const m = parseInt(document.getElementById('emomMin')?.value || 1);
         const s = parseInt(document.getElementById('emomSec')?.value || 0);
-        cfg = {
+        return {
           mins: parseInt(document.getElementById('emomMinsTotal')?.value || 10),
           rounds: parseInt(document.getElementById('emomRounds')?.value || 10),
           intervalMs: (m * 60 + s) * 1000 || 60000
         };
       } else if (configuredMode === 'tabata') {
-        cfg = {
+        return {
           rounds: parseInt(document.getElementById('tabRounds')?.value || 8),
           workSec: parseInt(document.getElementById('tabWork')?.value || 20),
           tabRestSec: parseInt(document.getElementById('tabRest')?.value || 10)
         };
       } else if (configuredMode === 'sets') {
-        cfg = { sets: parseInt(document.getElementById('setsCount')?.value || 5), restType: '1to1' };
+        return { sets: parseInt(document.getElementById('setsCount')?.value || 5), restType: '1to1' };
       } else if (configuredMode === 'custom') {
-        cfg = {
+        return {
           intervals: [...customList],
           loops: parseInt(document.getElementById('customLoops')?.value || 1)
         };
       }
+      return {};
+    }
 
+    function sendConfigAndStart() {
+      const cfg = getCurrentFormConfig();
       timerRef.update({
         command: "CONFIG_AND_START",
         mode: configuredMode,
         config: cfg,
         timestamp: Date.now()
       });
-
-      switchTab('control');
     }
+
+    // SAVED WORKOUTS SYSTEM (LOCALSTORAGE)
+    function getSavedWorkouts() {
+      try { return JSON.parse(localStorage.getItem('apx_remote_saved') || '[]'); } catch { return []; }
+    }
+    function setSavedWorkouts(arr) { localStorage.setItem('apx_remote_saved', JSON.stringify(arr)); }
+
+    function openSaveModal() {
+      document.getElementById('saveWodName').value = '';
+      document.getElementById('saveModal').classList.add('active');
+    }
+    function closeSaveModal() {
+      document.getElementById('saveModal').classList.remove('active');
+    }
+
+    function confirmSaveWod() {
+      const name = document.getElementById('saveWodName').value.trim();
+      if (!name) return;
+      const config = getCurrentFormConfig();
+      const saved = getSavedWorkouts();
+      saved.unshift({ id: Date.now(), name, mode: configuredMode, config });
+      setSavedWorkouts(saved);
+      closeSaveModal();
+      renderSavedList();
+    }
+
+    function loadSavedWod(id) {
+      const saved = getSavedWorkouts();
+      const wod = saved.find(w => w.id === id);
+      if (!wod) return;
+      selectMode(wod.mode, wod.config);
+    }
+
+    function deleteSavedWod(e, id) {
+      e.stopPropagation();
+      let saved = getSavedWorkouts().filter(w => w.id !== id);
+      setSavedWorkouts(saved);
+      renderSavedList();
+    }
+
+    function renderSavedList() {
+      const listEl = document.getElementById('savedWorkoutsList');
+      const saved = getSavedWorkouts();
+      if (!saved.length) {
+        listEl.innerHTML = '<div style="color:var(--muted); font-size:12px;">No saved workouts yet.</div>';
+        return;
+      }
+      listEl.innerHTML = saved.map(w => `
+        <div class="saved-card" onclick="loadSavedWod(${w.id})">
+          <div>
+            <div class="saved-card-title">${w.name}</div>
+            <div class="saved-card-meta">${w.mode.toUpperCase()}</div>
+          </div>
+          <button class="interval-pill-del" onclick="deleteSavedWod(event, ${w.id})">×</button>
+        </div>
+      `).join('');
+    }
+
+    // SETTINGS OVERLAY
+    function openSettings() { document.getElementById('settingsScreen').classList.add('active'); }
+    function closeSettings() { document.getElementById('settingsScreen').classList.remove('active'); }
 
     function adjSetting(field, delta, min, max) {
       const el = document.getElementById(field === 'countdown' ? 'setCountdown' : 'setWarnAt');
@@ -725,7 +865,7 @@
 
       settingsRef.set(payload).then(() => {
         alert("Settings synced to TV!");
-        switchTab('control');
+        closeSettings();
       });
     }
 
@@ -734,6 +874,10 @@
       const sec = s % 60;
       return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
     }
+
+    // Initialisation
+    selectMode('fortime');
+    renderSavedList();
   </script>
 </body>
 </html>
