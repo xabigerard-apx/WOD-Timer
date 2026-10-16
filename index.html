@@ -18,10 +18,6 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-  <!-- Firebase SDK Compat -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
   <style>
     :root {
       --bg: #0a0a0a;
@@ -972,82 +968,8 @@
 </div>
 
 <script>
-// ─── FIREBASE REALTIME DATABASE SYNC ─────────────────────────────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyC6e1z1cYuq5q9IPGqp1ZLMcv-n0B1ttDo",
-  authDomain: "apx-wod-timer.firebaseapp.com",
-  databaseURL: "https://apx-wod-timer-default-rtdb.firebaseio.com",
-  projectId: "apx-wod-timer",
-  storageBucket: "apx-wod-timer.firebasestorage.app",
-  messagingSenderId: "798211091297",
-  appId: "1:798211091297:web:2333c0480ba17accafb320"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const timerRef = db.ref("timer_state");
-
-let lastExecutedCommandTimestamp = Date.now();
-
-// Listen for remote commands from the phone
-timerRef.on("value", (snapshot) => {
-  const data = snapshot.val();
-  if (!data || !data.command || (data.timestamp && data.timestamp <= lastExecutedCommandTimestamp)) return;
-  lastExecutedCommandTimestamp = data.timestamp;
-
-  const cmd = data.command;
-  const isTimerActive = document.getElementById('timer').style.display === 'flex' || 
-                        document.getElementById('setsTimer').style.display === 'flex';
-
-  if (cmd === "CONFIG_AND_START") {
-    const modeKey = data.mode ? data.mode.toLowerCase().replace(' ', '') : 'amrap';
-    currentMode = modeKey;
-    workoutConfig = data.config || {};
-    beginCountdown();
-  } else if (cmd === "START") {
-    if (!isTimerActive) {
-      beginCountdown();
-    } else if (isPaused) {
-      togglePause();
-    } else if (currentMode === 'sets' && setsPaused) {
-      toggleSetsPause();
-    }
-  } else if (cmd === "PAUSE") {
-    if (isTimerActive && !isPaused && currentMode !== 'sets') {
-      togglePause();
-    } else if (isTimerActive && !setsPaused && currentMode === 'sets') {
-      toggleSetsPause();
-    }
-  } else if (cmd === "RESET") {
-    if (isTimerActive) {
-      currentMode === 'sets' ? stopSets() : stopTimer();
-    }
-    goHome();
-    broadcastState("00:00", false, modeLabels[currentMode]);
-  } else if (cmd === "CONTEXT_ACTION") {
-    if (currentMode === 'fortime') {
-      recordSplit();
-    } else if (currentMode === 'amrap') {
-      recordAmrapRound();
-    } else if (currentMode === 'sets') {
-      completeSet();
-    }
-  } else if (cmd === "SET_MODE" && data.mode) {
-    const modeKey = data.mode.toLowerCase().replace(' ', '');
-    if (modeLabels[modeKey]) {
-      goSetup(modeKey);
-      broadcastState("00:00", false, modeLabels[modeKey]);
-    }
-  }
-});
-
-function broadcastState(timeStr, running, modeStr) {
-  timerRef.update({
-    timeFormatted: timeStr,
-    isRunning: running,
-    mode: modeStr
-  }).catch(() => {});
-}
+// Local Broadcast Dummy (Offline / Standalone)
+function broadcastState(timeStr, running, modeStr) {}
 
 // ─── SCREEN WAKE LOCK MANAGER ────────────────────────────────────────────────
 let wakeLock = null;
