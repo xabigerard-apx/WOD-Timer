@@ -4,19 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="APX Remote">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#613795">
-  <title>APX Remote</title>
+  <meta name="theme-color" content="#0a0a0a">
+  <title>APX Display</title>
 
-  <!-- Icons & PWA Manifest -->
-  <link rel="icon" type="image/png" href="remote-logo.png">
-  <link rel="apple-touch-icon" href="remote-logo.png">
-  <link rel="manifest" href="manifest-remote.json">
+  <!-- Icons -->
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
 
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
 
   <!-- Firebase SDK Compat -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -24,550 +21,241 @@
 
   <style>
     :root {
-      --bg: #0d0d12;
-      --surface: #171720;
-      --surface-card: #201f2e;
-      --border: #2c2a3e;
-      --accent-purple: #8c52ff;
-      --accent-amrap: #e8ff00;
-      --accent-emom: #00d4ff;
-      --accent-fortime: #ff4d00;
-      --accent-tabata: #ff2d78;
-      --accent-custom: #bf5af2;
-      --accent-sets: #30d158;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --text: #f3f4f6;
-      --muted: #8b889e;
+      --bg: #0a0a0a;
+      --accent: #e8ff00;
+      --accent2: #ff4d00;
+      --accent3: #00d4ff;
+      --danger: #ff3b30;
+      --success: #30d158;
+      --text: #ffffff;
+      --muted: #777777;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-    body {
-      background-color: var(--bg);
+    * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+
+    html, body {
+      background: var(--bg);
       color: var(--text);
       font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
-      padding-bottom: 24px;
-    }
-
-    header {
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      background: var(--bg);
-      z-index: 50;
-    }
-    .brand-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 26px;
-      letter-spacing: 2px;
-      color: #fff;
-    }
-    .brand-title span { color: var(--accent-purple); }
-
-    .status-pill {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 20px;
-      background: #1c1c28;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      transition: all 0.2s;
-    }
-    .status-pill.online {
-      color: #30d158;
-      border-color: #30d158;
-      background: rgba(48, 209, 88, 0.1);
-    }
-
-    /* Top Navigation (Setup vs Saved) */
-    .top-nav {
-      display: flex;
-      gap: 10px;
-      padding: 14px 20px 0;
-    }
-    .nav-btn {
-      flex: 1;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--muted);
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 10px;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .nav-btn.active {
-      background: var(--surface-card);
-      color: #fff;
-      border-color: var(--accent-purple);
-    }
-
-    .view-container {
-      padding: 16px 20px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .section-title {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 2px;
-      color: var(--muted);
-      margin-bottom: 10px;
-      text-transform: uppercase;
-    }
-
-    /* Modes Selection Grid */
-    .modes-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .mode-tab {
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 6px;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.15s ease;
-    }
-    .mode-tab.active {
-      border-color: var(--active-color, var(--accent-purple));
-      background: var(--surface-card);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-    }
-    .mode-tab .name {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 17px;
-      letter-spacing: 1px;
-      color: #fff;
-      display: block;
-    }
-
-    /* Configuration Card */
-    .config-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 18px;
-      margin-bottom: 16px;
-      flex: 1;
-    }
-
-    .field-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 1.5px;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .stepper {
-      display: flex;
-      align-items: center;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      width: 100vw;
+      height: 100vh;
       overflow: hidden;
-      margin-bottom: 14px;
     }
-    .step-btn {
-      width: 50px;
-      height: 48px;
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      font-size: 24px;
-      cursor: pointer;
+
+    #display-container {
       display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 100vw;
+      height: 100vh;
+      padding: 2.5vh 3.5vw;
+      position: relative;
+    }
+
+    .display-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .mode-label {
+      font-family: 'DM Mono', monospace;
+      font-size: clamp(16px, 2.2vw, 32px);
+      letter-spacing: 4px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .round-info {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(28px, 4.5vw, 65px);
+      letter-spacing: 2px;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    /* PASTILLE GÉANTE POUR LE FLOOR */
+    .pill-zone {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      margin: 1.2vh 0;
+    }
+
+    .pill-badge {
+      background: var(--accent);
+      color: #000;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(38px, 6vw, 82px);
+      letter-spacing: 4px;
+      padding: 10px 56px;
+      border-radius: 20px;
+      line-height: 1;
+      text-transform: uppercase;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      text-align: center;
+    }
+
+    .digits-zone {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
+      min-height: 0;
     }
-    .step-btn:active { background: rgba(255,255,255,0.06); }
 
-    /* Editable Numeric Input */
-    .step-val-input {
-      flex: 1;
-      width: 100%;
-      min-width: 0;
-      background: transparent;
-      border: none;
-      outline: none;
+    .timer-digits {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: min(50vh, 38vw);
+      line-height: 0.8;
+      color: #fff;
       text-align: center;
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 32px;
-      color: #fff;
-      letter-spacing: 1px;
-      user-select: text;
-      -webkit-user-select: text;
-      padding: 0;
-      margin: 0;
-      border-bottom: 2px solid transparent;
-      transition: border-color 0.2s, background-color 0.2s;
-    }
-    .step-val-input:focus {
-      background: rgba(140, 82, 255, 0.1);
-      border-bottom-color: var(--accent-purple);
-    }
-    .step-val-input::-webkit-outer-spin-button,
-    .step-val-input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    .step-val-input[type=number] {
-      -moz-appearance: textfield;
-    }
-
-    .step-unit {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: var(--muted);
-      padding-right: 12px;
-      flex-shrink: 0;
-    }
-
-    .row-split {
-      display: flex;
-      gap: 10px;
-    }
-    .row-split .stepper { flex: 1; }
-
-    .segmented {
-      display: flex;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 3px;
-      gap: 4px;
-      margin-bottom: 14px;
-    }
-    .seg-btn {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 10px 4px;
-      border-radius: 7px;
-      cursor: pointer;
-    }
-    .seg-btn.active {
-      background: var(--surface-card);
-      color: #fff;
-    }
-
-    /* Custom Interval Section */
-    .custom-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
-      margin-bottom: 8px;
-    }
-    .custom-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
-    .custom-name {
-      flex: 1;
-      font-size: 13px;
-      font-weight: 600;
-    }
-    .custom-dur {
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .btn-add-iv {
-      width: 100%;
-      background: transparent;
-      border: 1px dashed var(--border);
-      border-radius: 10px;
-      color: var(--muted);
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      padding: 12px;
-      cursor: pointer;
-      margin-bottom: 14px;
-    }
-
-    /* Bottom Action Row */
-    .action-row {
-      display: flex;
-      gap: 10px;
-    }
-    .btn-launch {
-      flex: 2;
-      background: linear-gradient(135deg, #30d158, #16a34a);
-      color: #000;
-      border: none;
-      border-radius: 14px;
-      padding: 18px;
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 22px;
       letter-spacing: 2px;
-      cursor: pointer;
-      box-shadow: 0 4px 18px rgba(48, 209, 88, 0.3);
-    }
-    .btn-save-w {
-      flex: 1;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      color: var(--text);
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      cursor: pointer;
-    }
-
-    /* SAVED VIEW */
-    #view-saved {
-      display: none;
-      padding: 16px 20px;
-      flex: 1;
-      flex-direction: column;
-    }
-    .saved-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .saved-info-name {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 20px;
-      letter-spacing: 1px;
-      color: #fff;
-    }
-    .saved-info-meta {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-    .saved-btns {
-      display: flex;
-      gap: 8px;
-    }
-    .saved-load-btn {
-      background: var(--accent-purple);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .saved-del-btn {
-      background: transparent;
-      color: var(--danger);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    /* LIVE REMOTE VIEW */
-    #view-live {
-      display: none;
-      padding: 20px;
-      flex-direction: column;
-      flex: 1;
-      justify-content: space-between;
-    }
-
-    .live-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 30px 20px;
-      text-align: center;
-      margin-bottom: 16px;
-    }
-    .live-mode-badge {
-      display: inline-block;
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      letter-spacing: 2px;
-      padding: 4px 14px;
-      border-radius: 20px;
-      background: #252336;
-      color: var(--accent-purple);
-      margin-bottom: 12px;
-    }
-    .live-timer-digits {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(80px, 22vw, 110px);
-      letter-spacing: 2px;
-      line-height: 0.9;
-      color: #fff;
-      margin: 10px 0;
+      font-weight: 900;
       font-variant-numeric: tabular-nums;
-    }
-    .live-status-sub {
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      letter-spacing: 2px;
-      color: var(--muted);
+      text-shadow: 0 6px 30px rgba(0,0,0,0.9);
     }
 
-    .live-actions {
+    .timer-digits.warning { color: var(--accent2); }
+    .timer-digits.critical { color: var(--danger); }
+
+    .status-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: clamp(14px, 1.8vw, 24px);
+      letter-spacing: 3px;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+
+    /* FOOTER & PROGRESS BAR VISIBLE */
+    .footer-zone {
+      width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
     }
-    .btn-contextual {
-      width: 100%;
-      padding: 18px;
-      border: none;
-      border-radius: 14px;
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 24px;
-      letter-spacing: 2px;
-      cursor: pointer;
-    }
-    .btn-split { background: var(--accent-fortime); color: #fff; }
-    .btn-round { background: var(--accent-amrap); color: #000; }
-    .btn-set { background: var(--accent-sets); color: #000; }
 
-    .live-row-btns {
+    .progress-bar-bg {
+      width: 100%;
+      height: 20px;
+      background: #1c1c24;
+      border: 1px solid #2e2c3d;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    .laps-preview {
       display: flex;
-      gap: 10px;
+      gap: 12px;
+      overflow: hidden;
+      max-height: 42px;
     }
-    .btn-pause {
-      flex: 1;
-      background: var(--warning);
-      color: #000;
-      border: none;
-      border-radius: 12px;
-      padding: 16px;
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 20px;
-      letter-spacing: 1.5px;
-      cursor: pointer;
+
+    .lap-tag {
+      background: #1c1c24;
+      border: 1px solid #2e2c3d;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: clamp(12px, 1.4vw, 18px);
+      color: #fff;
     }
-    .btn-stop {
-      flex: 1;
-      background: #232230;
-      color: var(--danger);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
+
+    .countdown-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 500;
+    }
+
+    .countdown-num {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 20px;
-      letter-spacing: 1.5px;
-      cursor: pointer;
+      font-size: clamp(180px, 45vw, 400px);
+      color: var(--accent);
+      line-height: 0.9;
+    }
+
+    .beep-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(232, 255, 0, 0.18);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s;
+      z-index: 200;
+    }
+    .beep-overlay.flash { opacity: 1; }
+
+    .finish-banner {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 600;
+    }
+    .finish-banner.active { display: flex; }
+    .finish-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(90px, 22vw, 220px);
+      color: var(--accent);
+      letter-spacing: 6px;
     }
   </style>
 </head>
-<body>
+<body onclick="initAudioUserGesture()">
 
-  <header>
-    <div class="brand-title">APX <span>REMOTE</span></div>
-    <div class="status-pill" id="connPill">Connecting...</div>
-  </header>
+  <div class="beep-overlay" id="beepOverlay"></div>
 
-  <!-- TOP TABS -->
-  <div class="top-nav" id="topNav">
-    <button class="nav-btn active" id="tabNavSetup" onclick="switchMainTab('setup')">SETUP</button>
-    <button class="nav-btn" id="tabNavSaved" onclick="switchMainTab('saved')">⭐ SAVED</button>
+  <div class="countdown-overlay" id="countdownOverlay">
+    <div class="countdown-num" id="countdownNum">3</div>
+    <div style="font-family:'DM Mono',monospace; letter-spacing:4px; color:var(--muted); font-size:16px;">GET READY</div>
   </div>
 
-  <!-- SETUP VIEW -->
-  <div class="view-container" id="view-setup">
-    <div class="section-title">Workout Mode</div>
-    
-    <div class="modes-grid">
-      <div class="mode-tab active" data-mode="fortime" style="--active-color: var(--accent-fortime)" onclick="selectMode('fortime')">
-        <span class="name">FOR TIME</span>
-      </div>
-      <div class="mode-tab" data-mode="amrap" style="--active-color: var(--accent-amrap)" onclick="selectMode('amrap')">
-        <span class="name">AMRAP</span>
-      </div>
-      <div class="mode-tab" data-mode="emom" style="--active-color: var(--accent-emom)" onclick="selectMode('emom')">
-        <span class="name">EMOM</span>
-      </div>
-      <div class="mode-tab" data-mode="tabata" style="--active-color: var(--accent-tabata)" onclick="selectMode('tabata')">
-        <span class="name">TABATA</span>
-      </div>
-      <div class="mode-tab" data-mode="sets" style="--active-color: var(--accent-sets)" onclick="selectMode('sets')">
-        <span class="name">SETS</span>
-      </div>
-      <div class="mode-tab" data-mode="custom" style="--active-color: var(--accent-custom)" onclick="selectMode('custom')">
-        <span class="name">CUSTOM</span>
-      </div>
-    </div>
-
-    <!-- Dynamic Form Card -->
-    <div class="config-card" id="form-container"></div>
-
-    <div class="action-row">
-      <button class="btn-save-w" onclick="promptSaveWorkout()">⭐ SAVE</button>
-      <button class="btn-launch" onclick="launchWorkoutOnTV()">START ON TV</button>
-    </div>
+  <div class="finish-banner" id="finishBanner">
+    <div class="finish-text">TIME!</div>
   </div>
 
-  <!-- SAVED TIMERS VIEW -->
-  <div id="view-saved">
-    <div class="section-title">Saved Workouts</div>
-    <div id="savedListContainer" style="flex:1;"></div>
-  </div>
-
-  <!-- LIVE TIMER / REMOTE VIEW -->
-  <div id="view-live">
-    <div class="live-card">
-      <div class="live-mode-badge" id="liveBadge">FOR TIME</div>
-      <div class="live-timer-digits" id="liveDigits">00:00</div>
-      <div class="live-status-sub" id="liveSub">RUNNING</div>
+  <div id="display-container">
+    <div class="display-header">
+      <div class="mode-label" id="displayMode">READY</div>
+      <div class="round-info" id="displayRound">--</div>
     </div>
 
-    <div class="live-actions">
-      <!-- Contextual Action Button -->
-      <button class="btn-contextual btn-split" id="btnContextual" onclick="sendContextAction()">SPLIT</button>
+    <div class="pill-zone">
+      <div class="pill-badge" id="displayPhase" style="display:none">WORK</div>
+    </div>
 
-      <div class="live-row-btns">
-        <button class="btn-pause" id="btnPlayPause" onclick="togglePlayPause()">PAUSE</button>
-        <button class="btn-stop" onclick="sendReset()">STOP / RESET</button>
+    <div class="digits-zone">
+      <div class="timer-digits" id="displayDigits">00:00</div>
+      <div class="status-sub" id="displaySub">TAP SCREEN TO ACTIVATE AUDIO</div>
+    </div>
+
+    <div class="footer-zone">
+      <div class="laps-preview" id="displayLaps"></div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
       </div>
     </div>
   </div>
 
   <script>
-    // Firebase Configuration APX
     const firebaseConfig = {
       apiKey: "AIzaSyC6e1z1cYuq5q9IPGqp1ZLMcv-n0B1ttDo",
       authDomain: "apx-wod-timer.firebaseapp.com",
@@ -581,473 +269,522 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const timerRef = db.ref("timer_state");
+    const settingsRef = db.ref("timer_settings");
 
-    let currentMode = 'fortime';
-    let config = {
-      ftCap: 20,
-      ftSplits: true,
-      amrapMins: 10,
-      emomMins: 10,
-      emomRounds: 10,
-      emomIvMin: 1,
-      emomIvSec: 0,
-      tabRounds: 8,
-      tabWork: 20,
-      tabRest: 10,
-      setsCount: 5,
-      restType: '1to1',
-      restMin: 2,
-      restSec: 0,
-      customLoops: 1,
-      customIntervals: [
-        { name: "Work", duration: 30000, color: "#e8ff00" },
-        { name: "Rest", duration: 15000, color: "#00d4ff" }
-      ]
+    let currentSettings = {
+      countdown: 3,
+      volume: 0.7,
+      beep: true,
+      flash: true,
+      warnAt: 10
     };
 
-    let isRunning = false;
-
-    function getEmomIntervalSec() {
-      return (config.emomIvMin * 60) + config.emomIvSec || 60;
-    }
-
-    // Switch Main Tabs
-    function switchMainTab(tab) {
-      document.getElementById('tabNavSetup').classList.toggle('active', tab === 'setup');
-      document.getElementById('tabNavSaved').classList.toggle('active', tab === 'saved');
-      document.getElementById('view-setup').style.display = tab === 'setup' ? 'flex' : 'none';
-      document.getElementById('view-saved').style.display = tab === 'saved' ? 'flex' : 'none';
-      if (tab === 'saved') renderSavedList();
-    }
-
-    // Render Setup Forms
-    function renderForm() {
-      const c = document.getElementById('form-container');
-      if (currentMode === 'fortime') {
-        c.innerHTML = `
-          <label class="field-label">Time Cap (0 = No Cap)</label>
-          <div class="stepper">
-            <button class="step-btn" onclick="adj('ftCap', -1, 0, 99)">−</button>
-            <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-ftCap" value="${config.ftCap}" onfocus="this.select()" oninput="manualSet('ftCap', this.value, 0, 99)">
-            <span class="step-unit">MIN</span>
-            <button class="step-btn" onclick="adj('ftCap', 1, 0, 99)">+</button>
-          </div>
-          <label class="field-label">Section Splits</label>
-          <div class="segmented">
-            <button class="seg-btn ${config.ftSplits ? 'active' : ''}" onclick="setSplits(true)">YES</button>
-            <button class="seg-btn ${!config.ftSplits ? 'active' : ''}" onclick="setSplits(false)">NO</button>
-          </div>
-        `;
-      } else if (currentMode === 'amrap') {
-        c.innerHTML = `
-          <label class="field-label">Duration (Minutes)</label>
-          <div class="stepper">
-            <button class="step-btn" onclick="adj('amrapMins', -1, 1, 99)">−</button>
-            <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-amrapMins" value="${config.amrapMins}" onfocus="this.select()" oninput="manualSet('amrapMins', this.value, 1, 99)">
-            <span class="step-unit">MIN</span>
-            <button class="step-btn" onclick="adj('amrapMins', 1, 1, 99)">+</button>
-          </div>
-        `;
-      } else if (currentMode === 'emom') {
-        c.innerHTML = `
-          <label class="field-label">Frequency (Every...)</label>
-          <div class="row-split">
-            <div class="stepper">
-              <button class="step-btn" onclick="adjEmomInterval('emomIvMin', -1, 0, 59)">−</button>
-              <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-emomIvMin" value="${config.emomIvMin}" onfocus="this.select()" oninput="manualSetEmomInterval('emomIvMin', this.value, 0, 59)">
-              <span class="step-unit">MIN</span>
-              <button class="step-btn" onclick="adjEmomInterval('emomIvMin', 1, 0, 59)">+</button>
-            </div>
-            <div class="stepper">
-              <button class="step-btn" onclick="adjEmomInterval('emomIvSec', -5, 0, 55)">−</button>
-              <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-emomIvSec" value="${config.emomIvSec}" onfocus="this.select()" oninput="manualSetEmomInterval('emomIvSec', this.value, 0, 55)">
-              <span class="step-unit">SEC</span>
-              <button class="step-btn" onclick="adjEmomInterval('emomIvSec', 5, 0, 55)">+</button>
-            </div>
-          </div>
-
-          <label class="field-label">Number of Rounds</label>
-          <div class="stepper">
-            <button class="step-btn" onclick="adjEmomRounds(-1)">−</button>
-            <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-emomRounds" value="${config.emomRounds}" onfocus="this.select()" oninput="manualSetEmomRounds(this.value)">
-            <span class="step-unit">×</span>
-            <button class="step-btn" onclick="adjEmomRounds(1)">+</button>
-          </div>
-
-          <label class="field-label">Total Duration</label>
-          <div class="stepper" style="border-color: rgba(0, 212, 255, 0.4);">
-            <button class="step-btn" onclick="adjEmomMins(-1)">−</button>
-            <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-emomMins" value="${config.emomMins}" onfocus="this.select()" oninput="manualSetEmomMins(this.value)" style="color: var(--accent-emom);">
-            <span class="step-unit" style="color: var(--accent-emom);">MIN</span>
-            <button class="step-btn" onclick="adjEmomMins(1)">+</button>
-          </div>
-        `;
-      } else if (currentMode === 'tabata') {
-        c.innerHTML = `
-          <label class="field-label">Rounds</label>
-          <div class="stepper">
-            <button class="step-btn" onclick="adj('tabRounds', -1, 1, 30)">−</button>
-            <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-tabRounds" value="${config.tabRounds}" onfocus="this.select()" oninput="manualSet('tabRounds', this.value, 1, 30)">
-            <span class="step-unit">RDS</span>
-            <button class="step-btn" onclick="adj('tabRounds', 1, 1, 30)">+</button>
-          </div>
-          <div class="row-split">
-            <div style="flex:1">
-              <label class="field-label">Work</label>
-              <div class="stepper">
-                <button class="step-btn" onclick="adj('tabWork', -5, 5, 180)">−</button>
-                <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-tabWork" value="${config.tabWork}" onfocus="this.select()" oninput="manualSet('tabWork', this.value, 5, 180)">
-                <span class="step-unit">S</span>
-                <button class="step-btn" onclick="adj('tabWork', 5, 5, 180)">+</button>
-              </div>
-            </div>
-            <div style="flex:1">
-              <label class="field-label">Rest</label>
-              <div class="stepper">
-                <button class="step-btn" onclick="adj('tabRest', -5, 0, 180)">−</button>
-                <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-tabRest" value="${config.tabRest}" onfocus="this.select()" oninput="manualSet('tabRest', this.value, 0, 180)">
-                <span class="step-unit">S</span>
-                <button class="step-btn" onclick="adj('tabRest', 5, 0, 180)">+</button>
-              </div>
-            </div>
-          </div>
-        `;
-      } else if (currentMode === 'sets') {
-        c.innerHTML = `
-          <label class="field-label">Number of Sets</label>
-          <div class="stepper">
-            <button class="step-btn" onclick="adj('setsCount', -1, 1, 30)">−</button>
-            <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-setsCount" value="${config.setsCount}" onfocus="this.select()" oninput="manualSet('setsCount', this.value, 1, 30)">
-            <span class="step-unit">SETS</span>
-            <button class="step-btn" onclick="adj('setsCount', 1, 1, 30)">+</button>
-          </div>
-          <label class="field-label">Rest Mode</label>
-          <div class="segmented">
-            <button class="seg-btn ${config.restType === '1to1' ? 'active' : ''}" onclick="setRest('1to1')">1:1 REST</button>
-            <button class="seg-btn ${config.restType === 'fixed' ? 'active' : ''}" onclick="setRest('fixed')">FIXED</button>
-            <button class="seg-btn ${config.restType === 'none' ? 'active' : ''}" onclick="setRest('none')">NONE</button>
-          </div>
-          <div id="fixed-box" style="display:${config.restType === 'fixed' ? 'flex' : 'none'}; gap:10px;">
-            <div class="stepper" style="flex:1">
-              <button class="step-btn" onclick="adj('restMin', -1, 0, 59)">−</button>
-              <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-restMin" value="${config.restMin}" onfocus="this.select()" oninput="manualSet('restMin', this.value, 0, 59)">
-              <span class="step-unit">MIN</span>
-              <button class="step-btn" onclick="adj('restMin', 1, 0, 59)">+</button>
-            </div>
-            <div class="stepper" style="flex:1">
-              <button class="step-btn" onclick="adj('restSec', -5, 0, 55)">−</button>
-              <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-restSec" value="${config.restSec}" onfocus="this.select()" oninput="manualSet('restSec', this.value, 0, 59)">
-              <span class="step-unit">SEC</span>
-              <button class="step-btn" onclick="adj('restSec', 5, 0, 55)">+</button>
-            </div>
-          </div>
-        `;
-      } else if (currentMode === 'custom') {
-        let ivHtml = config.customIntervals.map((iv, idx) => `
-          <div class="custom-item">
-            <div class="custom-dot" style="background:${iv.color}"></div>
-            <div class="custom-name">${iv.name}</div>
-            <div class="custom-dur">${iv.duration / 1000}s</div>
-            <button onclick="removeCustomIv(${idx})" style="background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;">×</button>
-          </div>
-        `).join('');
-
-        c.innerHTML = `
-          <label class="field-label">Loops</label>
-          <div class="stepper">
-            <button class="step-btn" onclick="adj('customLoops', -1, 1, 30)">−</button>
-            <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-customLoops" value="${config.customLoops}" onfocus="this.select()" oninput="manualSet('customLoops', this.value, 1, 30)">
-            <span class="step-unit">×</span>
-            <button class="step-btn" onclick="adj('customLoops', 1, 1, 30)">+</button>
-          </div>
-          <label class="field-label">Interval Sequence</label>
-          <div>${ivHtml || '<div style="color:var(--muted);font-size:12px;margin-bottom:8px;">No intervals created</div>'}</div>
-          <button class="btn-add-iv" onclick="addCustomIvPrompt()">+ ADD INTERVAL</button>
-        `;
-      }
-    }
-
-    function selectMode(m) {
-      currentMode = m;
-      document.querySelectorAll('.mode-tab').forEach(t => {
-        t.classList.toggle('active', t.dataset.mode === m);
-      });
-      renderForm();
-    }
-
-    function adj(key, delta, min, max) {
-      config[key] = Math.max(min, Math.min(max, (config[key] || 0) + delta));
-      const el = document.getElementById(`val-${key}`);
-      if (el) el.value = config[key];
-    }
-
-    function manualSet(key, rawVal, min, max) {
-      if (rawVal === '') return;
-      let parsed = parseInt(rawVal);
-      if (isNaN(parsed)) parsed = min;
-      config[key] = Math.max(min, Math.min(max, parsed));
-    }
-
-    // EMOM Bidirectional Logic
-    function adjEmomInterval(key, delta, min, max) {
-      config[key] = Math.max(min, Math.min(max, (config[key] || 0) + delta));
-      if (config.emomIvMin === 0 && config.emomIvSec === 0) config.emomIvSec = 30;
-      const el = document.getElementById(`val-${key}`);
-      if (el) el.value = config[key];
-      recalcEmomMinsFromRounds();
-    }
-
-    function manualSetEmomInterval(key, rawVal, min, max) {
-      if (rawVal === '') return;
-      let parsed = parseInt(rawVal);
-      if (isNaN(parsed)) parsed = min;
-      config[key] = Math.max(min, Math.min(max, parsed));
-      if (config.emomIvMin === 0 && config.emomIvSec === 0) config.emomIvSec = 30;
-      recalcEmomMinsFromRounds();
-    }
-
-    function adjEmomRounds(delta) {
-      config.emomRounds = Math.max(1, Math.min(99, config.emomRounds + delta));
-      const el = document.getElementById('val-emomRounds');
-      if (el) el.value = config.emomRounds;
-      recalcEmomMinsFromRounds();
-    }
-
-    function manualSetEmomRounds(rawVal) {
-      if (rawVal === '') return;
-      let parsed = parseInt(rawVal);
-      if (isNaN(parsed)) parsed = 1;
-      config.emomRounds = Math.max(1, Math.min(99, parsed));
-      recalcEmomMinsFromRounds();
-    }
-
-    function recalcEmomMinsFromRounds() {
-      const ivSec = getEmomIntervalSec();
-      const totalSec = ivSec * config.emomRounds;
-      config.emomMins = Math.ceil(totalSec / 60);
-      const el = document.getElementById('val-emomMins');
-      if (el) el.value = config.emomMins;
-    }
-
-    function adjEmomMins(delta) {
-      config.emomMins = Math.max(1, Math.min(99, config.emomMins + delta));
-      const el = document.getElementById('val-emomMins');
-      if (el) el.value = config.emomMins;
-      recalcEmomRoundsFromMins();
-    }
-
-    function manualSetEmomMins(rawVal) {
-      if (rawVal === '') return;
-      let parsed = parseInt(rawVal);
-      if (isNaN(parsed)) parsed = 1;
-      config.emomMins = Math.max(1, Math.min(99, parsed));
-      recalcEmomRoundsFromMins();
-    }
-
-    function recalcEmomRoundsFromMins() {
-      const ivSec = getEmomIntervalSec();
-      const totalSec = config.emomMins * 60;
-      config.emomRounds = Math.max(1, Math.floor(totalSec / ivSec));
-      const el = document.getElementById('val-emomRounds');
-      if (el) el.value = config.emomRounds;
-    }
-
-    function setSplits(val) {
-      config.ftSplits = val;
-      renderForm();
-    }
-
-    function setRest(val) {
-      config.restType = val;
-      renderForm();
-    }
-
-    function addCustomIvPrompt() {
-      const name = prompt("Interval name:", "Work") || "Interval";
-      const secs = parseInt(prompt("Duration in seconds:", "30")) || 30;
-      config.customIntervals.push({
-        name: name,
-        duration: secs * 1000,
-        color: "#bf5af2"
-      });
-      renderForm();
-    }
-
-    function removeCustomIv(idx) {
-      config.customIntervals.splice(idx, 1);
-      renderForm();
-    }
-
-    // Local Storage Saved Workouts
-    function getSavedWorkouts() {
-      try { return JSON.parse(localStorage.getItem('apx_saved_workouts') || '[]'); } catch { return []; }
-    }
-
-    function promptSaveWorkout() {
-      const name = prompt("Workout name (e.g. EMOM 1:30 x 20, Fran, etc.):");
-      if (!name) return;
-      const saved = getSavedWorkouts();
-      saved.unshift({
-        id: Date.now(),
-        name: name,
-        mode: currentMode,
-        config: JSON.parse(JSON.stringify(config))
-      });
-      localStorage.setItem('apx_saved_workouts', JSON.stringify(saved));
-      alert("Workout saved!");
-    }
-
-    function renderSavedList() {
-      const saved = getSavedWorkouts();
-      const c = document.getElementById('savedListContainer');
-      if (!saved.length) {
-        c.innerHTML = `<div style="text-align:center;color:var(--muted);margin-top:40px;font-size:13px;">No saved workouts yet.</div>`;
-        return;
-      }
-      c.innerHTML = saved.map(item => `
-        <div class="saved-card">
-          <div>
-            <div class="saved-info-name">${item.name}</div>
-            <div class="saved-info-meta">${item.mode.toUpperCase()}</div>
-          </div>
-          <div class="saved-btns">
-            <button class="saved-load-btn" onclick="loadSavedWorkout(${item.id})">LOAD</button>
-            <button class="saved-del-btn" onclick="deleteSavedWorkout(${item.id})">🗑️</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function loadSavedWorkout(id) {
-      const saved = getSavedWorkouts();
-      const found = saved.find(s => s.id === id);
-      if (!found) return;
-      currentMode = found.mode;
-      config = JSON.parse(JSON.stringify(found.config));
-      switchMainTab('setup');
-      selectMode(currentMode);
-    }
-
-    function deleteSavedWorkout(id) {
-      let saved = getSavedWorkouts().filter(s => s.id !== id);
-      localStorage.setItem('apx_saved_workouts', JSON.stringify(saved));
-      renderSavedList();
-    }
-
-    // Launch Workout on TV
-    function launchWorkoutOnTV() {
-      let payload = {
-        command: "CONFIG_AND_START",
-        mode: currentMode,
-        timestamp: Date.now()
-      };
-
-      if (currentMode === 'fortime') {
-        payload.config = { cap: config.ftCap, splits: config.ftSplits };
-      } else if (currentMode === 'amrap') {
-        payload.config = { mins: config.amrapMins };
-      } else if (currentMode === 'emom') {
-        payload.config = { 
-          mins: config.emomMins,
-          rounds: config.emomRounds,
-          ivMin: config.emomIvMin, 
-          ivSec: config.emomIvSec,
-          intervalMs: getEmomIntervalSec() * 1000
-        };
-      } else if (currentMode === 'tabata') {
-        payload.config = { rounds: config.tabRounds, workSec: config.tabWork, tabRestSec: config.tabRest };
-      } else if (currentMode === 'sets') {
-        payload.config = { sets: config.setsCount, restType: config.restType, restMin: config.restMin, restSec: config.restSec };
-      } else if (currentMode === 'custom') {
-        payload.config = { loops: config.customLoops, intervals: config.customIntervals };
-      }
-
-      timerRef.update(payload);
-    }
-
-    // Realtime Firebase Listener
-    timerRef.on("value", (snapshot) => {
-      const data = snapshot.val();
-      const pill = document.getElementById('connPill');
-      pill.innerText = "TV Connected";
-      pill.classList.add('online');
-
-      if (!data) return;
-
-      isRunning = data.isRunning || false;
-      const viewSetup = document.getElementById('view-setup');
-      const viewSaved = document.getElementById('view-saved');
-      const viewLive = document.getElementById('view-live');
-      const topNav = document.getElementById('topNav');
-
-      if (isRunning || (data.timeFormatted && data.timeFormatted !== "00:00")) {
-        topNav.style.display = 'none';
-        viewSetup.style.display = 'none';
-        viewSaved.style.display = 'none';
-        viewLive.style.display = 'flex';
-
-        document.getElementById('liveDigits').innerText = data.timeFormatted || "00:00";
-        document.getElementById('liveBadge').innerText = data.mode || currentMode.toUpperCase();
-        document.getElementById('liveSub').innerText = isRunning ? "RUNNING" : "PAUSED";
-
-        const playBtn = document.getElementById('btnPlayPause');
-        playBtn.innerText = isRunning ? "PAUSE" : "RESUME";
-        playBtn.style.background = isRunning ? "var(--warning)" : "var(--accent-sets)";
-
-        const ctxBtn = document.getElementById('btnContextual');
-        const activeM = (data.mode || currentMode).toUpperCase();
-        if (activeM.includes('TIME')) {
-          ctxBtn.style.display = 'block';
-          ctxBtn.innerText = "SPLIT";
-          ctxBtn.className = "btn-contextual btn-split";
-        } else if (activeM.includes('AMRAP')) {
-          ctxBtn.style.display = 'block';
-          ctxBtn.innerText = "+1 ROUND";
-          ctxBtn.className = "btn-contextual btn-round";
-        } else if (activeM.includes('SETS')) {
-          ctxBtn.style.display = 'block';
-          ctxBtn.innerText = "DONE SET / SKIP REST";
-          ctxBtn.className = "btn-contextual btn-set";
-        } else {
-          ctxBtn.style.display = 'none';
-        }
-
-      } else {
-        topNav.style.display = 'flex';
-        viewLive.style.display = 'none';
-        if (document.getElementById('tabNavSaved').classList.contains('active')) {
-          viewSaved.style.display = 'flex';
-          viewSetup.style.display = 'none';
-        } else {
-          viewSetup.style.display = 'flex';
-          viewSaved.style.display = 'none';
-        }
+    settingsRef.on("value", (snap) => {
+      const data = snap.val();
+      if (data) {
+        currentSettings = { ...currentSettings, ...data };
       }
     });
 
-    function togglePlayPause() {
-      timerRef.update({
-        command: isRunning ? "PAUSE" : "START",
-        timestamp: Date.now()
-      });
+    let audioCtx = null;
+    function getAudio() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
     }
 
-    function sendReset() {
-      timerRef.update({
-        command: "RESET",
-        timestamp: Date.now()
-      });
+    function initAudioUserGesture() {
+      getAudio();
+      requestWakeLock();
+      if (!isRunning) {
+        document.getElementById('displaySub').textContent = "AUDIO READY · WAITING FOR REMOTE";
+      }
     }
 
-    function sendContextAction() {
-      timerRef.update({
-        command: "CONTEXT_ACTION",
-        timestamp: Date.now()
-      });
+    function beep(freq = 880, dur = 0.1, vol = 0.5) {
+      try {
+        if (!currentSettings.beep) return;
+        const ctx = getAudio();
+        if (!ctx) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'square';
+        gain.gain.setValueAtTime(vol * (currentSettings.volume ?? 0.7), ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + dur);
+      } catch(e) {}
     }
 
-    // Init
-    renderForm();
+    function goBeep() {
+      beep(523, 0.15, 0.85);
+      setTimeout(() => beep(784, 0.45, 0.95), 160);
+    }
+    function snapBeep() { beep(1000, 0.05, 0.5); }
+    function stopBeep() {
+      beep(300, 0.12, 0.8);
+      setTimeout(() => beep(200, 0.25, 0.9), 120);
+    }
+    function flashBeep() {
+      if (!currentSettings.flash) return;
+      const el = document.getElementById('beepOverlay');
+      if (el) {
+        el.classList.add('flash');
+        setTimeout(() => el.classList.remove('flash'), 120);
+      }
+    }
+
+    let wakeLock = null;
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch(e) {}
+    }
+
+    let currentMode = 'fortime';
+    let workoutConfig = {};
+    let timerInterval = null;
+    let isRunning = false;
+    let isPaused = false;
+    let startTime = 0;
+    let elapsed = 0;
+    let pausedAt = 0;
+    let totalDuration = 0;
+    let currentRound = 1;
+    let lastWarnSec = -1;
+
+    let splits = [];
+    let lastSplitTime = 0;
+    let amrapRounds = 0;
+    let currentIntervalIdx = 0;
+
+    let setsState = 'work';
+    let setsCurrentSet = 1;
+    let setsSetStart = 0;
+    let setsRestStart = 0;
+    let setsTargetRestMs = 0;
+    let setsTimeOffset = 0;
+
+    let lastExecutedCommandTimestamp = Date.now();
+
+    timerRef.on("value", (snapshot) => {
+      const data = snapshot.val();
+      if (!data || !data.command || (data.timestamp && data.timestamp <= lastExecutedCommandTimestamp)) return;
+      lastExecutedCommandTimestamp = data.timestamp;
+
+      const cmd = data.command;
+
+      if (cmd === "CONFIG_AND_START") {
+        currentMode = data.mode ? data.mode.toLowerCase().replace(' ', '') : 'fortime';
+        workoutConfig = data.config || {};
+        startCountdown();
+      } else if (cmd === "START") {
+        if (isPaused) resumeTimer();
+      } else if (cmd === "PAUSE") {
+        if (isRunning && !isPaused) pauseTimer();
+      } else if (cmd === "RESET") {
+        resetToStandby();
+      } else if (cmd === "CONTEXT_ACTION") {
+        handleContextAction();
+      }
+    });
+
+    function broadcastState(timeStr, running, modeStr) {
+      timerRef.update({
+        timeFormatted: timeStr,
+        isRunning: running,
+        mode: modeStr
+      }).catch(() => {});
+    }
+
+    function startCountdown() {
+      getAudio();
+      requestWakeLock();
+      clearInterval(timerInterval);
+      isPaused = false;
+      let count = currentSettings.countdown ?? 3;
+
+      if (count <= 0) {
+        goBeep();
+        initAndLaunchWorkout();
+        return;
+      }
+
+      const overlay = document.getElementById('countdownOverlay');
+      const numEl = document.getElementById('countdownNum');
+      overlay.style.display = 'flex';
+      numEl.textContent = count;
+      beep(880, 0.12, 0.35);
+
+      const cd = setInterval(() => {
+        count--;
+        if (count <= 0) {
+          clearInterval(cd);
+          overlay.style.display = 'none';
+          goBeep();
+          initAndLaunchWorkout();
+        } else {
+          numEl.textContent = count;
+          beep(880, 0.12, 0.35);
+        }
+      }, 1000);
+    }
+
+    function initAndLaunchWorkout() {
+      isRunning = true;
+      isPaused = false;
+      elapsed = 0;
+      startTime = Date.now();
+      lastWarnSec = -1;
+      splits = [];
+      lastSplitTime = 0;
+      amrapRounds = 0;
+      currentRound = 1;
+      currentIntervalIdx = 0;
+
+      document.getElementById('displayLaps').innerHTML = '';
+      document.getElementById('displayPhase').style.display = 'block';
+
+      const cfg = workoutConfig;
+      const modeLabel = document.getElementById('displayMode');
+      const roundInfo = document.getElementById('displayRound');
+      const phase = document.getElementById('displayPhase');
+      const disp = document.getElementById('displayDigits');
+      const sub = document.getElementById('displaySub');
+
+      if (currentMode === 'amrap') {
+        totalDuration = (cfg.mins || 10) * 60 * 1000;
+        modeLabel.textContent = 'AMRAP';
+        phase.textContent = 'AMRAP';
+        phase.style.background = 'var(--accent)';
+        phase.style.color = '#000';
+        roundInfo.textContent = 'ROUND 0';
+        disp.textContent = fmtSecs((cfg.mins || 10) * 60);
+        sub.textContent = 'RUNNING';
+      } else if (currentMode === 'emom') {
+        const ivMs = cfg.intervalMs || 60000;
+        const totalRds = cfg.rounds || Math.floor(((cfg.mins || 10) * 60 * 1000) / ivMs);
+        totalDuration = totalRds * ivMs;
+        modeLabel.textContent = 'EMOM';
+        phase.textContent = 'EMOM';
+        phase.style.background = 'var(--accent3)';
+        phase.style.color = '#000';
+        roundInfo.textContent = `1 / ${totalRds}`;
+        disp.textContent = fmtSecs(Math.ceil(ivMs / 1000));
+        sub.textContent = 'RUNNING';
+      } else if (currentMode === 'fortime') {
+        totalDuration = (cfg.cap > 0) ? cfg.cap * 60 * 1000 : 0;
+        modeLabel.textContent = 'FOR TIME';
+        phase.textContent = 'FOR TIME';
+        phase.style.background = 'var(--accent2)';
+        phase.style.color = '#fff';
+        roundInfo.textContent = cfg.cap ? `CAP ${cfg.cap}M` : 'NO CAP';
+        disp.textContent = "00:00";
+        sub.textContent = 'RUNNING';
+      } else if (currentMode === 'tabata') {
+        const cycle = ((cfg.workSec || 20) + (cfg.tabRestSec || 10)) * 1000;
+        totalDuration = (cfg.rounds || 8) * cycle;
+        modeLabel.textContent = 'TABATA';
+        phase.textContent = 'WORK';
+        phase.style.background = 'var(--accent)';
+        phase.style.color = '#000';
+        roundInfo.textContent = `1 / ${cfg.rounds || 8}`;
+        disp.textContent = fmtSecs(cfg.workSec || 20);
+        sub.textContent = 'RUNNING';
+      } else if (currentMode === 'custom') {
+        const rawList = cfg.intervals || [];
+        const intervals = Array.isArray(rawList) ? rawList : Object.values(rawList);
+        workoutConfig.intervals = intervals;
+        const singleLoop = intervals.reduce((s, iv) => s + (parseInt(iv.duration) || 0), 0);
+        totalDuration = singleLoop * (parseInt(cfg.loops) || 1);
+        modeLabel.textContent = 'CUSTOM';
+        roundInfo.textContent = `LOOP 1 / ${cfg.loops || 1}`;
+        if (intervals.length > 0) {
+          phase.textContent = intervals[0].name;
+          phase.style.background = intervals[0].color || 'var(--accent)';
+          phase.style.color = '#000';
+          disp.textContent = fmtSecs(Math.ceil((parseInt(intervals[0].duration) || 0) / 1000));
+          const nextIdx = (1) % intervals.length;
+          sub.textContent = `NEXT: ${intervals[nextIdx].name} (${fmtMs(intervals[nextIdx].duration)})`;
+        }
+      } else if (currentMode === 'sets') {
+        setsState = 'work';
+        setsCurrentSet = 1;
+        setsSetStart = Date.now();
+        setsTimeOffset = 0;
+        modeLabel.textContent = 'SETS';
+        phase.textContent = 'SET 1';
+        phase.style.background = 'var(--success)';
+        phase.style.color = '#000';
+        roundInfo.textContent = `SET 1 / ${cfg.sets || 5}`;
+        disp.textContent = "00:00";
+        sub.textContent = 'RUNNING';
+      }
+
+      timerInterval = setInterval(tick, 100);
+      broadcastState(disp.textContent, true, currentMode.toUpperCase());
+    }
+
+    function tick() {
+      if (isPaused) return;
+      const now = Date.now();
+      elapsed = now - startTime;
+      let formatted = "00:00";
+
+      if (currentMode === 'amrap') {
+        const remain = totalDuration - elapsed;
+        if (remain <= 0) { finishWorkout(); return; }
+        const s = Math.ceil(remain / 1000);
+        formatted = fmtSecs(s);
+        document.getElementById('displayDigits').textContent = formatted;
+        checkWarn(s);
+        document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
+      } else if (currentMode === 'emom') {
+        if (elapsed >= totalDuration) { finishWorkout(); return; }
+        const ivMs = workoutConfig.intervalMs || 60000;
+        const round = Math.floor(elapsed / ivMs) + 1;
+        const totalRds = workoutConfig.rounds || Math.floor(totalDuration / ivMs);
+        if (round !== currentRound) {
+          currentRound = round;
+          goBeep(); flashBeep();
+          document.getElementById('displayRound').textContent = `${round} / ${totalRds}`;
+        }
+        const remain = ivMs - (elapsed % ivMs);
+        const s = Math.ceil(remain / 1000);
+        formatted = fmtSecs(s);
+        document.getElementById('displayDigits').textContent = formatted;
+        checkWarn(s);
+        document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
+      } else if (currentMode === 'fortime') {
+        if (workoutConfig.cap > 0 && elapsed >= totalDuration) {
+          document.getElementById('displayDigits').textContent = fmtMs(totalDuration);
+          finishWorkout();
+          return;
+        }
+        formatted = fmtMs(elapsed);
+        document.getElementById('displayDigits').textContent = formatted;
+        if (workoutConfig.cap > 0) {
+          const s = Math.ceil((totalDuration - elapsed) / 1000);
+          checkWarn(s);
+          document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
+        }
+      } else if (currentMode === 'tabata') {
+        const wMs = (workoutConfig.workSec || 20) * 1000;
+        const rMs = (workoutConfig.tabRestSec || 10) * 1000;
+        const cycle = wMs + rMs;
+        const round = Math.floor(elapsed / cycle) + 1;
+        if (round > (workoutConfig.rounds || 8)) { finishWorkout(); return; }
+
+        const isWork = (elapsed % cycle) < wMs;
+        const phase = document.getElementById('displayPhase');
+        phase.textContent = isWork ? 'WORK' : 'REST';
+        phase.style.background = isWork ? 'var(--accent)' : 'var(--accent3)';
+        phase.style.color = '#000';
+        const remain = isWork ? wMs - (elapsed % cycle) : cycle - (elapsed % cycle);
+        const s = Math.ceil(remain / 1000);
+        formatted = fmtSecs(s);
+        document.getElementById('displayDigits').textContent = formatted;
+        checkWarn(s);
+        document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
+      } else if (currentMode === 'custom') {
+        const intervals = workoutConfig.intervals || [];
+        if (!intervals.length) { finishWorkout(); return; }
+
+        const totalLoop = intervals.reduce((s, iv) => s + (parseInt(iv.duration) || 0), 0);
+        const loopIdx = Math.floor(elapsed / totalLoop);
+        if (loopIdx >= (parseInt(workoutConfig.loops) || 1)) { finishWorkout(); return; }
+
+        const loopElapsed = elapsed % totalLoop;
+        let acc = 0, ivIdx = 0;
+        for (let i = 0; i < intervals.length; i++) {
+          const dur = parseInt(intervals[i].duration) || 0;
+          if (loopElapsed < acc + dur) { ivIdx = i; break; }
+          acc += dur;
+        }
+
+        if (ivIdx !== currentIntervalIdx) {
+          currentIntervalIdx = ivIdx;
+          goBeep(); flashBeep();
+          const phase = document.getElementById('displayPhase');
+          phase.textContent = intervals[ivIdx].name;
+          phase.style.background = intervals[ivIdx].color || 'var(--accent)';
+          phase.style.color = '#000';
+          const nextIdx = (ivIdx + 1) % intervals.length;
+          document.getElementById('displaySub').textContent = `NEXT: ${intervals[nextIdx].name} (${fmtMs(intervals[nextIdx].duration)})`;
+        }
+
+        const remain = (parseInt(intervals[ivIdx].duration) || 0) - (loopElapsed - acc);
+        const s = Math.ceil(remain / 1000);
+        document.getElementById('displayRound').textContent = `LOOP ${loopIdx + 1} / ${workoutConfig.loops || 1}`;
+        formatted = fmtSecs(s);
+        document.getElementById('displayDigits').textContent = formatted;
+        checkWarn(s);
+        document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
+      } else if (currentMode === 'sets') {
+        if (setsState === 'work') {
+          const curElapsed = now - setsSetStart - setsTimeOffset;
+          formatted = fmtMs(curElapsed);
+          document.getElementById('displayDigits').textContent = formatted;
+        } else {
+          const restElapsed = now - setsRestStart - setsTimeOffset;
+          const remaining = setsTargetRestMs - restElapsed;
+          if (remaining <= 0) {
+            advanceSetsWork();
+            return;
+          }
+          const s = Math.ceil(remaining / 1000);
+          formatted = fmtSecs(s);
+          document.getElementById('displayDigits').textContent = formatted;
+          checkWarn(s);
+        }
+      }
+
+      broadcastState(formatted, true, currentMode.toUpperCase());
+    }
+
+    function checkWarn(s) {
+      const warnThreshold = currentSettings.warnAt ?? 10;
+      const disp = document.getElementById('displayDigits');
+      disp.classList.toggle('warning', s <= warnThreshold && s > 3);
+      disp.classList.toggle('critical', s <= 3 && s >= 1);
+
+      if (s <= warnThreshold && s >= 1 && s !== lastWarnSec) {
+        lastWarnSec = s;
+        snapBeep();
+        flashBeep();
+      } else if (s > warnThreshold || s <= 0) {
+        lastWarnSec = -1;
+      }
+    }
+
+    function handleContextAction() {
+      if (currentMode === 'fortime') {
+        const splitDur = elapsed - lastSplitTime;
+        lastSplitTime = elapsed;
+        splits.push(splitDur);
+        snapBeep();
+        addLapTag(`S${splits.length}: ${fmtMs(splitDur)}`);
+      } else if (currentMode === 'amrap') {
+        amrapRounds++;
+        snapBeep();
+        document.getElementById('displayRound').textContent = `ROUND ${amrapRounds}`;
+      } else if (currentMode === 'sets') {
+        if (setsState === 'work') {
+          const workTime = Date.now() - setsSetStart - setsTimeOffset;
+          addLapTag(`Set ${setsCurrentSet}: ${fmtMs(workTime)}`);
+          snapBeep(); flashBeep();
+
+          if (setsCurrentSet >= (workoutConfig.sets || 5)) {
+            finishWorkout();
+            return;
+          }
+
+          if (workoutConfig.restType === 'none') {
+            setsCurrentSet++;
+            setsSetStart = Date.now();
+            setsTimeOffset = 0;
+            document.getElementById('displayRound').textContent = `SET ${setsCurrentSet} / ${workoutConfig.sets || 5}`;
+          } else {
+            setsTargetRestMs = (workoutConfig.restType === '1to1') ? workTime : ((workoutConfig.restMin || 2) * 60 + (workoutConfig.restSec || 0)) * 1000;
+            setsState = 'rest';
+            setsRestStart = Date.now();
+            setsTimeOffset = 0;
+            setsCurrentSet++;
+            const phase = document.getElementById('displayPhase');
+            phase.textContent = 'REST';
+            phase.style.background = 'var(--accent3)';
+            phase.style.color = '#000';
+          }
+        } else {
+          advanceSetsWork();
+        }
+      }
+    }
+
+    function advanceSetsWork() {
+      setsState = 'work';
+      setsSetStart = Date.now();
+      setsTimeOffset = 0;
+      goBeep();
+      const phase = document.getElementById('displayPhase');
+      phase.textContent = `SET ${setsCurrentSet}`;
+      phase.style.background = 'var(--success)';
+      phase.style.color = '#000';
+      document.getElementById('displayRound').textContent = `SET ${setsCurrentSet} / ${workoutConfig.sets || 5}`;
+    }
+
+    function addLapTag(text) {
+      const container = document.getElementById('displayLaps');
+      const tag = document.createElement('div');
+      tag.className = 'lap-tag';
+      tag.textContent = text;
+      container.prepend(tag);
+    }
+
+    function pauseTimer() {
+      isPaused = true;
+      pausedAt = Date.now();
+      document.getElementById('displaySub').textContent = "PAUSED";
+      broadcastState(document.getElementById('displayDigits').textContent, false, currentMode.toUpperCase());
+    }
+
+    function resumeTimer() {
+      isPaused = false;
+      const diff = Date.now() - pausedAt;
+      startTime += diff;
+      if (currentMode === 'sets') setsTimeOffset += diff;
+      document.getElementById('displaySub').textContent = "RUNNING";
+      broadcastState(document.getElementById('displayDigits').textContent, true, currentMode.toUpperCase());
+    }
+
+    function resetToStandby() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      isPaused = false;
+      stopBeep();
+      document.getElementById('displayMode').textContent = "READY";
+      document.getElementById('displayRound').textContent = "--";
+      document.getElementById('displayPhase').style.display = 'none';
+      document.getElementById('displayDigits').textContent = "00:00";
+      document.getElementById('displayDigits').className = "timer-digits";
+      document.getElementById('displaySub').textContent = "WAITING FOR REMOTE";
+      document.getElementById('displayLaps').innerHTML = "";
+      document.getElementById('progressFill').style.width = "0%";
+      broadcastState("00:00", false, "READY");
+    }
+
+    function finishWorkout() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      goBeep();
+      broadcastState("00:00", false, currentMode.toUpperCase());
+      const banner = document.getElementById('finishBanner');
+      banner.classList.add('active');
+      setTimeout(() => {
+        banner.classList.remove('active');
+        document.getElementById('displaySub').textContent = "COMPLETED";
+      }, 2000);
+    }
+
+    function fmtSecs(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    }
+
+    function fmtMs(ms) {
+      return fmtSecs(Math.floor(ms / 1000));
+    }
   </script>
 </body>
 </html>
