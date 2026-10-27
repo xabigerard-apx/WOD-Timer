@@ -311,7 +311,7 @@
     }
   </style>
 </head>
-<body>
+<body onclick="initAudioUserGesture()">
 
   <div class="beep-overlay" id="beepOverlay"></div>
 
@@ -423,9 +423,10 @@
     }
 
     // Déverrouillage automatique au premier contact ou événement global
-    ['click', 'touchstart', 'keydown'].forEach(evt => {
-      window.addEventListener(evt, () => { getAudio(); requestWakeLock(); }, { once: true });
-    });
+function initAudioUserGesture() {
+      getAudio();
+      requestWakeLock();
+    }
 
     function beep(freq = 880, dur = 0.1, vol = 0.5) {
       try {
