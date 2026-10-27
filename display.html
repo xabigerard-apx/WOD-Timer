@@ -309,6 +309,30 @@
       letter-spacing: 8px;
       text-shadow: 0 0 50px rgba(232, 255, 0, 0.4);
     }
+
+    /* DIVISION D'ÉCRAN MODE PROMO */
+    #standbyScreen.split-mode {
+      flex-direction: row;
+      justify-content: space-evenly;
+      padding: 0 4vw;
+      gap: 4vw;
+    }
+    .standby-banner-wrap {
+      display: none;
+      width: 48vw;
+      height: 86vh;
+      align-items: center;
+      justify-content: center;
+    }
+    .standby-banner-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 18px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
   </style>
 </head>
 <body onclick="initAudioUserGesture()">
@@ -327,6 +351,7 @@
   </div>
 
   <!-- ÉCRAN STANDBY : HORLOGE APX -->
+<!-- ÉCRAN STANDBY : HORLOGE APX + PROMO -->
   <div id="standbyScreen">
     <div class="standby-content">
       <div class="apx-hero-logo">
@@ -341,6 +366,10 @@
         <span class="clock-seconds" id="clockSecs">00</span>
       </div>
       <div class="clock-date" id="clockDate">APX WOD TIMER</div>
+    </div>
+
+    <div class="standby-banner-wrap" id="standbyBannerWrap">
+      <img id="standbyBannerImg" class="standby-banner-img" src="" alt="Affiche Promo">
     </div>
   </div>
 
@@ -383,6 +412,22 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const timerRef = db.ref("timer_state");
+    const promoRef = db.ref("promo_banner");
+    promoRef.on("value", (snap) => {
+      const imgData = snap.val();
+      const wrap = document.getElementById("standbyBannerWrap");
+      const imgEl = document.getElementById("standbyBannerImg");
+      const screen = document.getElementById("standbyScreen");
+
+      if (imgData) {
+        imgEl.src = imgData;
+        wrap.style.display = "flex";
+        screen.classList.add("split-mode");
+      } else {
+        wrap.style.display = "none";
+        screen.classList.remove("split-mode");
+      }
+    });
 
     // --- HORLOGE TEMPS RÉEL APX ---
     function updateClock() {
