@@ -1962,6 +1962,7 @@ function completeSet() {
     snapBeep(); flashBeep();
     renderSetsLaps();
 
+    // Si on vient de terminer le DERNIER set prévu
     if (setsCurrentSet >= setsConfig.sets) {
       clearInterval(setsInterval);
       releaseWakeLock();
@@ -1970,6 +1971,7 @@ function completeSet() {
       return;
     }
 
+    // S'il reste des sets à faire :
     if (setsConfig.restType === 'none') {
       setsCurrentSet++;
       setsSetStart = Date.now();
@@ -2055,7 +2057,8 @@ function stopSets() {
 }
 
 function showSetsSummary(stopped = false) {
-  if (setsState === 'work') {
+// On n'enregistre un set partiel que si l'utilisateur a appuyé sur STOP en plein milieu
+  if (stopped && setsState === 'work') {
     const curTime = Date.now() - setsSetStart - setsTimeOffset;
     if (curTime > 2000) {
       setsLaps.push({ type: 'set', num: setsCurrentSet, time: curTime });
