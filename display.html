@@ -42,8 +42,99 @@
       overflow: hidden;
     }
 
-    #display-container {
+    /* --- ÉCRAN STANDBY / HORLOGE APX (OUVERTURE PAR DÉFAUT) --- */
+    #standbyScreen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .standby-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+    }
+
+    .apx-hero-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .apx-logo-img {
+      max-width: min(42vw, 380px);
+      max-height: 28vh;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 30px rgba(140, 82, 255, 0.35));
+    }
+
+    .apx-logo-fallback {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(90px, 18vw, 190px);
+      letter-spacing: 12px;
+      line-height: 0.9;
+      color: #fff;
+      text-shadow: 0 0 40px rgba(140, 82, 255, 0.5);
+    }
+
+    .apx-tagline {
+      font-family: 'DM Mono', monospace;
+      font-size: clamp(12px, 1.4vw, 18px);
+      letter-spacing: 6px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+
+    .standby-divider {
+      width: 60px;
+      height: 2px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 1px;
+      margin: 8px 0;
+    }
+
+    .clock-zone {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .clock-digits {
+      font-family: 'DM Mono', monospace;
+      font-size: clamp(32px, 4.5vw, 56px);
+      font-weight: 500;
+      letter-spacing: 3px;
+      color: #e0e0e0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .clock-seconds {
+      font-family: 'DM Mono', monospace;
+      font-size: clamp(16px, 2vw, 24px);
+      color: var(--accent);
+      letter-spacing: 2px;
+    }
+
+    .clock-date {
+      font-family: 'DM Mono', monospace;
+      font-size: clamp(11px, 1.1vw, 15px);
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* --- ÉCRAN DU WORKOUT --- */
+    #display-container {
+      display: none;
       flex-direction: column;
       justify-content: space-between;
       width: 100vw;
@@ -76,7 +167,6 @@
       line-height: 1;
     }
 
-    /* PASTILLE GÉANTE POUR LE FLOOR */
     .pill-zone {
       display: flex;
       justify-content: center;
@@ -131,7 +221,6 @@
       margin-top: 14px;
     }
 
-    /* FOOTER & PROGRESS BAR VISIBLE */
     .footer-zone {
       width: 100%;
       display: flex;
@@ -172,6 +261,7 @@
       color: #fff;
     }
 
+    /* OVERLAYS */
     .countdown-overlay {
       position: fixed;
       inset: 0;
@@ -201,10 +291,11 @@
     }
     .beep-overlay.flash { opacity: 1; }
 
+    /* BANNIÈRE TIME! (3 MINUTES) */
     .finish-banner {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.92);
+      background: rgba(0,0,0,0.95);
       display: none;
       align-items: center;
       justify-content: center;
@@ -213,25 +304,48 @@
     .finish-banner.active { display: flex; }
     .finish-text {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(90px, 22vw, 220px);
+      font-size: clamp(100px, 24vw, 240px);
       color: var(--accent);
-      letter-spacing: 6px;
+      letter-spacing: 8px;
+      text-shadow: 0 0 50px rgba(232, 255, 0, 0.4);
     }
   </style>
 </head>
-<body onclick="initAudioUserGesture()">
+<body>
 
   <div class="beep-overlay" id="beepOverlay"></div>
 
+  <!-- COUNTDOWN -->
   <div class="countdown-overlay" id="countdownOverlay">
     <div class="countdown-num" id="countdownNum">3</div>
     <div style="font-family:'DM Mono',monospace; letter-spacing:4px; color:var(--muted); font-size:16px;">GET READY</div>
   </div>
 
+  <!-- BANNIÈRE TIME! -->
   <div class="finish-banner" id="finishBanner">
     <div class="finish-text">TIME!</div>
   </div>
 
+  <!-- ÉCRAN STANDBY : HORLOGE APX -->
+  <div id="standbyScreen">
+    <div class="standby-content">
+      <div class="apx-hero-logo">
+        <img src="logo.png" alt="APX" class="apx-logo-img" onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='block';">
+        <div id="logoFallback" class="apx-logo-fallback" style="display:none;">APX</div>
+        <div class="apx-tagline">Centre Fonctionnel</div>
+      </div>
+
+      <div class="standby-divider"></div>
+
+      <div class="clock-zone">
+        <span class="clock-digits" id="clockDigits">00:00</span>
+        <span class="clock-seconds" id="clockSecs">00</span>
+      </div>
+      <div class="clock-date" id="clockDate">APX WOD TIMER</div>
+    </div>
+  </div>
+
+  <!-- ÉCRAN PRINCIPAL WORKOUT -->
   <div id="display-container">
     <div class="display-header">
       <div class="mode-label" id="displayMode">READY</div>
@@ -239,12 +353,12 @@
     </div>
 
     <div class="pill-zone">
-      <div class="pill-badge" id="displayPhase" style="display:none">WORK</div>
+      <div class="pill-badge" id="displayPhase">WORK</div>
     </div>
 
     <div class="digits-zone">
       <div class="timer-digits" id="displayDigits">00:00</div>
-      <div class="status-sub" id="displaySub">TAP SCREEN TO ACTIVATE AUDIO</div>
+      <div class="status-sub" id="displaySub">RUNNING</div>
     </div>
 
     <div class="footer-zone">
@@ -256,6 +370,7 @@
   </div>
 
   <script>
+    // --- FIREBASE REALTIME DATABASE ---
     const firebaseConfig = {
       apiKey: "AIzaSyC6e1z1cYuq5q9IPGqp1ZLMcv-n0B1ttDo",
       authDomain: "apx-wod-timer.firebaseapp.com",
@@ -269,46 +384,52 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const timerRef = db.ref("timer_state");
-    const settingsRef = db.ref("timer_settings");
 
-    let currentSettings = {
-      countdown: 3,
-      volume: 0.7,
-      beep: true,
-      flash: true,
-      warnAt: 10
-    };
-
-    settingsRef.on("value", (snap) => {
-      const data = snap.val();
-      if (data) {
-        currentSettings = { ...currentSettings, ...data };
+    // --- HORLOGE TEMPS RÉEL APX ---
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      
+      const digits = document.getElementById('clockDigits');
+      const secs = document.getElementById('clockSecs');
+      const dateEl = document.getElementById('clockDate');
+      
+      if (digits) digits.textContent = `${h}:${m}`;
+      if (secs) secs.textContent = s;
+      if (dateEl) {
+        const options = { weekday: 'long', month: 'long', day: 'numeric' };
+        dateEl.textContent = now.toLocaleDateString('en-US', options).toUpperCase();
       }
-    });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
 
+    // --- AUDIO SYSTEM (PRÊT AUTOMATIQUEMENT) ---
     let audioCtx = null;
     function getAudio() {
-      if (!audioCtx) {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (AC) audioCtx = new AC();
+      try {
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        return audioCtx;
+      } catch(e) {
+        return null;
       }
-      if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-      return audioCtx;
     }
 
-    function initAudioUserGesture() {
-      getAudio();
-      requestWakeLock();
-      if (!isRunning) {
-        document.getElementById('displaySub').textContent = "AUDIO READY · WAITING FOR REMOTE";
-      }
-    }
+    // Déverrouillage automatique au premier contact ou événement global
+    ['click', 'touchstart', 'keydown'].forEach(evt => {
+      window.addEventListener(evt, () => { getAudio(); requestWakeLock(); }, { once: true });
+    });
 
     function beep(freq = 880, dur = 0.1, vol = 0.5) {
       try {
-        if (!currentSettings.beep) return;
         const ctx = getAudio();
         if (!ctx) return;
         const osc = ctx.createOscillator();
@@ -317,7 +438,7 @@
         gain.connect(ctx.destination);
         osc.frequency.value = freq;
         osc.type = 'square';
-        gain.gain.setValueAtTime(vol * (currentSettings.volume ?? 0.7), ctx.currentTime);
+        gain.gain.setValueAtTime(vol * 0.7, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + dur);
@@ -334,7 +455,6 @@
       setTimeout(() => beep(200, 0.25, 0.9), 120);
     }
     function flashBeep() {
-      if (!currentSettings.flash) return;
       const el = document.getElementById('beepOverlay');
       if (el) {
         el.classList.add('flash');
@@ -342,6 +462,7 @@
       }
     }
 
+    // --- SCREEN WAKE LOCK ---
     let wakeLock = null;
     async function requestWakeLock() {
       try {
@@ -351,6 +472,7 @@
       } catch(e) {}
     }
 
+    // --- ÉTATS DU WORKOUT ---
     let currentMode = 'fortime';
     let workoutConfig = {};
     let timerInterval = null;
@@ -362,6 +484,7 @@
     let totalDuration = 0;
     let currentRound = 1;
     let lastWarnSec = -1;
+    let warnThreshold = 10;
 
     let splits = [];
     let lastSplitTime = 0;
@@ -375,8 +498,10 @@
     let setsTargetRestMs = 0;
     let setsTimeOffset = 0;
 
+    let finishBannerTimeout = null;
     let lastExecutedCommandTimestamp = Date.now();
 
+    // --- ÉCOUTEUR FIREBASE ---
     timerRef.on("value", (snapshot) => {
       const data = snapshot.val();
       if (!data || !data.command || (data.timestamp && data.timestamp <= lastExecutedCommandTimestamp)) return;
@@ -407,18 +532,27 @@
       }).catch(() => {});
     }
 
+    function showStandbyClock() {
+      document.getElementById('standbyScreen').style.display = 'flex';
+      document.getElementById('display-container').style.display = 'none';
+      document.getElementById('finishBanner').classList.remove('active');
+    }
+
+    function hideStandbyClock() {
+      document.getElementById('standbyScreen').style.display = 'none';
+      document.getElementById('display-container').style.display = 'flex';
+    }
+
     function startCountdown() {
       getAudio();
       requestWakeLock();
+      if (finishBannerTimeout) clearTimeout(finishBannerTimeout);
       clearInterval(timerInterval);
       isPaused = false;
-      let count = currentSettings.countdown ?? 3;
+      let count = 3;
 
-      if (count <= 0) {
-        goBeep();
-        initAndLaunchWorkout();
-        return;
-      }
+      document.getElementById('finishBanner').classList.remove('active');
+      hideStandbyClock();
 
       const overlay = document.getElementById('countdownOverlay');
       const numEl = document.getElementById('countdownNum');
@@ -453,7 +587,6 @@
       currentIntervalIdx = 0;
 
       document.getElementById('displayLaps').innerHTML = '';
-      document.getElementById('displayPhase').style.display = 'block';
 
       const cfg = workoutConfig;
       const modeLabel = document.getElementById('displayMode');
@@ -653,7 +786,6 @@
     }
 
     function checkWarn(s) {
-      const warnThreshold = currentSettings.warnAt ?? 10;
       const disp = document.getElementById('displayDigits');
       disp.classList.toggle('warning', s <= warnThreshold && s > 3);
       disp.classList.toggle('critical', s <= 3 && s >= 1);
@@ -748,32 +880,36 @@
     }
 
     function resetToStandby() {
+      if (finishBannerTimeout) clearTimeout(finishBannerTimeout);
       clearInterval(timerInterval);
       isRunning = false;
       isPaused = false;
       stopBeep();
-      document.getElementById('displayMode').textContent = "READY";
-      document.getElementById('displayRound').textContent = "--";
-      document.getElementById('displayPhase').style.display = 'none';
-      document.getElementById('displayDigits').textContent = "00:00";
       document.getElementById('displayDigits').className = "timer-digits";
-      document.getElementById('displaySub').textContent = "WAITING FOR REMOTE";
       document.getElementById('displayLaps').innerHTML = "";
       document.getElementById('progressFill').style.width = "0%";
+      showStandbyClock();
       broadcastState("00:00", false, "READY");
     }
 
+    // --- FIN DE WORKOUT (TIME! PENDANT 3 MINUTES -> RETOUR HORLOGE APX) ---
     function finishWorkout() {
       clearInterval(timerInterval);
       isRunning = false;
       goBeep();
       broadcastState("00:00", false, currentMode.toUpperCase());
+
+      // Affichage direct de l'écran TIME!
       const banner = document.getElementById('finishBanner');
       banner.classList.add('active');
-      setTimeout(() => {
+
+      if (finishBannerTimeout) clearTimeout(finishBannerTimeout);
+      
+      // 3 minutes = 180 000 ms
+      finishBannerTimeout = setTimeout(() => {
         banner.classList.remove('active');
-        document.getElementById('displaySub').textContent = "COMPLETED";
-      }, 2000);
+        showStandbyClock();
+      }, 180000);
     }
 
     function fmtSecs(s) {
@@ -785,6 +921,10 @@
     function fmtMs(ms) {
       return fmtSecs(Math.floor(ms / 1000));
     }
+
+    // Démarrage initial automatique
+    showStandbyClock();
+    getAudio();
   </script>
 </body>
 </html>
