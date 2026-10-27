@@ -606,6 +606,11 @@
       </div>
 
       <button class="btn-launch" style="width:100%; margin-top:10px; background:var(--accent-purple); color:#fff;" onclick="saveAndSyncSettings()">SAVE & SYNC TO TV</button>
+      <div class="standby-divider" style="margin: 16px 0; border-top: 1px solid var(--border);"></div>
+      <label class="field-label">AFFICHE PROMO / HORLOGE TV</label>
+      <input type="file" id="promoFileInput" accept="image/*" style="display:none;" onchange="handlePromoUpload(this)">
+      <button class="btn-launch" type="button" style="width:100%; background:var(--accent-purple); color:#fff; margin-bottom:8px;" onclick="document.getElementById('promoFileInput').click()">📸 CHOISIR UNE AFFICHE</button>
+      <button class="btn-stop" type="button" style="width:100%; margin-bottom:14px;" onclick="removePromoBanner()">🗑️ ENLEVER L'AFFICHE ACTUELLE</button>
     </div>
   </div>
 
@@ -1180,6 +1185,45 @@
 
     // Init
     renderForm();
+    
+    const promoRef = db.ref("promo_banner");
+
+    function handlePromoUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          // Compression automatique pour envoi rapide
+          const canvas = document.createElement("canvas");
+          const maxDim = 1200;
+          let w = img.width, h = img.height;
+          if (w > h && w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
+          else if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          const compressedBase64 = canvas.toDataURL("image/jpeg", 0.75);
+
+          promoRef.set(compressedBase64).then(() => {
+            alert("Affiche envoyée sur la TV !");
+          });
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removePromoBanner() {
+      if (confirm("Supprimer l'affiche promo de la TV ?")) {
+        promoRef.remove().then(() => {
+          alert("Affiche retirée. L'horloge revient au centre.");
+        });
+      }
+    }
   </script>
 </body>
 </html>
