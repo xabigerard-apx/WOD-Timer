@@ -412,6 +412,16 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const timerRef = db.ref("timer_state");
+    const settingsRef = db.ref("timer_settings");
+let countdownDuration = 3;
+
+settingsRef.on("value", (snap) => {
+  const s = snap.val();
+  if (s) {
+    if (s.countdown !== undefined) countdownDuration = parseInt(s.countdown);
+    if (s.warnAt !== undefined) warnThreshold = parseInt(s.warnAt);
+  }
+});
     const promoRef = db.ref("promo_banner");
     promoRef.on("value", (snap) => {
       const imgData = snap.val();
@@ -594,7 +604,7 @@ function initAudioUserGesture() {
       if (finishBannerTimeout) clearTimeout(finishBannerTimeout);
       clearInterval(timerInterval);
       isPaused = false;
-      let count = 3;
+      let count = countdownDuration;
 
       document.getElementById('finishBanner').classList.remove('active');
       hideStandbyClock();
