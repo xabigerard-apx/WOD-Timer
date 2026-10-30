@@ -413,7 +413,7 @@
     const db = firebase.database();
     const timerRef = db.ref("timer_state");
     const settingsRef = db.ref("timer_settings");
-let countdownDuration = 3;
+let countdownDuration = 10;
 
 settingsRef.on("value", (snap) => {
   const s = snap.val();
