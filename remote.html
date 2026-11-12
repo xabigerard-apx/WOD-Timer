@@ -562,6 +562,49 @@
       background: var(--accent-purple); cursor: pointer;
     }
 
+/* Miniatures Affiches Promo */
+    .promo-thumbs-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .promo-thumb-item {
+      position: relative;
+      width: 62px;
+      height: 62px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+    .promo-thumb-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .promo-thumb-del {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.92);
+      color: #fff;
+      border: none;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+
     /* LIVE REMOTE VIEW */
     #view-live {
       display: none;
@@ -761,10 +804,23 @@
 
       <button class="btn-launch" style="width:100%; margin-top:8px; background:var(--accent-purple); color:#fff;" onclick="saveAndSyncSettings()">SAVE & SYNC TO TV</button>
       <div class="standby-divider" style="margin: 12px 0; border-top: 1px solid var(--border);"></div>
-      <label class="field-label">AFFICHE PROMO / HORLOGE TV</label>
-      <input type="file" id="promoFileInput" accept="image/*" style="display:none;" onchange="handlePromoUpload(this)">
-      <button class="btn-launch" type="button" style="width:100%; background:var(--accent-purple); color:#fff; margin-bottom:8px;" onclick="document.getElementById('promoFileInput').click()">📸 CHOISIR UNE AFFICHE</button>
-      <button class="btn-stop" type="button" style="width:100%;" onclick="removePromoBanner()">🗑️ ENLEVER L'AFFICHE ACTUELLE</button>
+      <label class="field-label">AFFICHES PROMO / HORLOGE TV</label>
+      <div id="promoThumbsGrid" class="promo-thumbs-grid" style="display:none;"></div>
+
+      <div id="promoIntervalBox" style="display:none; margin-bottom:8px;">
+        <label class="field-label">Durée par affiche</label>
+        <div class="stepper" style="margin-bottom:0;">
+          <button class="step-btn" type="button" onclick="adjPromoInterval(-1)">−</button>
+          <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-promoInterval" value="10" onfocus="this.select()" oninput="manualSetPromoInterval(this.value)">
+          <span class="step-unit">SEC</span>
+          <button class="step-btn" type="button" onclick="adjPromoInterval(1)">+</button>
+        </div>
+      </div>
+
+      <input type="file" id="promoFileInput" accept="image/*" multiple style="display:none;" onchange="handlePromoUpload(this)">
+      <button class="btn-launch" type="button" style="width:100%; background:var(--accent-purple); color:#fff; margin-bottom:8px;" onclick="document.getElementById('promoFileInput').click()">📸 AJOUTER UNE OU PLUSIEURS AFFICHES</button>
+      <button class="btn-stop" id="btnRemoveAllPromo" type="button" style="width:100%; display:none;" onclick="removePromoBanner()">🗑️ TOUT ENLEVER</button>
+      
     </div>
   </div>
 
@@ -1590,43 +1646,125 @@
     // Init
     renderForm();
     
-    const promoRef = db.ref(prefix + "promo_banner");
+const promoRef = db.ref(prefix + "promo_banner");
+    let promoData = { images: [], interval: 10 };
 
-    function handlePromoUpload(input) {
-      if (!canControlTV()) return;
-      const file = input.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          // Compression automatique pour envoi rapide
-          const canvas = document.createElement("canvas");
-          const maxDim = 1200;
-          let w = img.width, h = img.height;
-          if (w > h && w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
-          else if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, w, h);
-          const compressedBase64 = canvas.toDataURL("image/jpeg", 0.75);
-
-          promoRef.set(compressedBase64).then(() => {
-            alert("Affiche envoyée sur la TV !");
-          });
+    promoRef.on("value", (snap) => {
+      const val = snap.val();
+      if (!val) {
+        promoData = { images: [], interval: 10 };
+      } else if (typeof val === "string") {
+        // Compatibilité si une ancienne image unique est encore en base
+        promoData = { images: [val], interval: 10 };
+      } else {
+        const imgs = val.images ? (Array.isArray(val.images) ? val.images : Object.values(val.images)) : [];
+        promoData = {
+          images: imgs.filter(Boolean),
+          interval: parseInt(val.interval) || 10
         };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
+      }
+      renderPromoAdmin();
+    });
+
+    function renderPromoAdmin() {
+      const grid = document.getElementById("promoThumbsGrid");
+      const intervalBox = document.getElementById("promoIntervalBox");
+      const removeAllBtn = document.getElementById("btnRemoveAllPromo");
+      const intervalInput = document.getElementById("val-promoInterval");
+
+      if (!grid) return;
+
+      if (promoData.images.length === 0) {
+        grid.style.display = "none";
+        grid.innerHTML = "";
+        intervalBox.style.display = "none";
+        removeAllBtn.style.display = "none";
+        return;
+      }
+
+      grid.style.display = "flex";
+      removeAllBtn.style.display = "block";
+      intervalBox.style.display = promoData.images.length > 1 ? "block" : "none";
+      if (intervalInput && document.activeElement !== intervalInput) {
+        intervalInput.value = promoData.interval;
+      }
+
+      grid.innerHTML = promoData.images.map((src, idx) => `
+        <div class="promo-thumb-item">
+          <img src="${src}" alt="Affiche ${idx + 1}">
+          <button type="button" class="promo-thumb-del" onclick="removeSinglePromo(${idx})">×</button>
+        </div>
+      `).join("");
+    }
+
+    function compressImageFile(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const maxDim = 1000;
+            let w = img.width, h = img.height;
+            if (w > h && w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
+            else if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", 0.72));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handlePromoUpload(input) {
+      if (!canControlTV()) return;
+      const files = Array.from(input.files || []);
+      if (!files.length) return;
+
+      const compressedList = await Promise.all(files.map(compressImageFile));
+      promoData.images = [...promoData.images, ...compressedList];
+      input.value = "";
+
+      promoRef.set(promoData).then(() => {
+        alert(compressedList.length > 1 ? `${compressedList.length} affiches ajoutées sur la TV !` : "Affiche ajoutée sur la TV !");
+      });
+    }
+
+    function removeSinglePromo(idx) {
+      if (!canControlTV()) return;
+      promoData.images.splice(idx, 1);
+      if (promoData.images.length === 0) {
+        promoRef.remove();
+      } else {
+        promoRef.set(promoData);
+      }
+    }
+
+    function adjPromoInterval(delta) {
+      if (!canControlTV()) return;
+      promoData.interval = Math.max(2, Math.min(120, (promoData.interval || 10) + delta));
+      const el = document.getElementById("val-promoInterval");
+      if (el) el.value = promoData.interval;
+      promoRef.update({ interval: promoData.interval });
+    }
+
+    function manualSetPromoInterval(rawVal) {
+      if (!canControlTV() || rawVal === "") return;
+      let parsed = parseInt(rawVal);
+      if (isNaN(parsed)) parsed = 10;
+      promoData.interval = Math.max(2, Math.min(120, parsed));
+      promoRef.update({ interval: promoData.interval });
     }
 
     function removePromoBanner() {
       if (!canControlTV()) return;
-      if (confirm("Supprimer l'affiche promo de la TV ?")) {
+      if (confirm("Supprimer toutes les affiches promo de la TV ?")) {
         promoRef.remove().then(() => {
-          alert("Affiche retirée. L'horloge revient au centre.");
+          alert("Affiches retirées. L'horloge revient au centre.");
         });
       }
     }
