@@ -91,10 +91,10 @@
       background: rgba(48, 209, 88, 0.1);
     }
 
-    /* Top Navigation (Setup vs Saved vs Settings) */
+    /* Top Navigation */
     .top-nav {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       padding: 8px 16px 0;
       flex-shrink: 0;
     }
@@ -110,7 +110,7 @@
       padding: 8px 4px;
       cursor: pointer;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
       text-align: center;
     }
     .nav-btn.active {
@@ -540,27 +540,6 @@
       cursor: pointer;
     }
 
-    /* SETTINGS VIEW */
-    #view-settings {
-      display: none;
-      padding: 12px 16px;
-      flex: 1;
-      min-height: 0;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    #view-settings .config-card {
-      justify-content: flex-start;
-      margin-bottom: 0;
-    }
-    #view-settings .btn-launch,
-    #view-settings .btn-stop {
-      flex: none;
-      padding: 10px 14px;
-      font-size: 17px;
-      letter-spacing: 1.5px;
-      box-shadow: none;
-    }
     /* DEMOS VIEW */
     #view-demos {
       display: none;
@@ -635,6 +614,29 @@
       letter-spacing: 0.8px;
       cursor: pointer;
     }
+
+    /* SETTINGS VIEW */
+    #view-settings {
+      display: none;
+      padding: 12px 16px;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #view-settings .config-card {
+      justify-content: flex-start;
+      margin-bottom: 0;
+    }
+    #view-settings .btn-launch,
+    #view-settings .btn-stop {
+      flex: none;
+      padding: 10px 14px;
+      font-size: 17px;
+      letter-spacing: 1.5px;
+      box-shadow: none;
+    }
+
     .volume-slider {
       -webkit-appearance: none; appearance: none;
       width: 100%; height: 6px; border-radius: 3px;
@@ -646,7 +648,7 @@
       background: var(--accent-purple); cursor: pointer;
     }
 
-/* Miniatures Affiches Promo */
+    /* Promo Thumbnails */
     .promo-thumbs-grid {
       display: flex;
       gap: 8px;
@@ -687,7 +689,6 @@
       justify-content: center;
       cursor: pointer;
     }
-    
 
     /* LIVE REMOTE VIEW */
     #view-live {
@@ -805,7 +806,7 @@
   <div class="top-nav" id="topNav">
     <button class="nav-btn active" id="tabNavSetup" onclick="switchMainTab('setup')">SETUP</button>
     <button class="nav-btn" id="tabNavSaved" onclick="switchMainTab('saved')">⭐ SAVED</button>
-    <button class="main-tab-btn" id="tabNavDemos" onclick="switchMainTab('demos')">🎬 DEMOS</button>
+    <button class="nav-btn" id="tabNavDemos" onclick="switchMainTab('demos')">🎬 DEMOS</button>
     <button class="nav-btn" id="tabNavSettings" onclick="switchMainTab('settings')">⚙️ SETTINGS</button>
   </div>
 
@@ -848,8 +849,9 @@
     <div class="section-title">Saved Workouts</div>
     <div id="savedListContainer"></div>
   </div>
-  
-<div id="view-demos">
+
+  <!-- DEMOS VIEW -->
+  <div id="view-demos">
     <div class="config-card" style="flex:1; min-height:0; display:flex; flex-direction:column; margin-bottom:0;">
       <div id="demoActiveBanner" class="demo-active-banner">
         <div class="demo-active-title" id="demoActiveLabel">📺 Playing on TV</div>
@@ -873,7 +875,7 @@
       <button class="btn-add-iv" id="btnShowDemoForm" onclick="toggleDemoForm(true)" style="flex-shrink:0;">+ ADD YOUTUBE DEMO</button>
     </div>
   </div>
-  
+
   <!-- SETTINGS VIEW -->
   <div id="view-settings">
     <div class="section-title">Display Settings</div>
@@ -938,13 +940,6 @@
       <input type="file" id="promoFileInput" accept="image/*" multiple style="display:none;" onchange="handlePromoUpload(this)">
       <button class="btn-launch" type="button" style="width:100%; background:var(--accent-purple); color:#fff; margin-bottom:8px;" onclick="document.getElementById('promoFileInput').click()">📸 ADD PROMO BANNERS</button>
       <button class="btn-stop" id="btnRemoveAllPromo" type="button" style="width:100%; display:none;" onclick="removePromoBanner()">🗑️ REMOVE ALL</button>
-        </div>
-      </div>
-
-      <input type="file" id="promoFileInput" accept="image/*" multiple style="display:none;" onchange="handlePromoUpload(this)">
-      <button class="btn-launch" type="button" style="width:100%; background:var(--accent-purple); color:#fff; margin-bottom:8px;" onclick="document.getElementById('promoFileInput').click()">📸 AJOUTER UNE OU PLUSIEURS AFFICHES</button>
-      <button class="btn-stop" id="btnRemoveAllPromo" type="button" style="width:100%; display:none;" onclick="removePromoBanner()">🗑️ TOUT ENLEVER</button>
-      
     </div>
   </div>
 
@@ -982,7 +977,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Mode Test isolé (?test=1)
+    // Isolated Test Mode (?test=1)
     const isTestMode = new URLSearchParams(window.location.search).get("test") === "1";
     const prefix = isTestMode ? "test_" : "";
 
@@ -1006,7 +1001,7 @@
 
     const settingsRef = db.ref(prefix + "timer_settings");
 
-    // Vérification Wi-Fi du gym (IP publique)
+    // Gym Wi-Fi Verification (Public IP)
     const gymIpRef = db.ref("gym_ip");
     let gymIp = null;
     let myIp = null;
@@ -1054,12 +1049,10 @@
         }
       })
       .catch(() => {
-        // En cas de coupure d'ipify, on ne bloque pas le gym
         isAtGym = true;
       });
 
     function canControlTV() {
-      // Sécurité : en mode test ou si gym_ip n'est pas encore enregistré, on laisse passer
       if (isTestMode || !gymIp) return true;
       if (!isAtGym) {
         alert("🔒 Action blocked: You must be connected to the gym Wi-Fi to control the TV.");
@@ -1069,12 +1062,12 @@
     }
 
     const APX_COLORS = [
-      { label: "Jaune",  hex: "#e8ff00" },
+      { label: "Yellow", hex: "#e8ff00" },
       { label: "Cyan",   hex: "#00d4ff" },
       { label: "Orange", hex: "#ff4d00" },
-      { label: "Vert",   hex: "#30d158" },
-      { label: "Mauve",  hex: "#bf5af2" },
-      { label: "Rose",   hex: "#ff2d78" }
+      { label: "Green",  hex: "#30d158" },
+      { label: "Purple", hex: "#bf5af2" },
+      { label: "Pink",   hex: "#ff2d78" }
     ];
 
     let currentMode = 'fortime';
@@ -1097,7 +1090,6 @@
       customIntervals: []
     };
 
-    // État de l'éditeur Custom (null = fermé, -1 = nouvel intervalle, 0..N = index en édition)
     let editingIdx = null;
     let draftIv = { name: "", mins: 0, secs: 0, color: "#e8ff00" };
 
@@ -1124,7 +1116,7 @@
     }
 
     // Switch Main Tabs
-      function switchMainTab(tab) {
+    function switchMainTab(tab) {
       ['setup', 'saved', 'demos', 'settings'].forEach(t => {
         const view = document.getElementById('view-' + t);
         const btn = document.getElementById('tabNav' + t.charAt(0).toUpperCase() + t.slice(1));
@@ -1269,7 +1261,7 @@
           </div>
         `).join('');
 
-       let editorHtml = '';
+        let editorHtml = '';
         if (editingIdx !== null) {
           const title = editingIdx === -1 ? "NEW INTERVAL" : `EDIT #${editingIdx + 1}`;
           const swatchesHtml = APX_COLORS.map(col => `
@@ -1592,10 +1584,7 @@
     }
 
     function playDemoOnTv(id) {
-      if (!isAtGym && !isTestMode) {
-        alert("🔒 Action blocked: You must be connected to the gym Wi-Fi to control the TV.");
-        return;
-      }
+      if (!canControlTV()) return;
       const demo = sharedDemos.find(d => d.id === id);
       if (!demo) return;
       activeDemoRef.set({
@@ -1652,7 +1641,7 @@
       }).join('');
     }
 
-// Shared Firebase Saved Workouts (synchronisé entre tous les coachs)
+    // Shared Firebase Saved Workouts
     const savedWorkoutsRef = db.ref(prefix + "timer_settings/saved_workouts");
     let sharedSavedWorkouts = [];
 
@@ -1791,6 +1780,8 @@
         return;
       }
 
+      activeDemoRef.remove();
+
       let payload = {
         command: "CONFIG_AND_START",
         mode: currentMode,
@@ -1806,8 +1797,8 @@
           mins: config.emomMins, 
           rounds: config.emomRounds, 
           ivMin: config.emomIvMin, 
-          ivSec: config.emomIvSec,
-          intervalMs: getEmomIntervalSec() * 1000
+          ivSec: config.emomIvSec, 
+          intervalMs: getEmomIntervalSec() * 1000 
         };
       } else if (currentMode === 'tabata') {
         payload.config = { rounds: config.tabRounds, workSec: config.tabWork, tabRestSec: config.tabRest };
@@ -1835,6 +1826,7 @@
       const isCountdown = data.isCountdown || false;
       const viewSetup = document.getElementById('view-setup');
       const viewSaved = document.getElementById('view-saved');
+      const viewDemos = document.getElementById('view-demos');
       const viewSettings = document.getElementById('view-settings');
       const viewLive = document.getElementById('view-live');
       const topNav = document.getElementById('topNav');
@@ -1843,6 +1835,7 @@
         topNav.style.display = 'none';
         viewSetup.style.display = 'none';
         viewSaved.style.display = 'none';
+        viewDemos.style.display = 'none';
         viewSettings.style.display = 'none';
         viewLive.style.display = 'flex';
 
@@ -1888,17 +1881,13 @@
         topNav.style.display = 'flex';
         viewLive.style.display = 'none';
         if (document.getElementById('tabNavSaved').classList.contains('active')) {
-          viewSaved.style.display = 'flex';
-          viewSetup.style.display = 'none';
-          viewSettings.style.display = 'none';
+          switchMainTab('saved');
+        } else if (document.getElementById('tabNavDemos').classList.contains('active')) {
+          switchMainTab('demos');
         } else if (document.getElementById('tabNavSettings').classList.contains('active')) {
-          viewSettings.style.display = 'flex';
-          viewSetup.style.display = 'none';
-          viewSaved.style.display = 'none';
+          switchMainTab('settings');
         } else {
-          viewSetup.style.display = 'flex';
-          viewSaved.style.display = 'none';
-          viewSettings.style.display = 'none';
+          switchMainTab('setup');
         }
       }
     });
@@ -1930,7 +1919,7 @@
     // Init
     renderForm();
     
-const promoRef = db.ref(prefix + "promo_banner");
+    const promoRef = db.ref(prefix + "promo_banner");
     let promoData = { images: [], interval: 10 };
 
     promoRef.on("value", (snap) => {
@@ -1938,7 +1927,6 @@ const promoRef = db.ref(prefix + "promo_banner");
       if (!val) {
         promoData = { images: [], interval: 10 };
       } else if (typeof val === "string") {
-        // Compatibilité si une ancienne image unique est encore en base
         promoData = { images: [val], interval: 10 };
       } else {
         const imgs = val.images ? (Array.isArray(val.images) ? val.images : Object.values(val.images)) : [];
@@ -2049,10 +2037,6 @@ const promoRef = db.ref(prefix + "promo_banner");
       if (confirm("Remove all promo banners from TV?")) {
         promoRef.remove().then(() => {
           alert("Banners removed. Clock centered.");
-        });
-      }
-        promoRef.remove().then(() => {
-          alert("Affiches retirées. L'horloge revient au centre.");
         });
       }
     }
