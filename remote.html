@@ -512,11 +512,12 @@
       cursor: pointer;
     }
     
+  </style>
+
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-    
-  </style>
+  
 </head>
 <body>
 
@@ -653,7 +654,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const timerRef = db.ref("timer_state");
-    const CURRENT_VERSION = "1.0";
+    const CURRENT_VERSION = "1.2";
     const versionRef = db.ref("app_version");
 
     versionRef.on("value", (snap) => {
@@ -669,6 +670,58 @@
       }
     });
     const settingsRef = db.ref("timer_settings");
+    // Vérification Wi-Fi du gym (IP publique)
+    const gymIpRef = db.ref("gym_ip");
+    let gymIp = null;
+    let myIp = null;
+    let isAtGym = false;
+
+    function updateGymConnectionStatus() {
+      const pill = document.getElementById('connPill');
+      if (!gymIp || !myIp) return; // En attente de vérification
+
+      if (myIp === gymIp) {
+        isAtGym = true;
+        pill.innerText = "TV Connected";
+        pill.classList.add('online');
+        pill.style.color = "";
+        pill.style.borderColor = "";
+      } else {
+        isAtGym = false;
+        pill.innerText = "🔒 Hors-Gym";
+        pill.classList.remove('online');
+        pill.style.color = "#f59e0b";
+        pill.style.borderColor = "#f59e0b";
+      }
+    }
+
+    gymIpRef.on("value", (snap) => {
+      gymIp = snap.val();
+      updateGymConnectionStatus();
+    });
+
+    fetch("https://api.ipify.org?format=json")
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.ip) {
+          myIp = data.ip;
+          updateGymConnectionStatus();
+        }
+      })
+      .catch(() => {
+        // En cas de coupure d'ipify, on ne bloque pas le gym
+        isAtGym = true;
+      });
+
+    function canControlTV() {
+      // Sécurité : si gym_ip n'est pas encore enregistré dans Firebase, on laisse passer
+      if (!gymIp) return true;
+      if (!isAtGym) {
+        alert("🔒 Action bloquée : tu dois être connecté au Wi-Fi du gym pour contrôler la télé.");
+        return false;
+      }
+      return true;
+    }
 
     let currentMode = 'fortime';
     let config = {
@@ -1056,6 +1109,7 @@
     }
 
     function saveAndSyncSettings() {
+      if (!canControlTV()) return;
       tvSettings.countdown = parseInt(document.getElementById('val-setCountdown').value) || 3;
       tvSettings.warnAt = parseInt(document.getElementById('val-setWarnAt').value) || 10;
       tvSettings.volume = (parseInt(document.getElementById('val-setVolume').value) || 70) / 100;
@@ -1085,6 +1139,7 @@
 
     // Launch Workout on TV
     function launchWorkoutOnTV() {
+      if (!canControlTV()) return;
       let payload = {
         command: "CONFIG_AND_START",
         mode: currentMode,
@@ -1117,9 +1172,11 @@
     // Realtime Firebase Listener
     timerRef.on("value", (snapshot) => {
       const data = snapshot.val();
-      const pill = document.getElementById('connPill');
-      pill.innerText = "TV Connected";
-      pill.classList.add('online');
+        if (!gymIp || isAtGym) {
+        const pill = document.getElementById('connPill');
+        pill.innerText = "TV Connected";
+        pill.classList.add('online');
+      }
 
       if (!data) return;
 
@@ -1183,6 +1240,7 @@
     });
 
     function togglePlayPause() {
+      if (!canControlTV()) return;
       timerRef.update({
         command: isRunning ? "PAUSE" : "START",
         timestamp: Date.now()
@@ -1190,6 +1248,7 @@
     }
 
     function sendReset() {
+      if (!canControlTV()) return;
       timerRef.update({
         command: "RESET",
         timestamp: Date.now()
@@ -1197,6 +1256,7 @@
     }
 
     function sendContextAction() {
+      if (!canControlTV()) return;
       timerRef.update({
         command: "CONTEXT_ACTION",
         timestamp: Date.now()
@@ -1209,6 +1269,7 @@
     const promoRef = db.ref("promo_banner");
 
     function handlePromoUpload(input) {
+      if (!canControlTV()) return;
       const file = input.files[0];
       if (!file) return;
 
@@ -1238,6 +1299,7 @@
     }
 
     function removePromoBanner() {
+      if (!canControlTV()) return;
       if (confirm("Supprimer l'affiche promo de la TV ?")) {
         promoRef.remove().then(() => {
           alert("Affiche retirée. L'horloge revient au centre.");
