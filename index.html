@@ -634,7 +634,28 @@
     }
     .filter-pill.active { background: var(--surface2); color: var(--text); border-color: var(--text); }
     .saved-list { padding: 16px 20px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-    .saved-card, .history-card {
+    .saved-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .saved-del-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--danger);
+      padding: 8px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .history-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -1069,8 +1090,9 @@ function snapBeep() {
 }
 
 function stopBeep() {
-  beep(300, 0.12, 0.8);
-  setTimeout(() => beep(200, 0.25, 0.9), 120);
+  beep(440, 0.12, 0.8);
+  setTimeout(() => beep(330, 0.12, 0.8), 130);
+  setTimeout(() => beep(220, 0.35, 0.9), 260);
 }
 
 function flashBeep() {
@@ -1103,17 +1125,18 @@ function showScreen(id) {
   }
 }
 
-window.addEventListener('popstate', (e) => {
+window.addEventListener('popstate', () => {
   isHandlingPopState = true;
-  const isTimerRunning = document.getElementById('timer').style.display === 'flex' || 
-                         document.getElementById('setsTimer').style.display === 'flex';
+  const isStandardRunning = document.getElementById('timer').style.display === 'flex';
+  const isSetsRunning = document.getElementById('setsTimer').style.display === 'flex';
 
-  if (isTimerRunning) {
+  if (isStandardRunning) {
     stopTimer();
+  } else if (isSetsRunning) {
     stopSets();
+  } else {
+    goHome();
   }
-
-  goHome();
   isHandlingPopState = false;
 });
 
@@ -1134,8 +1157,10 @@ let elapsed = 0;
 let pausedAt = 0;
 let totalDuration = 0;
 let currentRound = 1;
+let currentTabataIsWork = true;
 let currentIntervalIdx = 0;
 let customIntervals = [];
+let customTrackerMode = 'none'; // 'none' | 'rounds' | 'splits'
 let selectedColor = '#e8ff00';
 let workoutConfig = {};
 
@@ -1175,7 +1200,11 @@ let currentSplitsOption = true;
 // ─── SETUP FORMS WITH DIRECT NUMERIC INPUT ───────────────────────────────────
 function goSetup(mode, config = null) {
   currentMode = mode;
-  workoutConfig = config || {};
+  workoutConfig = config ? JSON.parse(JSON.stringify(config)) : {};
+  if (mode === 'custom') {
+    customIntervals = config?.intervals ? [...config.intervals] : [];
+    customTrackerMode = config?.tracker || 'none';
+  }
   showScreen('setup');
   document.getElementById('setupTitle').textContent = modeLabels[mode];
   const badge = document.getElementById('modeBadge');
@@ -1294,7 +1323,6 @@ function renderSetupForm(mode, config) {
         </div>
       </div>`;
   } else if (mode === 'custom') {
-    if (config?.intervals) customIntervals = [...config.intervals];
     renderCustomForm();
   } else if (mode === 'sets') {
     const sets = config?.sets ?? 5;
@@ -1351,7 +1379,7 @@ function renderCustomForm() {
       <button class="interval-del" onclick="removeInterval(${i})">×</button>
     </div>`).join('');
 
-  const loops = workoutConfig.loops ?? 1;
+  const loops = parseInt(document.getElementById('loopsVal')?.value || workoutConfig.loops || 1);
 
   form.innerHTML = `
     <div class="form-group">
@@ -1367,7 +1395,22 @@ function renderCustomForm() {
         <span class="num-unit">×</span>
         <button class="num-btn" onclick="adjLoops(1)">+</button>
       </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">COUNTER BUTTON (FOR HISTORY)</label>
+      <div class="segmented-control">
+        <button class="segmented-btn ${customTrackerMode === 'none' ? 'active' : ''}" id="trkBtnNone" onclick="setCustomTracker('none')">NONE</button>
+        <button class="segmented-btn ${customTrackerMode === 'rounds' ? 'active' : ''}" id="trkBtnRounds" onclick="setCustomTracker('rounds')">ROUNDS (+1)</button>
+        <button class="segmented-btn ${customTrackerMode === 'splits' ? 'active' : ''}" id="trkBtnSplits" onclick="setCustomTracker('splits')">SPLITS</button>
+      </div>
     </div>`;
+}
+
+function setCustomTracker(mode) {
+  customTrackerMode = mode;
+  document.getElementById('trkBtnNone')?.classList.toggle('active', mode === 'none');
+  document.getElementById('trkBtnRounds')?.classList.toggle('active', mode === 'rounds');
+  document.getElementById('trkBtnSplits')?.classList.toggle('active', mode === 'splits');
 }
 
 // ─── NUMERIC INPUT HANDLERS ──────────────────────────────────────────────────
@@ -1578,7 +1621,8 @@ function getConfig() {
   if (currentMode === 'custom') {
     return { 
       intervals: [...customIntervals], 
-      loops: parseInt(document.getElementById('loopsVal')?.value || workoutConfig.loops || 1) 
+      loops: parseInt(document.getElementById('loopsVal')?.value || workoutConfig.loops || 1),
+      tracker: customTrackerMode
     };
   }
   if (currentMode === 'sets') {
@@ -1594,9 +1638,14 @@ function getConfig() {
 
 // ─── COUNTDOWN ───────────────────────────────────────────────────────────────
 function beginCountdown() {
+  workoutConfig = getConfig();
+  if (currentMode === 'custom' && (!workoutConfig.intervals || workoutConfig.intervals.length === 0)) {
+    alert("Add at least one interval before starting.");
+    return;
+  }
+
   getAudio();
   requestWakeLock();
-  workoutConfig = Object.keys(workoutConfig).length ? workoutConfig : getConfig();
   const s = getSettings();
   let count = s.countdown ?? 3;
 
@@ -1640,7 +1689,9 @@ function startTimer() {
   elapsed = 0;
   startTime = Date.now();
   currentRound = 1;
+  currentTabataIsWork = true;
   currentIntervalIdx = 0;
+  lastWarnSec = -1;
   ftSplits = [];
   ftLastSplitTime = 0;
   ftSectionNum = 1;
@@ -1648,9 +1699,17 @@ function startTimer() {
   amrapLastRoundTime = 0;
   amrapRoundNum = 0;
 
+  const disp = document.getElementById('timerDisplay');
+  disp.classList.remove('warning', 'critical');
+  document.getElementById('timerPauseHint').textContent = 'TAP TO PAUSE';
+  document.getElementById('progressFill').style.width = '0%';
+
+  const hasSplitsBtn = (currentMode === 'fortime' && workoutConfig.splits) || (currentMode === 'custom' && workoutConfig.tracker === 'splits');
+  const hasRoundsBtn = (currentMode === 'amrap') || (currentMode === 'custom' && workoutConfig.tracker === 'rounds');
+
   document.getElementById('timerModeLabel').textContent = modeLabels[currentMode];
-  document.getElementById('splitBtn').style.display = (currentMode === 'fortime' && workoutConfig.splits) ? 'block' : 'none';
-  document.getElementById('roundBtn').style.display = currentMode === 'amrap' ? 'block' : 'none';
+  document.getElementById('splitBtn').style.display = hasSplitsBtn ? 'block' : 'none';
+  document.getElementById('roundBtn').style.display = hasRoundsBtn ? 'block' : 'none';
   document.getElementById('timerLapList').innerHTML = '';
 
   setupModeDisplay();
@@ -1707,7 +1766,9 @@ function setupModeDisplay() {
       disp.textContent = fmtSecs(Math.ceil(intervals[0].duration / 1000));
       updateCustomNextText(0);
     }
-    roundInfo.textContent = `LOOP 1 / ${cfg.loops || 1}`;
+    roundInfo.textContent = cfg.tracker === 'rounds'
+      ? `LOOP 1/${cfg.loops || 1} · RD 0`
+      : `LOOP 1 / ${cfg.loops || 1}`;
   }
 }
   
@@ -1726,14 +1787,14 @@ function tickTimer() {
 
   if (currentMode === 'amrap') {
     const remain = totalDuration - elapsed;
-    if (remain <= 0) { endTimer(); return; }
+    if (remain <= 0) { elapsed = totalDuration; endTimer(); return; }
     const s = Math.ceil(remain / 1000);
     formattedDisplay = fmtSecs(s);
     document.getElementById('timerDisplay').textContent = formattedDisplay;
     handleWarnColors(s);
     document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
   } else if (currentMode === 'emom') {
-    if (elapsed >= totalDuration) { endTimer(); return; }
+    if (elapsed >= totalDuration) { elapsed = totalDuration; endTimer(); return; }
     const ivMs = workoutConfig.intervalMs || 60000;
     const round = Math.floor(elapsed / ivMs) + 1;
     const totalRounds = workoutConfig.rounds || Math.floor(totalDuration / ivMs);
@@ -1750,6 +1811,7 @@ function tickTimer() {
     document.getElementById('progressFill').style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
   } else if (currentMode === 'fortime') {
     if (workoutConfig.cap > 0 && elapsed >= totalDuration) {
+      elapsed = totalDuration;
       document.getElementById('timerDisplay').textContent = fmtMs(totalDuration);
       endTimer();
       return;
@@ -1766,9 +1828,15 @@ function tickTimer() {
     const rMs = workoutConfig.tabRestSec * 1000;
     const cycle = wMs + rMs;
     const round = Math.floor(elapsed / cycle) + 1;
-    if (round > workoutConfig.rounds) { endTimer(); return; }
+    if (round > workoutConfig.rounds) { elapsed = totalDuration; endTimer(); return; }
 
     const isWork = (elapsed % cycle) < wMs;
+    if (round !== currentRound || isWork !== currentTabataIsWork) {
+      currentRound = round;
+      currentTabataIsWork = isWork;
+      goBeep(); flashBeep();
+      document.getElementById('timerRoundInfo').textContent = `${round} / ${workoutConfig.rounds}`;
+    }
     document.getElementById('timerPhase').textContent = isWork ? 'WORK' : 'REST';
     document.getElementById('timerPhase').style.background = isWork ? 'var(--accent)' : 'var(--accent3)';
     const remain = isWork ? wMs - (elapsed % cycle) : cycle - (elapsed % cycle);
@@ -1781,7 +1849,7 @@ function tickTimer() {
     const cfg = workoutConfig;
     const totalLoop = cfg.intervals.reduce((s, iv) => s + iv.duration, 0);
     const loopIdx = Math.floor(elapsed / totalLoop);
-    if (loopIdx >= cfg.loops) { endTimer(); return; }
+    if (loopIdx >= cfg.loops) { elapsed = totalDuration; endTimer(); return; }
 
     const loopElapsed = elapsed % totalLoop;
     let acc = 0, ivIdx = 0;
@@ -1800,7 +1868,9 @@ function tickTimer() {
 
     const remain = cfg.intervals[ivIdx].duration - (loopElapsed - acc);
     const s = Math.ceil(remain / 1000);
-    document.getElementById('timerRoundInfo').textContent = `LOOP ${loopIdx + 1} / ${cfg.loops}`;
+    document.getElementById('timerRoundInfo').textContent = cfg.tracker === 'rounds'
+      ? `LOOP ${loopIdx + 1}/${cfg.loops} · RD ${amrapRoundNum}`
+      : `LOOP ${loopIdx + 1} / ${cfg.loops}`;
     formattedDisplay = fmtSecs(s);
     document.getElementById('timerDisplay').textContent = formattedDisplay;
     handleWarnColors(s);
@@ -1819,11 +1889,9 @@ function handleWarnColors(s) {
   const warnThreshold = getSettings().warnAt ?? 10;
   const disp = document.getElementById('timerDisplay');
   
-  // Couleur orange pour tout le compte à rebours de la zone d'alerte, rouge pour les 3 dernières sec
   disp.classList.toggle('warning', s <= warnThreshold && s > 3);
   disp.classList.toggle('critical', s <= 3 && s >= 1);
 
-  // Bips et flashs cadencés à chaque seconde du seuil configuré (ex: 5, 4, 3, 2, 1)
   if (s <= warnThreshold && s >= 1 && s !== lastWarnSec) {
     lastWarnSec = s;
     snapBeep();
@@ -1847,17 +1915,20 @@ function recordAmrapRound() {
   const dur = elapsed - amrapLastRoundTime;
   amrapRounds.push({ num: amrapRoundNum, duration: dur });
   amrapLastRoundTime = elapsed;
-  document.getElementById('timerRoundInfo').textContent = `ROUND ${amrapRoundNum}`;
+  if (currentMode === 'amrap') {
+    document.getElementById('timerRoundInfo').textContent = `ROUND ${amrapRoundNum}`;
+  }
   snapBeep();
   renderCompactList('timerLapList', amrapRounds, 'R', 'var(--accent)');
 }
 
 function renderCompactList(id, list, prefix, col) {
   const c = document.getElementById(id);
+  const labelWord = prefix === 'R' ? 'Round' : 'Section';
   c.innerHTML = [...list].reverse().map(i => `
     <div class="lap-item">
       <span class="lap-num" style="color:${col}">${prefix}${i.num}</span>
-      <span class="lap-label">Section ${i.num}</span>
+      <span class="lap-label">${labelWord} ${i.num}</span>
       <span class="lap-time" style="color:${col}">${fmtMs(i.duration)}</span>
     </div>`).join('');
 }
@@ -1912,6 +1983,9 @@ function startSetsTimer() {
   setsSetStart = Date.now();
   setsTimeOffset = 0;
   setsPaused = false;
+  lastWarnSec = -1;
+  document.getElementById('setsPauseHint').textContent = 'TAP TO PAUSE';
+  document.getElementById('setsLapList').innerHTML = '';
 
   updateSetsUI();
   if (setsInterval) clearInterval(setsInterval);
@@ -1957,12 +2031,13 @@ function tickSets() {
 
 function completeSet() {
   if (setsState === 'work') {
-    const setTime = Date.now() - setsSetStart - setsTimeOffset;
+    const now = Date.now();
+    const pauseExtra = setsPaused ? (now - setsPausedAt) : 0;
+    const setTime = now - setsSetStart - setsTimeOffset - pauseExtra;
     setsLaps.push({ type: 'set', num: setsCurrentSet, time: setTime });
     snapBeep(); flashBeep();
     renderSetsLaps();
 
-    // Si on vient de terminer le DERNIER set prévu
     if (setsCurrentSet >= setsConfig.sets) {
       clearInterval(setsInterval);
       releaseWakeLock();
@@ -1971,7 +2046,9 @@ function completeSet() {
       return;
     }
 
-    // S'il reste des sets à faire :
+    setsPaused = false;
+    document.getElementById('setsPauseHint').textContent = 'TAP TO PAUSE';
+
     if (setsConfig.restType === 'none') {
       setsCurrentSet++;
       setsSetStart = Date.now();
@@ -1986,6 +2063,8 @@ function completeSet() {
       updateSetsUI();
     }
   } else {
+    setsPaused = false;
+    document.getElementById('setsPauseHint').textContent = 'TAP TO PAUSE';
     startNextSet();
   }
 }
@@ -2057,9 +2136,10 @@ function stopSets() {
 }
 
 function showSetsSummary(stopped = false) {
-// On n'enregistre un set partiel que si l'utilisateur a appuyé sur STOP en plein milieu
   if (stopped && setsState === 'work') {
-    const curTime = Date.now() - setsSetStart - setsTimeOffset;
+    const now = Date.now();
+    const pauseExtra = setsPaused ? (now - setsPausedAt) : 0;
+    const curTime = now - setsSetStart - setsTimeOffset - pauseExtra;
     if (curTime > 2000) {
       setsLaps.push({ type: 'set', num: setsCurrentSet, time: curTime });
     }
@@ -2085,14 +2165,17 @@ function showSetsSummary(stopped = false) {
 }
 
 function showSummary(stopped) {
-  if (currentMode === 'fortime' && ftSplits.length > 0) {
+  const tracksSplits = (currentMode === 'fortime' || (currentMode === 'custom' && workoutConfig.tracker === 'splits'));
+  const tracksRounds = (currentMode === 'amrap' || (currentMode === 'custom' && workoutConfig.tracker === 'rounds'));
+
+  if (tracksSplits && ftSplits.length > 0) {
     const finalSection = elapsed - ftLastSplitTime;
     if (finalSection > 1000) {
       ftSplits.push({ num: ftSectionNum, duration: finalSection });
     }
   }
 
-  if (currentMode === 'amrap' && amrapRounds.length > 0) {
+  if (tracksRounds && amrapRounds.length > 0) {
     const finalPartial = elapsed - amrapLastRoundTime;
     if (finalPartial > 2000) {
       amrapRounds.push({ num: 'Partial', duration: finalPartial });
@@ -2113,9 +2196,20 @@ function showSummary(stopped) {
   let html = `
     <div class="done-stat"><span class="done-stat-label">Mode</span><span class="done-stat-val">${modeLabels[currentMode]}</span></div>
     <div class="done-stat"><span class="done-stat-label">Time</span><span class="done-stat-val">${fmtMs(elapsed)}</span></div>`;
-  if (currentMode === 'amrap') {
-    html += `<div class="done-stat"><span class="done-stat-label">Rounds</span><span class="done-stat-val" style="color:var(--accent)">${amrapRoundNum}</span></div>`;
+
+  if (tracksRounds && amrapRoundNum > 0) {
+    html += `<div class="done-stat"><span class="done-stat-label">Total Rounds</span><span class="done-stat-val" style="color:var(--accent)">${amrapRoundNum}</span></div>`;
+    amrapRounds.forEach(r => {
+      html += `<div class="done-stat"><span class="done-stat-label">Round ${r.num}</span><span class="done-stat-val" style="color:var(--accent)">${fmtMs(r.duration)}</span></div>`;
+    });
   }
+
+  if (tracksSplits && ftSplits.length > 0) {
+    ftSplits.forEach(s => {
+      html += `<div class="done-stat"><span class="done-stat-label">Section ${s.num}</span><span class="done-stat-val" style="color:var(--accent2)">${fmtMs(s.duration)}</span></div>`;
+    });
+  }
+
   document.getElementById('doneStats').innerHTML = html;
 }
 
@@ -2126,6 +2220,10 @@ function getSaved() {
 function setSaved(arr) { localStorage.setItem('wodtimerSaved', JSON.stringify(arr)); }
 
 function openSaveModal() {
+  if (currentMode === 'custom' && customIntervals.length === 0) {
+    alert("Add at least one interval before saving.");
+    return;
+  }
   document.getElementById('saveNameInput').value = '';
   document.getElementById('saveModal').classList.add('active');
 }
@@ -2151,9 +2249,20 @@ function showSaved() {
   }
   list.innerHTML = saved.map(w => `
     <div class="saved-card" onclick="loadSaved(${w.id})">
-      <div style="font-weight:bold;font-size:16px;">${w.name}</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px;">${modeLabels[w.mode]}</div>
+      <div>
+        <div style="font-weight:bold;font-size:16px;">${w.name}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">${modeLabels[w.mode]}</div>
+      </div>
+      <button class="saved-del-btn" onclick="deleteSaved(event, ${w.id})">🗑️</button>
     </div>`).join('');
+}
+
+function deleteSaved(e, id) {
+  e.stopPropagation();
+  if (!confirm("Delete this saved workout?")) return;
+  const updated = getSaved().filter(w => w.id !== id);
+  setSaved(updated);
+  showSaved();
 }
 
 function loadSaved(id) {
