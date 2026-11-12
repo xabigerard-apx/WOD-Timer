@@ -181,7 +181,7 @@
       min-height: 0;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       overflow-y: auto;
     }
 
@@ -958,7 +958,7 @@
     // Render Setup Forms
     function renderForm() {
       const c = document.getElementById('form-container');
-      c.style.justifyContent = currentMode === 'custom' ? 'flex-start' : 'center';
+      c.style.justifyContent = 'flex-start';
 
       if (currentMode === 'fortime') {
         c.innerHTML = `
