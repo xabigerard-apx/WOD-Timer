@@ -511,13 +511,11 @@
       letter-spacing: 1.5px;
       cursor: pointer;
     }
-    
   </style>
 
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  
 </head>
 <body>
 
@@ -653,8 +651,13 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const timerRef = db.ref("timer_state");
-    const CURRENT_VERSION = "1.2";
+
+    // Mode Test isolé (?test=1)
+    const isTestMode = new URLSearchParams(window.location.search).get("test") === "1";
+    const prefix = isTestMode ? "test_" : "";
+
+    const timerRef = db.ref(prefix + "timer_state");
+    const CURRENT_VERSION = "1.3";
     const versionRef = db.ref("app_version");
 
     versionRef.on("value", (snap) => {
@@ -669,7 +672,9 @@
         window.location.replace(url.toString());
       }
     });
-    const settingsRef = db.ref("timer_settings");
+
+    const settingsRef = db.ref(prefix + "timer_settings");
+
     // Vérification Wi-Fi du gym (IP publique)
     const gymIpRef = db.ref("gym_ip");
     let gymIp = null;
@@ -678,6 +683,13 @@
 
     function updateGymConnectionStatus() {
       const pill = document.getElementById('connPill');
+      if (isTestMode) {
+        pill.innerText = "🛠️ Mode Test";
+        pill.classList.remove('online');
+        pill.style.color = "#8c52ff";
+        pill.style.borderColor = "#8c52ff";
+        return;
+      }
       if (!gymIp || !myIp) return; // En attente de vérification
 
       if (myIp === gymIp) {
@@ -694,6 +706,8 @@
         pill.style.borderColor = "#f59e0b";
       }
     }
+
+    updateGymConnectionStatus();
 
     gymIpRef.on("value", (snap) => {
       gymIp = snap.val();
@@ -714,8 +728,8 @@
       });
 
     function canControlTV() {
-      // Sécurité : si gym_ip n'est pas encore enregistré dans Firebase, on laisse passer
-      if (!gymIp) return true;
+      // Sécurité : en mode test ou si gym_ip n'est pas encore enregistré, on laisse passer
+      if (isTestMode || !gymIp) return true;
       if (!isAtGym) {
         alert("🔒 Action bloquée : tu dois être connecté au Wi-Fi du gym pour contrôler la télé.");
         return false;
@@ -1172,7 +1186,7 @@
     // Realtime Firebase Listener
     timerRef.on("value", (snapshot) => {
       const data = snapshot.val();
-        if (!gymIp || isAtGym) {
+      if (!isTestMode && (!gymIp || isAtGym)) {
         const pill = document.getElementById('connPill');
         pill.innerText = "TV Connected";
         pill.classList.add('online');
@@ -1266,7 +1280,7 @@
     // Init
     renderForm();
     
-    const promoRef = db.ref("promo_banner");
+    const promoRef = db.ref(prefix + "promo_banner");
 
     function handlePromoUpload(input) {
       if (!canControlTV()) return;
