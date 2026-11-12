@@ -775,10 +775,14 @@
 
 <!-- ===== HOME ===== -->
 <div class="screen" id="home" style="display:flex">
-  <div class="home-header">
-    <div class="logo">WOD<span>TIMER</span></div>
-    <div class="tagline">Build · Train · Suffer</div>
+<div class="home-header" style="display:flex; justify-content:space-between; align-items:flex-end;">
+    <div>
+      <div class="logo">WOD<span>TIMER</span></div>
+      <div class="tagline">Build · Train · Suffer</div>
+    </div>
+    <span id="appVersionBadge" style="font-family:'DM Mono',monospace; font-size:10px; color:#444; letter-spacing:1px;"></span>
   </div>
+  
   <div class="mode-grid">
     <div class="mode-card amrap" onclick="goSetup('amrap')">
       <span class="mode-icon">⏱</span>
@@ -991,7 +995,8 @@
 <script>
   
 // Auto-Update Version Check (GitHub Pages cache buster)
-const CURRENT_VERSION = "v1.1.1";
+const CURRENT_VERSION = "v1.1.2";
+document.getElementById("appVersionBadge").textContent = CURRENT_VERSION;
 
 function checkAppUpdate() {
   fetch("version.txt?t=" + Date.now(), { cache: "no-store" })
