@@ -42,34 +42,36 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-    body {
+    html, body {
       background-color: var(--bg);
       color: var(--text);
       font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-      min-height: 100dvh;
+      height: 100vh;
+      height: 100dvh;
+      max-height: 100dvh;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
-      padding-bottom: 24px;
+      overflow: hidden;
+      overscroll-behavior: none;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     header {
-      padding: 16px 20px;
+      padding: 10px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
       background: var(--bg);
+      flex-shrink: 0;
       z-index: 50;
     }
     .brand-title {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 26px;
+      font-size: 24px;
       letter-spacing: 2px;
       color: #fff;
+      line-height: 1;
     }
     .brand-title span { color: var(--accent-purple); }
 
@@ -92,8 +94,9 @@
     /* Top Navigation (Setup vs Saved vs Settings) */
     .top-nav {
       display: flex;
-      gap: 10px;
-      padding: 14px 20px 0;
+      gap: 8px;
+      padding: 8px 16px 0;
+      flex-shrink: 0;
     }
     .nav-btn {
       flex: 1;
@@ -102,9 +105,9 @@
       border-radius: 10px;
       color: var(--muted);
       font-family: 'DM Mono', monospace;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
-      padding: 10px 4px;
+      padding: 8px 4px;
       cursor: pointer;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -117,34 +120,38 @@
     }
 
     .view-container {
-      padding: 16px 20px;
+      padding: 10px 16px 12px;
       flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
 
     .section-title {
       font-family: 'DM Mono', monospace;
-      font-size: 11px;
+      font-size: 10px;
       letter-spacing: 2px;
       color: var(--muted);
-      margin-bottom: 10px;
+      margin-bottom: 6px;
       text-transform: uppercase;
+      flex-shrink: 0;
     }
 
     /* Modes Selection Grid */
     .modes-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 16px;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
     }
 
     .mode-tab {
       background: var(--surface);
       border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 6px;
+      border-radius: 10px;
+      padding: 8px 4px;
       cursor: pointer;
       text-align: center;
       transition: all 0.15s ease;
@@ -156,29 +163,35 @@
     }
     .mode-tab .name {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 17px;
+      font-size: 16px;
       letter-spacing: 1px;
       color: #fff;
       display: block;
+      line-height: 1.1;
     }
 
     /* Configuration Card */
     .config-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 18px;
-      margin-bottom: 16px;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
       flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow-y: auto;
     }
 
     .field-label {
       font-family: 'DM Mono', monospace;
-      font-size: 11px;
+      font-size: 10px;
       letter-spacing: 1.5px;
       color: var(--muted);
       text-transform: uppercase;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       display: block;
     }
 
@@ -187,17 +200,19 @@
       align-items: center;
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 10px;
       overflow: hidden;
-      margin-bottom: 14px;
+      margin-bottom: 8px;
     }
+    .stepper:last-child { margin-bottom: 0; }
+
     .step-btn {
-      width: 50px;
-      height: 48px;
+      width: 44px;
+      height: 38px;
       background: transparent;
       border: none;
       color: var(--muted);
-      font-size: 24px;
+      font-size: 22px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -216,7 +231,7 @@
       outline: none;
       text-align: center;
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 32px;
+      font-size: 26px;
       color: #fff;
       letter-spacing: 1px;
       user-select: text;
@@ -241,15 +256,15 @@
 
     .step-unit {
       font-family: 'DM Mono', monospace;
-      font-size: 11px;
+      font-size: 10px;
       color: var(--muted);
-      padding-right: 12px;
+      padding-right: 10px;
       flex-shrink: 0;
     }
 
     .row-split {
       display: flex;
-      gap: 10px;
+      gap: 8px;
     }
     .row-split .stepper { flex: 1; }
 
@@ -260,8 +275,10 @@
       border-radius: 10px;
       padding: 3px;
       gap: 4px;
-      margin-bottom: 14px;
+      margin-bottom: 8px;
     }
+    .segmented:last-child { margin-bottom: 0; }
+
     .seg-btn {
       flex: 1;
       background: transparent;
@@ -270,7 +287,7 @@
       font-family: 'DM Mono', monospace;
       font-size: 11px;
       font-weight: 700;
-      padding: 10px 4px;
+      padding: 7px 4px;
       border-radius: 7px;
       cursor: pointer;
     }
@@ -280,58 +297,65 @@
     }
 
     /* Custom Interval Section */
+    .custom-list-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      margin-bottom: 6px;
+    }
     .custom-item {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
-      margin-bottom: 8px;
+      border-radius: 8px;
+      padding: 7px 10px;
+      margin-bottom: 6px;
     }
     .custom-dot {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
     }
     .custom-name {
       flex: 1;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
     }
     .custom-dur {
       font-family: 'DM Mono', monospace;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--muted);
     }
     .btn-add-iv {
       width: 100%;
       background: transparent;
       border: 1px dashed var(--border);
-      border-radius: 10px;
+      border-radius: 8px;
       color: var(--muted);
       font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      padding: 12px;
+      font-size: 11px;
+      padding: 8px;
       cursor: pointer;
-      margin-bottom: 14px;
+      flex-shrink: 0;
     }
 
     /* Bottom Action Row */
     .action-row {
       display: flex;
-      gap: 10px;
+      gap: 8px;
+      flex-shrink: 0;
     }
     .btn-launch {
       flex: 2;
       background: linear-gradient(135deg, #30d158, #16a34a);
       color: #000;
       border: none;
-      border-radius: 14px;
-      padding: 18px;
+      border-radius: 12px;
+      padding: 13px;
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 22px;
+      font-size: 20px;
       letter-spacing: 2px;
       cursor: pointer;
       box-shadow: 0 4px 18px rgba(48, 209, 88, 0.3);
@@ -340,10 +364,10 @@
       flex: 1;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 12px;
       color: var(--text);
       font-family: 'DM Mono', monospace;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 1px;
       cursor: pointer;
@@ -352,23 +376,30 @@
     /* SAVED VIEW */
     #view-saved {
       display: none;
-      padding: 16px 20px;
+      padding: 12px 16px;
       flex: 1;
+      min-height: 0;
       flex-direction: column;
+      overflow: hidden;
+    }
+    #savedListContainer {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
     }
     .saved-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 10px;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     .saved-info-name {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 20px;
+      font-size: 19px;
       letter-spacing: 1px;
       color: #fff;
     }
@@ -405,37 +436,50 @@
     /* SETTINGS VIEW */
     #view-settings {
       display: none;
-      padding: 16px 20px;
+      padding: 12px 16px;
       flex: 1;
+      min-height: 0;
       flex-direction: column;
+      overflow: hidden;
+    }
+    #view-settings .config-card {
+      justify-content: flex-start;
+      margin-bottom: 0;
     }
     .volume-slider {
       -webkit-appearance: none; appearance: none;
       width: 100%; height: 6px; border-radius: 3px;
-      background: var(--surface-card); outline: none; margin-top: 8px; margin-bottom: 16px;
+      background: var(--surface-card); outline: none; margin-top: 6px; margin-bottom: 12px;
     }
     .volume-slider::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none;
-      width: 22px; height: 22px; border-radius: 50%;
+      width: 20px; height: 20px; border-radius: 50%;
       background: var(--accent-purple); cursor: pointer;
     }
 
     /* LIVE REMOTE VIEW */
     #view-live {
       display: none;
-      padding: 20px;
+      padding: 14px 16px;
       flex-direction: column;
       flex: 1;
+      min-height: 0;
       justify-content: space-between;
+      overflow: hidden;
     }
 
     .live-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 30px 20px;
+      padding: 24px 16px;
       text-align: center;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
     .live-mode-badge {
       display: inline-block;
@@ -446,15 +490,15 @@
       border-radius: 20px;
       background: #252336;
       color: var(--accent-purple);
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .live-timer-digits {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(80px, 22vw, 110px);
+      font-size: clamp(76px, 22vw, 110px);
       letter-spacing: 2px;
       line-height: 0.9;
       color: #fff;
-      margin: 10px 0;
+      margin: 8px 0;
       font-variant-numeric: tabular-nums;
     }
     .live-status-sub {
@@ -467,11 +511,12 @@
     .live-actions {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
+      flex-shrink: 0;
     }
     .btn-contextual {
       width: 100%;
-      padding: 18px;
+      padding: 16px;
       border: none;
       border-radius: 14px;
       font-family: 'Bebas Neue', sans-serif;
@@ -493,7 +538,7 @@
       color: #000;
       border: none;
       border-radius: 12px;
-      padding: 16px;
+      padding: 14px;
       font-family: 'Bebas Neue', sans-serif;
       font-size: 20px;
       letter-spacing: 1.5px;
@@ -505,7 +550,7 @@
       color: var(--danger);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 16px;
+      padding: 14px;
       font-family: 'Bebas Neue', sans-serif;
       font-size: 20px;
       letter-spacing: 1.5px;
@@ -568,7 +613,7 @@
   <!-- SAVED TIMERS VIEW -->
   <div id="view-saved">
     <div class="section-title">Saved Workouts</div>
-    <div id="savedListContainer" style="flex:1;"></div>
+    <div id="savedListContainer"></div>
   </div>
 
   <!-- SETTINGS VIEW -->
@@ -609,12 +654,12 @@
         <button class="seg-btn" id="btnFlashNo" onclick="toggleSettingBool('flash', false)">NO</button>
       </div>
 
-      <button class="btn-launch" style="width:100%; margin-top:10px; background:var(--accent-purple); color:#fff;" onclick="saveAndSyncSettings()">SAVE & SYNC TO TV</button>
-      <div class="standby-divider" style="margin: 16px 0; border-top: 1px solid var(--border);"></div>
+      <button class="btn-launch" style="width:100%; margin-top:8px; background:var(--accent-purple); color:#fff;" onclick="saveAndSyncSettings()">SAVE & SYNC TO TV</button>
+      <div class="standby-divider" style="margin: 12px 0; border-top: 1px solid var(--border);"></div>
       <label class="field-label">AFFICHE PROMO / HORLOGE TV</label>
       <input type="file" id="promoFileInput" accept="image/*" style="display:none;" onchange="handlePromoUpload(this)">
       <button class="btn-launch" type="button" style="width:100%; background:var(--accent-purple); color:#fff; margin-bottom:8px;" onclick="document.getElementById('promoFileInput').click()">📸 CHOISIR UNE AFFICHE</button>
-      <button class="btn-stop" type="button" style="width:100%; margin-bottom:14px;" onclick="removePromoBanner()">🗑️ ENLEVER L'AFFICHE ACTUELLE</button>
+      <button class="btn-stop" type="button" style="width:100%;" onclick="removePromoBanner()">🗑️ ENLEVER L'AFFICHE ACTUELLE</button>
     </div>
   </div>
 
@@ -638,8 +683,7 @@
   </div>
 
   <script>
-    
-// Firebase Configuration APX
+    // Firebase Configuration APX
     const firebaseConfig = {
       apiKey: "AIzaSyC6e1z1cYuq5q9IPGqp1ZLMcv-n0B1ttDo",
       authDomain: "apx-wod-timer.firebaseapp.com",
@@ -792,6 +836,8 @@
     // Render Setup Forms
     function renderForm() {
       const c = document.getElementById('form-container');
+      c.style.justifyContent = currentMode === 'custom' ? 'flex-start' : 'center';
+
       if (currentMode === 'fortime') {
         c.innerHTML = `
           <label class="field-label">Time Cap (0 = No Cap)</label>
@@ -896,14 +942,14 @@
             <button class="seg-btn ${config.restType === 'fixed' ? 'active' : ''}" onclick="setRest('fixed')">FIXED</button>
             <button class="seg-btn ${config.restType === 'none' ? 'active' : ''}" onclick="setRest('none')">NONE</button>
           </div>
-          <div id="fixed-box" style="display:${config.restType === 'fixed' ? 'flex' : 'none'}; gap:10px;">
-            <div class="stepper" style="flex:1">
+          <div id="fixed-box" style="display:${config.restType === 'fixed' ? 'flex' : 'none'}; gap:8px;">
+            <div class="stepper" style="flex:1; margin-bottom:0;">
               <button class="step-btn" onclick="adj('restMin', -1, 0, 59)">−</button>
               <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-restMin" value="${config.restMin}" onfocus="this.select()" oninput="manualSet('restMin', this.value, 0, 59)">
               <span class="step-unit">MIN</span>
               <button class="step-btn" onclick="adj('restMin', 1, 0, 59)">+</button>
             </div>
-            <div class="stepper" style="flex:1">
+            <div class="stepper" style="flex:1; margin-bottom:0;">
               <button class="step-btn" onclick="adj('restSec', -5, 0, 55)">−</button>
               <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-restSec" value="${config.restSec}" onfocus="this.select()" oninput="manualSet('restSec', this.value, 0, 59)">
               <span class="step-unit">SEC</span>
@@ -930,7 +976,7 @@
             <button class="step-btn" onclick="adj('customLoops', 1, 1, 30)">+</button>
           </div>
           <label class="field-label">Interval Sequence</label>
-          <div>${ivHtml || '<div style="color:var(--muted);font-size:12px;margin-bottom:8px;">No intervals created</div>'}</div>
+          <div class="custom-list-scroll">${ivHtml || '<div style="color:var(--muted);font-size:12px;margin-bottom:6px;">No intervals created</div>'}</div>
           <button class="btn-add-iv" onclick="addCustomIvPrompt()">+ ADD INTERVAL</button>
         `;
       }
@@ -1197,43 +1243,56 @@
       if (!data) return;
 
       isRunning = data.isRunning || false;
+      const isCountdown = data.isCountdown || false;
       const viewSetup = document.getElementById('view-setup');
       const viewSaved = document.getElementById('view-saved');
       const viewSettings = document.getElementById('view-settings');
       const viewLive = document.getElementById('view-live');
       const topNav = document.getElementById('topNav');
 
-      if (isRunning || (data.timeFormatted && data.timeFormatted !== "00:00")) {
+      if (isRunning || isCountdown || (data.timeFormatted && data.timeFormatted !== "00:00")) {
         topNav.style.display = 'none';
         viewSetup.style.display = 'none';
         viewSaved.style.display = 'none';
         viewSettings.style.display = 'none';
         viewLive.style.display = 'flex';
 
-        document.getElementById('liveDigits').innerText = data.timeFormatted || "00:00";
-        document.getElementById('liveBadge').innerText = data.mode || currentMode.toUpperCase();
-        document.getElementById('liveSub').innerText = isRunning ? "RUNNING" : "PAUSED";
-
+        const liveDigitsEl = document.getElementById('liveDigits');
+        const liveSubEl = document.getElementById('liveSub');
         const playBtn = document.getElementById('btnPlayPause');
-        playBtn.innerText = isRunning ? "PAUSE" : "RESUME";
-        playBtn.style.background = isRunning ? "var(--warning)" : "var(--accent-sets)";
-
         const ctxBtn = document.getElementById('btnContextual');
-        const activeM = (data.mode || currentMode).toUpperCase();
-        if (activeM.includes('TIME')) {
-          ctxBtn.style.display = 'block';
-          ctxBtn.innerText = "SPLIT";
-          ctxBtn.className = "btn-contextual btn-split";
-        } else if (activeM.includes('AMRAP')) {
-          ctxBtn.style.display = 'block';
-          ctxBtn.innerText = "+1 ROUND";
-          ctxBtn.className = "btn-contextual btn-round";
-        } else if (activeM.includes('SETS')) {
-          ctxBtn.style.display = 'block';
-          ctxBtn.innerText = "DONE SET / SKIP REST";
-          ctxBtn.className = "btn-contextual btn-set";
+
+        liveDigitsEl.innerText = data.timeFormatted || "00:00";
+        document.getElementById('liveBadge').innerText = data.mode || currentMode.toUpperCase();
+
+        if (isCountdown) {
+          liveDigitsEl.style.color = "var(--accent-amrap)";
+          liveSubEl.innerText = "GET READY";
+          playBtn.style.display = "none";
+          ctxBtn.style.display = "none";
         } else {
-          ctxBtn.style.display = 'none';
+          liveDigitsEl.style.color = "#fff";
+          liveSubEl.innerText = isRunning ? "RUNNING" : "PAUSED";
+          playBtn.style.display = "block";
+          playBtn.innerText = isRunning ? "PAUSE" : "RESUME";
+          playBtn.style.background = isRunning ? "var(--warning)" : "var(--accent-sets)";
+
+          const activeM = (data.mode || currentMode).toUpperCase();
+          if (activeM.includes('TIME')) {
+            ctxBtn.style.display = 'block';
+            ctxBtn.innerText = "SPLIT";
+            ctxBtn.className = "btn-contextual btn-split";
+          } else if (activeM.includes('AMRAP')) {
+            ctxBtn.style.display = 'block';
+            ctxBtn.innerText = "+1 ROUND";
+            ctxBtn.className = "btn-contextual btn-round";
+          } else if (activeM.includes('SETS')) {
+            ctxBtn.style.display = 'block';
+            ctxBtn.innerText = "DONE SET / SKIP REST";
+            ctxBtn.className = "btn-contextual btn-set";
+          } else {
+            ctxBtn.style.display = 'none';
+          }
         }
 
       } else {
