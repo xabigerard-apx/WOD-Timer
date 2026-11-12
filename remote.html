@@ -1406,37 +1406,51 @@
       renderForm();
     }
 
-    // Local Storage Saved Workouts
-    function getSavedWorkouts() {
-      try { return JSON.parse(localStorage.getItem('apx_saved_workouts') || '[]'); } catch { return []; }
-    }
+// Shared Firebase Saved Workouts (synchronisé entre tous les coachs)
+    const savedWorkoutsRef = db.ref(prefix + "saved_workouts");
+    let sharedSavedWorkouts = [];
+
+    savedWorkoutsRef.on("value", (snap) => {
+      const val = snap.val();
+      if (!val) {
+        sharedSavedWorkouts = [];
+      } else {
+        const list = Array.isArray(val) ? val : Object.values(val);
+        sharedSavedWorkouts = list.filter(Boolean).sort((a, b) => (b.id || 0) - (a.id || 0));
+      }
+      if (document.getElementById('tabNavSaved')?.classList.contains('active')) {
+        renderSavedList();
+      }
+    });
 
     function promptSaveWorkout() {
       if (currentMode === 'custom' && config.customIntervals.length === 0) {
         alert("Ajoute au moins un intervalle avant de sauvegarder.");
         return;
       }
-      const name = prompt("Workout name (e.g. EMOM 1:30 x 20, Fran, etc.):");
+      const name = prompt("Workout name (e.g. Mercredi - EMOM 1:30 x 20, Fran, etc.):");
       if (!name) return;
-      const saved = getSavedWorkouts();
-      saved.unshift({
-        id: Date.now(),
-        name: name,
+
+      const id = Date.now();
+      const entry = {
+        id: id,
+        name: name.trim(),
         mode: currentMode,
         config: JSON.parse(JSON.stringify(config))
+      };
+
+      savedWorkoutsRef.child(String(id)).set(entry).then(() => {
+        alert("Workout sauvegardé et partagé avec tous les coachs !");
       });
-      localStorage.setItem('apx_saved_workouts', JSON.stringify(saved));
-      alert("Workout saved!");
     }
 
     function renderSavedList() {
-      const saved = getSavedWorkouts();
       const c = document.getElementById('savedListContainer');
-      if (!saved.length) {
+      if (!sharedSavedWorkouts.length) {
         c.innerHTML = `<div style="text-align:center;color:var(--muted);margin-top:40px;font-size:13px;">No saved workouts yet.</div>`;
         return;
       }
-      c.innerHTML = saved.map(item => `
+      c.innerHTML = sharedSavedWorkouts.map(item => `
         <div class="saved-card">
           <div>
             <div class="saved-info-name">${item.name}</div>
@@ -1451,19 +1465,23 @@
     }
 
     function loadSavedWorkout(id) {
-      const saved = getSavedWorkouts();
-      const found = saved.find(s => s.id === id);
+      const found = sharedSavedWorkouts.find(s => s.id === id);
       if (!found) return;
       currentMode = found.mode;
-      config = JSON.parse(JSON.stringify(found.config));
+      const loadedCfg = JSON.parse(JSON.stringify(found.config || {}));
+      if (loadedCfg.customIntervals && !Array.isArray(loadedCfg.customIntervals)) {
+        loadedCfg.customIntervals = Object.values(loadedCfg.customIntervals);
+      } else if (!loadedCfg.customIntervals) {
+        loadedCfg.customIntervals = [];
+      }
+      config = { ...config, ...loadedCfg };
       switchMainTab('setup');
       selectMode(currentMode);
     }
 
     function deleteSavedWorkout(id) {
-      let saved = getSavedWorkouts().filter(s => s.id !== id);
-      localStorage.setItem('apx_saved_workouts', JSON.stringify(saved));
-      renderSavedList();
+      if (!confirm("Supprimer ce timer pour tous les coachs ?")) return;
+      savedWorkoutsRef.child(String(id)).remove();
     }
 
     // Settings Tab Handlers
