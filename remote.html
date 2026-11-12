@@ -798,7 +798,7 @@
 <body>
 
   <header>
-    <div class="brand-title">APX <span>REMOTE</span></div>
+    <div class="brand-title">APX <span>REMOTE</span> <span id="remoteVersionBadge" style="font-family:'DM Mono',monospace; font-size:10px; color:#444; letter-spacing:1px; vertical-align:middle;"></span></div>
     <div class="status-pill" id="connPill">Connecting...</div>
   </header>
 
@@ -983,6 +983,7 @@
 
     const timerRef = db.ref(prefix + "timer_state");
     const CURRENT_VERSION = "v1.5";
+    document.getElementById("remoteVersionBadge").textContent = CURRENT_VERSION;
     const versionRef = db.ref("app_version");
 
     versionRef.on("value", (snap) => {
