@@ -792,6 +792,14 @@
         <button class="step-btn" onclick="adjSetting('warnAt', 1, 1, 60)">+</button>
       </div>
 
+      <label class="field-label">TIME! / DONE! Screen Duration</label>
+      <div class="stepper">
+        <button class="step-btn" onclick="adjSetting('finishDuration', -5, 5, 300)">−</button>
+        <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-setFinishDuration" value="30" onfocus="this.select()" oninput="manualSetSetting('finishDuration', this.value, 5, 300)">
+        <span class="step-unit">SEC</span>
+        <button class="step-btn" onclick="adjSetting('finishDuration', 5, 5, 300)">+</button>
+      </div>
+
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <label class="field-label" style="margin:0;">TV Volume</label>
         <span id="volLabel" style="font-family:'DM Mono',monospace; font-size:12px; color:var(--accent-purple);">70%</span>
@@ -988,6 +996,7 @@
     let tvSettings = {
       countdown: 3,
       warnAt: 10,
+      finishDuration: 30,
       volume: 0.7,
       beep: true,
       flash: true
@@ -1482,6 +1491,7 @@
       if (!canControlTV()) return;
       tvSettings.countdown = parseInt(document.getElementById('val-setCountdown').value) || 3;
       tvSettings.warnAt = parseInt(document.getElementById('val-setWarnAt').value) || 10;
+      tvSettings.finishDuration = parseInt(document.getElementById('val-setFinishDuration').value) || 30;
       tvSettings.volume = (parseInt(document.getElementById('val-setVolume').value) || 70) / 100;
 
       settingsRef.set(tvSettings).then(() => {
@@ -1496,10 +1506,12 @@
         tvSettings = { ...tvSettings, ...s };
         const cdEl = document.getElementById('val-setCountdown');
         const warnEl = document.getElementById('val-setWarnAt');
+        const finEl = document.getElementById('val-setFinishDuration');
         const volEl = document.getElementById('val-setVolume');
         const volLbl = document.getElementById('volLabel');
         if (cdEl) cdEl.value = tvSettings.countdown;
         if (warnEl) warnEl.value = tvSettings.warnAt;
+        if (finEl) finEl.value = tvSettings.finishDuration;
         if (volEl) volEl.value = Math.round(tvSettings.volume * 100);
         if (volLbl) volLbl.textContent = Math.round(tvSettings.volume * 100) + '%';
         toggleSettingBool('beep', tvSettings.beep);
