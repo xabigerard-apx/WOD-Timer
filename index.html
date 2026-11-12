@@ -991,7 +991,7 @@
 <script>
   
 // Auto-Update Version Check (GitHub Pages cache buster)
-const CURRENT_VERSION = "v1.1";
+const CURRENT_VERSION = "v1.1.1";
 
 function checkAppUpdate() {
   fetch("version.txt?t=" + Date.now(), { cache: "no-store" })
@@ -1544,7 +1544,7 @@ let intMin = 0, intSec = 30;
 function openIntervalModal() {
   intMin = 0; intSec = 30;
   document.getElementById('intMinVal').value = '0';
-  document.getElementById('intSecVal').value = '30';
+  document.getElementById('intSecVal').value = '0';
   document.getElementById('intervalNameInput').value = '';
   document.getElementById('intervalModal').classList.add('active');
 }
