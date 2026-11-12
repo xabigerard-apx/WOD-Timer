@@ -319,18 +319,27 @@
     }
     .standby-banner-wrap {
       display: none;
+      position: relative;
       width: 48vw;
       height: 86vh;
       align-items: center;
       justify-content: center;
     }
     .standby-banner-img {
+      position: absolute;
+      inset: 0;
+      margin: auto;
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
       border-radius: 18px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.8);
       border: 1px solid rgba(255,255,255,0.1);
+      opacity: 0;
+      transition: opacity 0.85s ease-in-out;
+    }
+    .standby-banner-img.visible {
+      opacity: 1;
     }
   </style>
 
@@ -371,7 +380,8 @@
     </div>
 
     <div class="standby-banner-wrap" id="standbyBannerWrap">
-      <img id="standbyBannerImg" class="standby-banner-img" src="" alt="Affiche Promo">
+      <img id="standbyBannerImgA" class="standby-banner-img visible" src="" alt="Affiche Promo A">
+      <img id="standbyBannerImgB" class="standby-banner-img" src="" alt="Affiche Promo B">
     </div>
   </div>
 
@@ -461,19 +471,69 @@
     });
 
     const promoRef = db.ref(prefix + "promo_banner");
+    let promoSlideshowTimer = null;
+    let promoImagesList = [];
+    let promoCurrentIdx = 0;
+    let activeImgSlot = "A";
+
+    function showPromoSlide(index) {
+      if (!promoImagesList.length) return;
+      const imgA = document.getElementById("standbyBannerImgA");
+      const imgB = document.getElementById("standbyBannerImgB");
+      const nextSrc = promoImagesList[index % promoImagesList.length];
+
+      if (activeImgSlot === "A") {
+        imgB.src = nextSrc;
+        imgB.classList.add("visible");
+        imgA.classList.remove("visible");
+        activeImgSlot = "B";
+      } else {
+        imgA.src = nextSrc;
+        imgA.classList.add("visible");
+        imgB.classList.remove("visible");
+        activeImgSlot = "A";
+      }
+    }
+
     promoRef.on("value", (snap) => {
-      const imgData = snap.val();
+      const val = snap.val();
       const wrap = document.getElementById("standbyBannerWrap");
-      const imgEl = document.getElementById("standbyBannerImg");
       const screen = document.getElementById("standbyScreen");
 
-      if (imgData) {
-        imgEl.src = imgData;
-        wrap.style.display = "flex";
-        screen.classList.add("split-mode");
-      } else {
+      if (promoSlideshowTimer) {
+        clearInterval(promoSlideshowTimer);
+        promoSlideshowTimer = null;
+      }
+
+      let images = [];
+      let intervalSec = 10;
+
+      if (typeof val === "string" && val) {
+        images = [val];
+      } else if (val && val.images) {
+        const raw = Array.isArray(val.images) ? val.images : Object.values(val.images);
+        images = raw.filter(Boolean);
+        intervalSec = Math.max(2, parseInt(val.interval) || 10);
+      }
+
+      promoImagesList = images;
+
+      if (!images.length) {
         wrap.style.display = "none";
         screen.classList.remove("split-mode");
+        return;
+      }
+
+      wrap.style.display = "flex";
+      screen.classList.add("split-mode");
+      promoCurrentIdx = 0;
+      showPromoSlide(0);
+
+      if (images.length > 1) {
+        promoSlideshowTimer = setInterval(() => {
+          promoCurrentIdx = (promoCurrentIdx + 1) % promoImagesList.length;
+          showPromoSlide(promoCurrentIdx);
+        }, intervalSec * 1000);
       }
     });
 
