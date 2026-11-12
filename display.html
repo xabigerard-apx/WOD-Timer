@@ -416,7 +416,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const timerRef = db.ref("timer_state");
-    const CURRENT_VERSION = "1.1";
+    const CURRENT_VERSION = "1.2";
     const versionRef = db.ref("app_version");
 
     versionRef.on("value", (snap) => {
