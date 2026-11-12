@@ -1409,7 +1409,7 @@
     }
 
 // Shared Firebase Saved Workouts (synchronisé entre tous les coachs)
-    const savedWorkoutsRef = db.ref(prefix + "saved_workouts");
+    const savedWorkoutsRef = db.ref(prefix + "timer_settings/saved_workouts");
     let sharedSavedWorkouts = [];
 
     savedWorkoutsRef.on("value", (snap) => {
@@ -1514,7 +1514,7 @@
       tvSettings.finishDuration = parseInt(document.getElementById('val-setFinishDuration').value) || 30;
       tvSettings.volume = (parseInt(document.getElementById('val-setVolume').value) || 70) / 100;
 
-      settingsRef.set(tvSettings).then(() => {
+      settingsRef.update(tvSettings).then(() => {
         alert("Settings synced to TV!");
         switchMainTab('setup');
       });
