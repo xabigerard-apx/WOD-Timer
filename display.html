@@ -419,21 +419,22 @@
     const prefix = isTestMode ? "test_" : "";
 
     const timerRef = db.ref(prefix + "timer_state");
-    const CURRENT_VERSION = "1.3";
+    const CURRENT_VERSION = "v1.3";
     const versionRef = db.ref("app_version");
 
-    versionRef.on("value", (snap) => {
-      const latestVersion = snap.val();
-      if (!latestVersion) {
-        versionRef.set(CURRENT_VERSION);
-        return;
-      }
-      const url = new URL(window.location.href);
-      if (latestVersion !== CURRENT_VERSION && url.searchParams.get("v") !== latestVersion) {
-        url.searchParams.set("v", latestVersion);
-        window.location.replace(url.toString());
-      }
-    });
+ versionRef.on("value", (snap) => {
+    if (isTestMode) return;
+    const latestVersion = String(snap.val() || "");
+    if (!latestVersion) {
+     versionRef.set(CURRENT_VERSION);
+     return;
+   }
+   const url = new URL(window.location.href);
+   if (latestVersion !== CURRENT_VERSION && url.searchParams.get("v") !== latestVersion) {
+     url.searchParams.set("v", latestVersion);
+     window.location.replace(url.toString());
+   }
+ });
 
     // Enregistrement de l'adresse IP publique du gym (ignoré en mode test)
     const gymIpRef = db.ref("gym_ip");
