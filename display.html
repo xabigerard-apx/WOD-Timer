@@ -416,7 +416,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const timerRef = db.ref("timer_state");
-    const CURRENT_VERSION = "1.0";
+    const CURRENT_VERSION = "1.1";
     const versionRef = db.ref("app_version");
 
     versionRef.on("value", (snap) => {
@@ -431,6 +431,20 @@
         window.location.replace(url.toString());
       }
     });
+    // Enregistrement de l'adresse IP publique du gym
+    const gymIpRef = db.ref("gym_ip");
+    const isTestMode = new URLSearchParams(window.location.search).get("test") === "1";
+
+    if (!isTestMode) {
+      fetch("https://api.ipify.org?format=json")
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.ip) {
+            gymIpRef.set(data.ip);
+          }
+        })
+        .catch(err => console.error("Erreur détection IP:", err));
+    }
     const settingsRef = db.ref("timer_settings");
 let countdownDuration = 10;
 
