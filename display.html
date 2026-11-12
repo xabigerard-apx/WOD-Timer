@@ -461,12 +461,14 @@
 
     const settingsRef = db.ref(prefix + "timer_settings");
     let countdownDuration = 10;
+    let finishDurationSec = 30;
 
     settingsRef.on("value", (snap) => {
       const s = snap.val();
       if (s) {
         if (s.countdown !== undefined) countdownDuration = parseInt(s.countdown);
         if (s.warnAt !== undefined) warnThreshold = parseInt(s.warnAt);
+        if (s.finishDuration !== undefined) finishDurationSec = parseInt(s.finishDuration);
       }
     });
 
@@ -1068,7 +1070,7 @@ function resetToStandby() {
         finishBannerTimeout = setTimeout(() => {
           banner.classList.remove('active');
           showStandbyClock();
-        }, 180000);
+        }, finishDurationSec * 1000);
       } else {
         showStandbyClock();
       }
@@ -1092,7 +1094,7 @@ function resetToStandby() {
       finishBannerTimeout = setTimeout(() => {
         banner.classList.remove('active');
         showStandbyClock();
-      }, 180000);
+      }, finishDurationSec * 1000);
     }
 
     function fmtSecs(s) {
