@@ -982,7 +982,7 @@
     const prefix = isTestMode ? "test_" : "";
 
     const timerRef = db.ref(prefix + "timer_state");
-    const CURRENT_VERSION = "v1.4";
+    const CURRENT_VERSION = "v1.5";
     const versionRef = db.ref("app_version");
 
     versionRef.on("value", (snap) => {
