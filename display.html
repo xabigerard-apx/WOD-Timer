@@ -657,11 +657,11 @@
         return;
       }
 
-      const overlay = document.getElementById('countdownOverlay');
+const overlay = document.getElementById('countdownOverlay');
       const numEl = document.getElementById('countdownNum');
       overlay.style.display = 'flex';
       numEl.textContent = count;
-      beep(880, 0.12, 0.35);
+      if (count <= warnThreshold) beep(880, 0.12, 0.35);
       broadcastState(String(count), false, currentMode.toUpperCase(), true);
 
       countdownInterval = setInterval(() => {
@@ -674,7 +674,7 @@
           initAndLaunchWorkout();
         } else {
           numEl.textContent = count;
-          beep(880, 0.12, 0.35);
+          if (count <= warnThreshold) beep(880, 0.12, 0.35);
           broadcastState(String(count), false, currentMode.toUpperCase(), true);
         }
       }, 1000);
