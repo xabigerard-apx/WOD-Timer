@@ -511,6 +511,11 @@
       letter-spacing: 1.5px;
       cursor: pointer;
     }
+    
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+    
   </style>
 </head>
 <body>
@@ -648,6 +653,21 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const timerRef = db.ref("timer_state");
+    const CURRENT_VERSION = "1.0";
+    const versionRef = db.ref("app_version");
+
+    versionRef.on("value", (snap) => {
+      const latestVersion = snap.val();
+      if (!latestVersion) {
+        versionRef.set(CURRENT_VERSION);
+        return;
+      }
+      const url = new URL(window.location.href);
+      if (latestVersion !== CURRENT_VERSION && url.searchParams.get("v") !== latestVersion) {
+        url.searchParams.set("v", latestVersion);
+        window.location.replace(url.toString());
+      }
+    });
     const settingsRef = db.ref("timer_settings");
 
     let currentMode = 'fortime';
