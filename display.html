@@ -422,19 +422,19 @@
     const CURRENT_VERSION = "v1.3";
     const versionRef = db.ref("app_version");
 
- versionRef.on("value", (snap) => {
-    if (isTestMode) return;
-    const latestVersion = String(snap.val() || "");
-    if (!latestVersion) {
-     versionRef.set(CURRENT_VERSION);
-     return;
-   }
-   const url = new URL(window.location.href);
-   if (latestVersion !== CURRENT_VERSION && url.searchParams.get("v") !== latestVersion) {
-     url.searchParams.set("v", latestVersion);
-     window.location.replace(url.toString());
-   }
- });
+    versionRef.on("value", (snap) => {
+      if (isTestMode) return;
+      const latestVersion = String(snap.val() || "");
+      if (!latestVersion) {
+        versionRef.set(CURRENT_VERSION);
+        return;
+      }
+      const url = new URL(window.location.href);
+      if (latestVersion !== CURRENT_VERSION && url.searchParams.get("v") !== latestVersion) {
+        url.searchParams.set("v", latestVersion);
+        window.location.replace(url.toString());
+      }
+    });
 
     // Enregistrement de l'adresse IP publique du gym (ignoré en mode test)
     const gymIpRef = db.ref("gym_ip");
@@ -569,6 +569,7 @@
     let currentMode = 'fortime';
     let workoutConfig = {};
     let timerInterval = null;
+    let countdownInterval = null;
     let isRunning = false;
     let isPaused = false;
     let startTime = 0;
@@ -617,10 +618,11 @@
       }
     });
 
-    function broadcastState(timeStr, running, modeStr) {
+    function broadcastState(timeStr, running, modeStr, countdown = false) {
       timerRef.update({
         timeFormatted: timeStr,
         isRunning: running,
+        isCountdown: countdown,
         mode: modeStr
       }).catch(() => {});
     }
@@ -628,6 +630,7 @@
     function showStandbyClock() {
       document.getElementById('standbyScreen').style.display = 'flex';
       document.getElementById('display-container').style.display = 'none';
+      document.getElementById('countdownOverlay').style.display = 'none';
       document.getElementById('finishBanner').classList.remove('active');
     }
 
@@ -641,28 +644,38 @@
       requestWakeLock();
       if (finishBannerTimeout) clearTimeout(finishBannerTimeout);
       clearInterval(timerInterval);
+      clearInterval(countdownInterval);
       isPaused = false;
       let count = countdownDuration;
 
       document.getElementById('finishBanner').classList.remove('active');
       hideStandbyClock();
 
+      if (count <= 0) {
+        goBeep();
+        initAndLaunchWorkout();
+        return;
+      }
+
       const overlay = document.getElementById('countdownOverlay');
       const numEl = document.getElementById('countdownNum');
       overlay.style.display = 'flex';
       numEl.textContent = count;
       beep(880, 0.12, 0.35);
+      broadcastState(String(count), false, currentMode.toUpperCase(), true);
 
-      const cd = setInterval(() => {
+      countdownInterval = setInterval(() => {
         count--;
         if (count <= 0) {
-          clearInterval(cd);
+          clearInterval(countdownInterval);
+          countdownInterval = null;
           overlay.style.display = 'none';
           goBeep();
           initAndLaunchWorkout();
         } else {
           numEl.textContent = count;
           beep(880, 0.12, 0.35);
+          broadcastState(String(count), false, currentMode.toUpperCase(), true);
         }
       }, 1000);
     }
@@ -758,7 +771,7 @@
       }
 
       timerInterval = setInterval(tick, 100);
-      broadcastState(disp.textContent, true, currentMode.toUpperCase());
+      broadcastState(disp.textContent, true, currentMode.toUpperCase(), false);
     }
 
     function tick() {
@@ -875,7 +888,7 @@
         }
       }
 
-      broadcastState(formatted, true, currentMode.toUpperCase());
+      broadcastState(formatted, true, currentMode.toUpperCase(), false);
     }
 
     function checkWarn(s) {
@@ -960,7 +973,7 @@
       isPaused = true;
       pausedAt = Date.now();
       document.getElementById('displaySub').textContent = "PAUSED";
-      broadcastState(document.getElementById('displayDigits').textContent, false, currentMode.toUpperCase());
+      broadcastState(document.getElementById('displayDigits').textContent, false, currentMode.toUpperCase(), false);
     }
 
     function resumeTimer() {
@@ -969,12 +982,14 @@
       startTime += diff;
       if (currentMode === 'sets') setsTimeOffset += diff;
       document.getElementById('displaySub').textContent = "RUNNING";
-      broadcastState(document.getElementById('displayDigits').textContent, true, currentMode.toUpperCase());
+      broadcastState(document.getElementById('displayDigits').textContent, true, currentMode.toUpperCase(), false);
     }
 
     function resetToStandby() {
       if (finishBannerTimeout) clearTimeout(finishBannerTimeout);
       clearInterval(timerInterval);
+      clearInterval(countdownInterval);
+      countdownInterval = null;
       isRunning = false;
       isPaused = false;
       stopBeep();
@@ -982,7 +997,7 @@
       document.getElementById('displayLaps').innerHTML = "";
       document.getElementById('progressFill').style.width = "0%";
       showStandbyClock();
-      broadcastState("00:00", false, "READY");
+      broadcastState("00:00", false, "READY", false);
     }
 
     // --- FIN DE WORKOUT (TIME! PENDANT 3 MINUTES -> RETOUR HORLOGE APX) ---
@@ -990,7 +1005,7 @@
       clearInterval(timerInterval);
       isRunning = false;
       goBeep();
-      broadcastState("00:00", false, currentMode.toUpperCase());
+      broadcastState("00:00", false, currentMode.toUpperCase(), false);
 
       // Affichage direct de l'écran TIME!
       const banner = document.getElementById('finishBanner');
