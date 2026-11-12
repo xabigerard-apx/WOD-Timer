@@ -380,8 +380,8 @@
     </div>
 
     <div class="standby-banner-wrap" id="standbyBannerWrap">
-      <img id="standbyBannerImgA" class="standby-banner-img visible" src="" alt="Affiche Promo A">
-      <img id="standbyBannerImgB" class="standby-banner-img" src="" alt="Affiche Promo B">
+      <img id="standbyBannerImgA" class="standby-banner-img visible" src="" alt="Promo Banner A">
+      <img id="standbyBannerImgB" class="standby-banner-img" src="" alt="Promo Banner B">
     </div>
   </div>
 
@@ -429,7 +429,7 @@
     const prefix = isTestMode ? "test_" : "";
 
     const timerRef = db.ref(prefix + "timer_state");
-    const CURRENT_VERSION = "v1.3";
+    const CURRENT_VERSION = "v1.4";
     const versionRef = db.ref("app_version");
 
     versionRef.on("value", (snap) => {
