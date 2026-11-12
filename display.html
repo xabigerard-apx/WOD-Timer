@@ -491,7 +491,7 @@
     const CURRENT_VERSION = "v1.5.1";
     const vBadge = document.createElement("div");
     vBadge.textContent = CURRENT_VERSION;
-    vBadge.style.cssText = "position:fixed; bottom:6px; right:10px; font-family:'DM Mono',monospace; font-size:11px; color:rgba(255,255,255,0.18); letter-spacing:1px; pointer-events:none; z-index:50;";
+    vBadge.style.cssText = "position:fixed; bottom:6px; right:10px; font-family:'DM Mono',monospace; font-size:11px; color:rgba(255,255,255,0.18); letter-spacing:1px; pointer-events:none; z-index:9999;";
     document.body.appendChild(vBadge);
     const versionRef = db.ref("app_version");
 
