@@ -989,6 +989,30 @@
 </div>
 
 <script>
+  
+// Auto-Update Version Check (GitHub Pages cache buster)
+const CURRENT_VERSION = "v1.1";
+
+function checkAppUpdate() {
+  fetch("version.txt?t=" + Date.now(), { cache: "no-store" })
+    .then(res => res.ok ? res.text() : null)
+    .then(txt => {
+      if (!txt) return;
+      const latestVersion = txt.trim();
+      const url = new URL(window.location.href);
+      if (latestVersion && latestVersion !== CURRENT_VERSION && url.searchParams.get("v") !== latestVersion) {
+        url.searchParams.set("v", latestVersion);
+        window.location.replace(url.toString());
+      }
+    })
+    .catch(() => {}); // Hors-ligne : on continue normalement
+}
+
+checkAppUpdate();
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") checkAppUpdate();
+});
+
 // Local Broadcast Dummy (Offline / Standalone)
 function broadcastState(timeStr, running, modeStr) {}
 
