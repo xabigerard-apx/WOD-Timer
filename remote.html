@@ -822,16 +822,22 @@
 
       <button class="btn-launch" style="width:100%; margin-top:8px; background:var(--accent-purple); color:#fff;" onclick="saveAndSyncSettings()">SAVE & SYNC TO TV</button>
       <div class="standby-divider" style="margin: 12px 0; border-top: 1px solid var(--border);"></div>
-      <label class="field-label">AFFICHES PROMO / HORLOGE TV</label>
+      <label class="field-label">TV PROMO BANNERS / CLOCK</label>
       <div id="promoThumbsGrid" class="promo-thumbs-grid" style="display:none;"></div>
 
       <div id="promoIntervalBox" style="display:none; margin-bottom:8px;">
-        <label class="field-label">Durée par affiche</label>
+        <label class="field-label">Slide Duration</label>
         <div class="stepper" style="margin-bottom:0;">
           <button class="step-btn" type="button" onclick="adjPromoInterval(-1)">−</button>
           <input type="number" inputmode="numeric" pattern="[0-9]*" class="step-val-input" id="val-promoInterval" value="10" onfocus="this.select()" oninput="manualSetPromoInterval(this.value)">
           <span class="step-unit">SEC</span>
           <button class="step-btn" type="button" onclick="adjPromoInterval(1)">+</button>
+        </div>
+      </div>
+
+      <input type="file" id="promoFileInput" accept="image/*" multiple style="display:none;" onchange="handlePromoUpload(this)">
+      <button class="btn-launch" type="button" style="width:100%; background:var(--accent-purple); color:#fff; margin-bottom:8px;" onclick="document.getElementById('promoFileInput').click()">📸 ADD PROMO BANNERS</button>
+      <button class="btn-stop" id="btnRemoveAllPromo" type="button" style="width:100%; display:none;" onclick="removePromoBanner()">🗑️ REMOVE ALL</button>
         </div>
       </div>
 
@@ -909,13 +915,13 @@
     function updateGymConnectionStatus() {
       const pill = document.getElementById('connPill');
       if (isTestMode) {
-        pill.innerText = "🛠️ Mode Test";
+        pill.innerText = "🛠️ Test Mode";
         pill.classList.remove('online');
         pill.style.color = "#8c52ff";
         pill.style.borderColor = "#8c52ff";
         return;
       }
-      if (!gymIp || !myIp) return; // En attente de vérification
+      if (!gymIp || !myIp) return;
 
       if (myIp === gymIp) {
         isAtGym = true;
@@ -925,7 +931,7 @@
         pill.style.borderColor = "";
       } else {
         isAtGym = false;
-        pill.innerText = "🔒 Hors-Gym";
+        pill.innerText = "🔒 Off-Site";
         pill.classList.remove('online');
         pill.style.color = "#f59e0b";
         pill.style.borderColor = "#f59e0b";
@@ -956,7 +962,7 @@
       // Sécurité : en mode test ou si gym_ip n'est pas encore enregistré, on laisse passer
       if (isTestMode || !gymIp) return true;
       if (!isAtGym) {
-        alert("🔒 Action bloquée : tu dois être connecté au Wi-Fi du gym pour contrôler la télé.");
+        alert("🔒 Action blocked: You must be connected to the gym Wi-Fi to control the TV.");
         return false;
       }
       return true;
@@ -1164,9 +1170,9 @@
           </div>
         `).join('');
 
-        let editorHtml = '';
+       let editorHtml = '';
         if (editingIdx !== null) {
-          const title = editingIdx === -1 ? "NOUVEL INTERVALLE" : `MODIFIER #${editingIdx + 1}`;
+          const title = editingIdx === -1 ? "NEW INTERVAL" : `EDIT #${editingIdx + 1}`;
           const swatchesHtml = APX_COLORS.map(col => `
             <div class="swatch ${draftIv.color === col.hex ? 'selected' : ''}"
                  data-color="${col.hex}"
@@ -1180,7 +1186,7 @@
                 <span class="editor-title">${title}</span>
               </div>
 
-              <input type="text" id="ivNameInput" class="text-input" placeholder="Nom (ex: Work, Rest, Run...)" value="${draftIv.name}">
+              <input type="text" id="ivNameInput" class="text-input" placeholder="Name (e.g. Work, Rest, Run...)" value="${draftIv.name}">
 
               <div class="row-split">
                 <div class="stepper" style="margin-bottom:8px;">
@@ -1197,11 +1203,11 @@
                 </div>
               </div>
 
-              <label class="field-label">Couleur du badge TV</label>
+              <label class="field-label">TV Badge Color</label>
               <div class="color-swatches">${swatchesHtml}</div>
 
               <div class="editor-actions">
-                <button class="btn-cancel" onclick="closeEditor()">ANNULER</button>
+                <button class="btn-cancel" onclick="closeEditor()">CANCEL</button>
                 <button class="btn-save-iv" onclick="saveDraftInterval()">OK</button>
               </div>
             </div>
@@ -1216,9 +1222,9 @@
             <span class="step-unit">×</span>
             <button class="step-btn" onclick="adj('customLoops', 1, 1, 30)">+</button>
           </div>
-          <label class="field-label">Interval Sequence ${config.customIntervals.length ? '(cliquer pour éditer)' : ''}</label>
+          <label class="field-label">Interval Sequence ${config.customIntervals.length ? '(tap to edit)' : ''}</label>
           <div class="custom-list-scroll">
-            ${listHtml || '<div style="color:var(--muted);font-size:12px;padding:6px 0;">Aucun intervalle créé</div>'}
+            ${listHtml || '<div style="color:var(--muted);font-size:12px;padding:6px 0;">No intervals added yet</div>'}
           </div>
           ${editingIdx === null
             ? `<button class="btn-add-iv" onclick="openNewIntervalEditor()">+ ADD INTERVAL</button>`
@@ -1381,7 +1387,7 @@
       const totalMs = ((draftIv.mins * 60) + draftIv.secs) * 1000;
 
       if (totalMs <= 0) {
-        alert("La durée doit être supérieure à 0:00.");
+        alert("Duration must be greater than 0:00.");
         return;
       }
 
@@ -1427,10 +1433,10 @@
 
     function promptSaveWorkout() {
       if (currentMode === 'custom' && config.customIntervals.length === 0) {
-        alert("Ajoute au moins un intervalle avant de sauvegarder.");
+        alert("Add at least one interval before saving.");
         return;
       }
-      const name = prompt("Workout name (e.g. Mercredi - EMOM 1:30 x 20, Fran, etc.):");
+      const name = prompt("Workout name (e.g. Wednesday - EMOM 1:30 x 20, Fran, etc.):");
       if (!name) return;
 
       const id = Date.now();
@@ -1442,7 +1448,7 @@
       };
 
       savedWorkoutsRef.child(String(id)).set(entry).then(() => {
-        alert("Workout sauvegardé et partagé avec tous les coachs !");
+        alert("Workout saved and shared with all coaches!");
       });
     }
 
@@ -1482,7 +1488,7 @@
     }
 
     function deleteSavedWorkout(id) {
-      if (!confirm("Supprimer ce timer pour tous les coachs ?")) return;
+      if (!confirm("Delete this saved workout for all coaches?")) return;
       savedWorkoutsRef.child(String(id)).remove();
     }
 
@@ -1543,7 +1549,7 @@
     function launchWorkoutOnTV() {
       if (!canControlTV()) return;
       if (currentMode === 'custom' && config.customIntervals.length === 0) {
-        alert("Ajoute au moins un intervalle avant de démarrer.");
+        alert("Add at least one interval before starting.");
         return;
       }
 
@@ -1731,7 +1737,7 @@ const promoRef = db.ref(prefix + "promo_banner");
 
       grid.innerHTML = promoData.images.map((src, idx) => `
         <div class="promo-thumb-item">
-          <img src="${src}" alt="Affiche ${idx + 1}">
+          <img src="${src}" alt="Banner ${idx + 1}">
           <button type="button" class="promo-thumb-del" onclick="removeSinglePromo(${idx})">×</button>
         </div>
       `).join("");
@@ -1770,7 +1776,7 @@ const promoRef = db.ref(prefix + "promo_banner");
       input.value = "";
 
       promoRef.set(promoData).then(() => {
-        alert(compressedList.length > 1 ? `${compressedList.length} affiches ajoutées sur la TV !` : "Affiche ajoutée sur la TV !");
+        alert(compressedList.length > 1 ? `${compressedList.length} banners added to TV!` : "Banner added to TV!");
       });
     }
 
@@ -1802,7 +1808,11 @@ const promoRef = db.ref(prefix + "promo_banner");
 
     function removePromoBanner() {
       if (!canControlTV()) return;
-      if (confirm("Supprimer toutes les affiches promo de la TV ?")) {
+      if (confirm("Remove all promo banners from TV?")) {
+        promoRef.remove().then(() => {
+          alert("Banners removed. Clock centered.");
+        });
+      }
         promoRef.remove().then(() => {
           alert("Affiches retirées. L'horloge revient au centre.");
         });
