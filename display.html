@@ -341,6 +341,55 @@
     .standby-banner-img.visible {
       opacity: 1;
     }
+    
+    #demoOverlay {
+      position: fixed;
+      inset: 0;
+      background: #050508;
+      z-index: 900;
+      display: none;
+      flex-direction: column;
+      padding: 24px 32px;
+      box-sizing: border-box;
+    }
+    .demo-tv-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .demo-tv-badge {
+      background: #8c52ff;
+      color: #fff;
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: 2px;
+      padding: 6px 16px;
+      border-radius: 8px;
+      text-transform: uppercase;
+    }
+    .demo-tv-title {
+      font-size: 38px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .demo-tv-frame-wrap {
+      flex: 1;
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid rgba(140, 82, 255, 0.4);
+      background: #000;
+    }
+    .demo-tv-frame-wrap iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      pointer-events: none;
+    }
+    
   </style>
 
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -384,6 +433,16 @@
       <img id="standbyBannerImgB" class="standby-banner-img" src="" alt="Promo Banner B">
     </div>
   </div>
+
+  <div id="demoOverlay">
+      <div class="demo-tv-header">
+        <div class="demo-tv-title" id="demoTvTitle">MOVEMENT DEMO</div>
+        <div class="demo-tv-badge" id="demoTvBadge">DEMO</div>
+      </div>
+      <div class="demo-tv-frame-wrap">
+        <iframe id="demoTvIframe" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      </div>
+    </div>
 
   <!-- ÉCRAN PRINCIPAL WORKOUT -->
   <div id="display-container">
@@ -458,6 +517,31 @@
         })
         .catch(err => console.error("Erreur détection IP:", err));
     }
+
+    const activeDemoRef = db.ref(prefix + "timer_settings/active_demo");
+    let currentTvVideoId = null;
+
+    activeDemoRef.on("value", (snap) => {
+      const demo = snap.val();
+      const overlay = document.getElementById("demoOverlay");
+      const iframe = document.getElementById("demoTvIframe");
+      const titleEl = document.getElementById("demoTvTitle");
+      const badgeEl = document.getElementById("demoTvBadge");
+
+      if (demo && demo.videoId) {
+        if (currentTvVideoId !== demo.videoId) {
+          currentTvVideoId = demo.videoId;
+          titleEl.innerText = demo.title || "MOVEMENT DEMO";
+          badgeEl.innerText = demo.category || "DEMO";
+          iframe.src = `https://www.youtube.com/embed/${demo.videoId}?autoplay=1&mute=1&loop=1&playlist=${demo.videoId}&controls=0&modestbranding=1&rel=0&playsinline=1`;
+        }
+        overlay.style.display = "flex";
+      } else {
+        currentTvVideoId = null;
+        iframe.src = "";
+        overlay.style.display = "none";
+      }
+    });
 
     const settingsRef = db.ref(prefix + "timer_settings");
     let countdownDuration = 10;
