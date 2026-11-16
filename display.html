@@ -382,6 +382,7 @@
       text-overflow: ellipsis;
     }
     .demo-tv-frame-wrap {
+      position: relative;
       flex: 1;
       width: 100%;
       border-radius: 16px;
@@ -390,11 +391,31 @@
       background: #000;
     }
     .demo-tv-frame-wrap iframe,
-    .demo-tv-frame-wrap > div {
+    .demo-tv-frame-wrap > div#demoTvPlayerMount {
       width: 100%;
       height: 100%;
       border: 0;
       pointer-events: none;
+      transform: scale(1.04);
+    }
+    #demoTvCurtain {
+      position: absolute;
+      inset: 0;
+      background: #050508;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 16px;
+      letter-spacing: 4px;
+      color: var(--muted);
+      z-index: 5;
+      opacity: 1;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    #demoTvCurtain.hidden {
+      opacity: 0;
     }
   </style>
 
@@ -441,12 +462,15 @@
   </div>
 
   <!-- ÉCRAN DÉMO YOUTUBE / PLAYLIST -->
+  <!-- ÉCRAN DÉMO YOUTUBE / PLAYLIST -->
   <div id="demoOverlay">
     <div class="demo-tv-header">
       <div class="demo-tv-title" id="demoTvTitle">MOVEMENT DEMO</div>
       <div class="demo-tv-badge" id="demoTvBadge">DEMO</div>
     </div>
-    <div class="demo-tv-frame-wrap" id="demoTvFrameWrap"></div>
+    <div class="demo-tv-frame-wrap" id="demoTvFrameWrap">
+      <div id="demoTvCurtain">LOADING DEMO...</div>
+    </div>
   </div>
 
   <!-- ÉCRAN PRINCIPAL WORKOUT -->
@@ -546,8 +570,35 @@
     let activeDemoPaused = false;
     let ytPlayer = null;
     let ytFallbackTimeout = null;
+    let curtainTimer = null;
     let lastDemoNavTimestamp = 0;
     let lastDemoPlaybackTimestamp = 0;
+
+    function setTvCurtain(visible, label = "LOADING DEMO...") {
+      const curtain = document.getElementById("demoTvCurtain");
+      if (!curtain) return;
+      if (curtainTimer) {
+        clearTimeout(curtainTimer);
+        curtainTimer = null;
+      }
+      if (visible) {
+        curtain.textContent = label;
+        curtain.classList.remove("hidden");
+      } else {
+        curtainTimer = setTimeout(() => {
+          curtain.classList.add("hidden");
+        }, 450);
+      }
+    }
+
+    function disableYtCaptions(playerInstance) {
+      try {
+        if (playerInstance && typeof playerInstance.unloadModule === "function") {
+          playerInstance.unloadModule("captions");
+          playerInstance.unloadModule("cc");
+        }
+      } catch (e) {}
+    }
 
     function updateDemoHeaderUI() {
       const titleEl = document.getElementById("demoTvTitle");
@@ -575,6 +626,7 @@
         if (activeDemoPaused && typeof ytPlayer.pauseVideo === "function") {
           ytPlayer.pauseVideo();
         } else if (!activeDemoPaused && typeof ytPlayer.playVideo === "function") {
+          setTvCurtain(true, "");
           ytPlayer.mute();
           ytPlayer.playVideo();
         }
@@ -584,6 +636,7 @@
     function navigatePlaylistVideo(direction = "next") {
       if (!activeQueue.length) return;
       activeDemoPaused = false;
+      setTvCurtain(true, "NEXT MOVEMENT...");
       if (activeQueue.length === 1) {
         if (ytPlayer && typeof ytPlayer.seekTo === "function") {
           ytPlayer.seekTo(0, true);
@@ -601,6 +654,7 @@
       const targetItem = activeQueue[activeQueueIdx];
       if (ytPlayer && typeof ytPlayer.loadVideoById === "function" && targetItem) {
         ytPlayer.loadVideoById(targetItem.videoId);
+        disableYtCaptions(ytPlayer);
       } else {
         renderFallbackIframe();
       }
@@ -616,7 +670,8 @@
       const ids = rotated.map(x => x.videoId).filter(Boolean);
       const firstId = ids[0];
       const playlistParam = ids.join(",");
-      wrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${firstId}?autoplay=1&mute=1&loop=1&playlist=${playlistParam}&controls=0&modestbranding=1&rel=0&playsinline=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+      wrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${firstId}?autoplay=1&mute=1&loop=1&playlist=${playlistParam}&controls=0&modestbranding=1&rel=0&playsinline=1&cc_load_policy=0&iv_load_policy=3" allow="autoplay; encrypted-media" allowfullscreen></iframe><div id="demoTvCurtain">LOADING DEMO...</div>`;
+      setTimeout(() => setTvCurtain(false), 900);
     }
 
     function startTvDemoPlayer() {
@@ -640,7 +695,8 @@
         return;
       }
 
-      wrap.innerHTML = `<div id="demoTvPlayerMount"></div>`;
+      wrap.innerHTML = `<div id="demoTvPlayerMount"></div><div id="demoTvCurtain">LOADING DEMO...</div>`;
+      setTvCurtain(true, "LOADING DEMO...");
       const firstId = activeQueue[0].videoId;
 
       ytFallbackTimeout = setTimeout(() => {
@@ -658,6 +714,7 @@
           modestbranding: 1,
           rel: 0,
           playsinline: 1,
+          cc_load_policy: 0,
           iv_load_policy: 3
         },
         events: {
@@ -667,17 +724,23 @@
               ytFallbackTimeout = null;
             }
             e.target.mute();
+            disableYtCaptions(e.target);
             if (activeDemoPaused) {
               e.target.pauseVideo();
+              setTvCurtain(false);
             } else {
               e.target.playVideo();
             }
           },
           onStateChange: (e) => {
-            if (e.data === YT.PlayerState.ENDED && !activeDemoPaused) {
+            if (e.data === YT.PlayerState.PLAYING) {
+              disableYtCaptions(e.target);
+              setTvCurtain(false);
+            } else if (e.data === YT.PlayerState.ENDED && !activeDemoPaused) {
               navigatePlaylistVideo("next");
             }
           },
+          
           onError: () => {
             if (activeQueue.length > 1) {
               setTimeout(() => navigatePlaylistVideo("next"), 800);
