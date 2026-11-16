@@ -862,10 +862,11 @@
 
       <div id="demoListContainer" class="demo-list-scroll"></div>
 
-      <div id="demoAddBox" style="display:none; background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:10px; margin-bottom:8px; flex-shrink:0;">
+      <div id="demoAddBox" style="display:none; background:var(--bg); border:1px solid var(--accent-purple); border-radius:10px; padding:10px; margin-bottom:8px; flex-shrink:0;">
+        <div id="demoFormTitle" class="editor-title" style="margin-bottom:6px;">NEW DEMO</div>
         <input type="text" id="demoTitleInput" class="text-input" placeholder="Movement name (e.g. HSW - Wall Tap Progression)" style="margin-bottom:6px;">
-        <input type="text" id="demoCatInput" class="text-input" placeholder="Category (optional: Gymnastics, Weightlifting...)" style="margin-bottom:6px;">
-        <input type="url" id="demoUrlInput" class="text-input" placeholder="YouTube Unlisted URL (youtu.be/... or youtube.com/...)" style="margin-bottom:8px;">
+        <input type="text" id="demoCatInput" class="text-input" placeholder="Category / Description (optional)" style="margin-bottom:6px;">
+        <input type="url" id="demoUrlInput" class="text-input" placeholder="YouTube URL (youtu.be/... or youtube.com/...)" style="margin-bottom:8px;">
         <div style="display:flex; gap:8px;">
           <button class="btn-cancel" style="flex:1;" onclick="toggleDemoForm(false)">CANCEL</button>
           <button class="btn-save-iv" style="flex:1;" onclick="saveNewDemo()">SAVE DEMO</button>
@@ -1569,10 +1570,34 @@
       }
     });
 
+    let editingDemoId = null;
+
     function toggleDemoForm(show) {
       document.getElementById('demoAddBox').style.display = show ? 'block' : 'none';
       document.getElementById('btnShowDemoForm').style.display = show ? 'none' : 'block';
-      if (show) document.getElementById('demoTitleInput').focus();
+      if (show) {
+        editingDemoId = null;
+        document.getElementById('demoFormTitle').textContent = 'NEW DEMO';
+        document.getElementById('demoTitleInput').value = '';
+        document.getElementById('demoCatInput').value = '';
+        document.getElementById('demoUrlInput').value = '';
+        document.getElementById('demoTitleInput').focus();
+      } else {
+        editingDemoId = null;
+      }
+    }
+
+    function editDemo(id) {
+      const demo = sharedDemos.find(d => d.id === id);
+      if (!demo) return;
+      editingDemoId = demo.id;
+      document.getElementById('demoFormTitle').textContent = 'EDIT DEMO';
+      document.getElementById('demoTitleInput').value = demo.title || '';
+      document.getElementById('demoCatInput').value = demo.category || '';
+      document.getElementById('demoUrlInput').value = demo.videoId ? `https://youtu.be/${demo.videoId}` : '';
+      document.getElementById('demoAddBox').style.display = 'block';
+      document.getElementById('btnShowDemoForm').style.display = 'none';
+      document.getElementById('demoTitleInput').focus();
     }
 
     function saveNewDemo() {
@@ -1590,13 +1615,22 @@
         return;
       }
 
-      const id = Date.now();
-      demoVideosRef.child(String(id)).set({
+      const id = editingDemoId || Date.now();
+      const updatedEntry = {
         id: id,
         title: title,
         category: category || "Movement Demo",
         videoId: videoId
-      }).then(() => {
+      };
+
+      demoVideosRef.child(String(id)).set(updatedEntry).then(() => {
+        if (currentActiveDemo && currentActiveDemo.id === id) {
+          activeDemoRef.update({
+            title: updatedEntry.title,
+            category: updatedEntry.category,
+            videoId: updatedEntry.videoId
+          });
+        }
         document.getElementById('demoTitleInput').value = '';
         document.getElementById('demoCatInput').value = '';
         document.getElementById('demoUrlInput').value = '';
@@ -1623,6 +1657,7 @@
 
     function deleteDemo(id) {
       if (!confirm("Delete this demo video for all coaches?")) return;
+      if (editingDemoId === id) toggleDemoForm(false);
       if (currentActiveDemo && currentActiveDemo.id === id) {
         activeDemoRef.remove();
       }
@@ -1646,9 +1681,9 @@
         const isPlaying = currentActiveDemo && currentActiveDemo.id === item.id;
         return `
           <div class="demo-card ${isPlaying ? 'playing' : ''}">
-            <div style="min-width:0; flex:1;">
+            <div onclick="editDemo(${item.id})" style="min-width:0; flex:1; cursor:pointer;" title="Tap to edit">
               <div class="saved-info-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.title}</div>
-              <div class="saved-info-meta">${(item.category || 'DEMO').toUpperCase()}</div>
+              <div class="saved-info-meta">${(item.category || 'DEMO').toUpperCase()} · TAP TO EDIT</div>
             </div>
             <div class="saved-btns">
               ${isPlaying
@@ -1661,7 +1696,7 @@
         `;
       }).join('');
     }
-
+    
     // Shared Firebase Saved Workouts
     const savedWorkoutsRef = db.ref(prefix + "timer_settings/saved_workouts");
     let sharedSavedWorkouts = [];
