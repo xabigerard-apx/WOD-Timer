@@ -881,14 +881,23 @@
         </div>
       </div>
 
-      <div id="playlistAddBox" style="display:none; background:var(--bg); border:1px solid var(--accent-purple); border-radius:10px; padding:10px; margin-bottom:8px; flex-shrink:0;">
-        <div id="playlistFormTitle" class="editor-title" style="margin-bottom:6px;">NEW PLAYLIST</div>
-        <input type="text" id="playlistTitleInput" class="text-input" placeholder="Playlist name (e.g. Monday WOD - Snatch + T2B)" style="margin-bottom:6px;">
-        <div id="playlistSelectedPreview" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:6px; min-height:22px;"></div>
-        <div id="playlistVideoPicker" style="max-height:135px; overflow-y:auto; display:flex; flex-direction:column; gap:5px; margin-bottom:8px; padding-right:2px;"></div>
-        <div style="display:flex; gap:8px;">
-          <button class="btn-cancel" style="flex:1;" onclick="togglePlaylistForm(false)">CANCEL</button>
-          <button class="btn-save-iv" style="flex:1;" onclick="savePlaylist()">SAVE PLAYLIST</button>
+      <div id="playlistAddBox" style="display:none; position:fixed; inset:0; z-index:200; background:var(--bg); flex-direction:column; padding:14px 16px calc(14px + env(safe-area-inset-bottom, 0px));">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-shrink:0;">
+          <div id="playlistFormTitle" class="editor-title" style="font-size:12px;">NEW PLAYLIST</div>
+          <button type="button" onclick="togglePlaylistForm(false)" style="background:var(--surface); border:1px solid var(--border); color:var(--muted); border-radius:8px; width:32px; height:32px; font-size:18px; line-height:1; cursor:pointer;">×</button>
+        </div>
+
+        <input type="text" id="playlistTitleInput" class="text-input" placeholder="Playlist name (e.g. Monday WOD - Snatch + T2B)" style="margin-bottom:8px; flex-shrink:0;">
+
+        <div id="playlistSelectedPreview" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; max-height:76px; overflow-y:auto; flex-shrink:0;"></div>
+
+        <input type="text" id="playlistSearchInput" class="text-input" placeholder="🔍 Search videos to add (e.g. Snatch, HSW, Squat...)" oninput="renderPlaylistPicker()" style="margin-bottom:8px; flex-shrink:0; border-color:rgba(140,82,255,0.45);">
+
+        <div id="playlistVideoPicker" style="flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:10px; padding-right:2px;"></div>
+
+        <div style="display:flex; gap:8px; flex-shrink:0;">
+          <button class="btn-cancel" style="flex:1; padding:12px;" onclick="togglePlaylistForm(false)">CANCEL</button>
+          <button class="btn-save-iv" id="btnSavePlaylist" style="flex:2; padding:10px; font-size:19px;" onclick="savePlaylist()">SAVE PLAYLIST</button>
         </div>
       </div>
 
@@ -1582,7 +1591,7 @@
         const list = Array.isArray(val) ? val : Object.values(val);
         sharedDemos = list.filter(Boolean).sort((a, b) => (a.title || "").localeCompare(b.title || ""));
       }
-      if (document.getElementById('playlistAddBox')?.style.display === 'block') {
+      if (document.getElementById('playlistAddBox')?.style.display === 'flex') {
         renderPlaylistPicker();
       }
       if (document.getElementById('tabNavDemos')?.classList.contains('active')) {
@@ -1694,8 +1703,11 @@
         return;
       }
       document.getElementById('demoAddBox').style.display = 'none';
-      document.getElementById('playlistAddBox').style.display = show ? 'block' : 'none';
+      document.getElementById('playlistAddBox').style.display = show ? 'flex' : 'none';
       document.getElementById('demoBottomBtns').style.display = show ? 'none' : 'flex';
+
+      const searchEl = document.getElementById('playlistSearchInput');
+      if (searchEl) searchEl.value = '';
 
       if (show) {
         editingPlaylistId = null;
@@ -1717,13 +1729,15 @@
       const storedIds = pl.demoIds ? (Array.isArray(pl.demoIds) ? pl.demoIds : Object.values(pl.demoIds)) : [];
       draftPlaylistDemoIds = storedIds.filter(vidDemoId => sharedDemos.some(d => d.id === vidDemoId));
 
+      const searchEl = document.getElementById('playlistSearchInput');
+      if (searchEl) searchEl.value = '';
+
       document.getElementById('demoAddBox').style.display = 'none';
       document.getElementById('playlistFormTitle').textContent = 'EDIT PLAYLIST';
       document.getElementById('playlistTitleInput').value = pl.title || '';
-      document.getElementById('playlistAddBox').style.display = 'block';
+      document.getElementById('playlistAddBox').style.display = 'flex';
       document.getElementById('demoBottomBtns').style.display = 'none';
       renderPlaylistPicker();
-      document.getElementById('playlistTitleInput').focus();
     }
 
     function togglePlaylistVideo(demoId) {
@@ -1739,7 +1753,14 @@
     function renderPlaylistPicker() {
       const previewEl = document.getElementById('playlistSelectedPreview');
       const pickerEl = document.getElementById('playlistVideoPicker');
+      const saveBtn = document.getElementById('btnSavePlaylist');
       if (!previewEl || !pickerEl) return;
+
+      if (saveBtn) {
+        saveBtn.textContent = draftPlaylistDemoIds.length > 0
+          ? `SAVE PLAYLIST (${draftPlaylistDemoIds.length})`
+          : 'SAVE PLAYLIST';
+      }
 
       if (!draftPlaylistDemoIds.length) {
         previewEl.innerHTML = `<span style="font-family:'DM Mono',monospace; font-size:10px; color:var(--muted);">Tap videos below in playback order:</span>`;
@@ -1748,22 +1769,36 @@
           const d = sharedDemos.find(x => x.id === dId);
           if (!d) return '';
           return `
-            <span onclick="togglePlaylistVideo(${dId})" style="display:inline-flex; align-items:center; gap:4px; background:rgba(140,82,255,0.22); border:1px solid var(--accent-purple); color:#fff; font-family:'DM Mono',monospace; font-size:10px; font-weight:700; padding:2px 7px; border-radius:6px; cursor:pointer;">
+            <span onclick="togglePlaylistVideo(${dId})" style="display:inline-flex; align-items:center; gap:4px; background:rgba(140,82,255,0.22); border:1px solid var(--accent-purple); color:#fff; font-family:'DM Mono',monospace; font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px; cursor:pointer;">
               ${i + 1}. ${d.title} ×
             </span>
           `;
         }).join('');
       }
 
-      pickerEl.innerHTML = sharedDemos.map(d => {
+      const query = (document.getElementById('playlistSearchInput')?.value || '').toLowerCase().trim();
+      const filteredDemos = sharedDemos.filter(d =>
+        (d.title || '').toLowerCase().includes(query) ||
+        (d.category || '').toLowerCase().includes(query)
+      );
+
+      if (!filteredDemos.length) {
+        pickerEl.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:12px; padding:24px 0;">No matching videos found.</div>`;
+        return;
+      }
+
+      pickerEl.innerHTML = filteredDemos.map(d => {
         const orderIdx = draftPlaylistDemoIds.indexOf(d.id);
         const isSelected = orderIdx >= 0;
         return `
-          <div onclick="togglePlaylistVideo(${d.id})" style="display:flex; align-items:center; gap:8px; background:${isSelected ? 'rgba(140,82,255,0.16)' : 'var(--surface)'}; border:1px solid ${isSelected ? 'var(--accent-purple)' : 'var(--border)'}; border-radius:8px; padding:6px 9px; cursor:pointer;">
-            <span style="width:20px; height:20px; border-radius:50%; background:${isSelected ? 'var(--accent-purple)' : 'var(--bg)'}; color:#fff; font-family:'DM Mono',monospace; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <div onclick="togglePlaylistVideo(${d.id})" style="display:flex; align-items:center; gap:10px; background:${isSelected ? 'rgba(140,82,255,0.16)' : 'var(--surface)'}; border:1px solid ${isSelected ? 'var(--accent-purple)' : 'var(--border)'}; border-radius:10px; padding:9px 11px; cursor:pointer; flex-shrink:0;">
+            <span style="width:22px; height:22px; border-radius:50%; background:${isSelected ? 'var(--accent-purple)' : 'var(--bg)'}; color:#fff; font-family:'DM Mono',monospace; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
               ${isSelected ? (orderIdx + 1) : '+'}
             </span>
-            <span style="font-size:12px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${d.title}</span>
+            <div style="min-width:0; flex:1;">
+              <div style="font-size:13px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${d.title}</div>
+              <div style="font-family:'DM Mono',monospace; font-size:10px; color:var(--muted);">${(d.category || 'DEMO').toUpperCase()}</div>
+            </div>
           </div>
         `;
       }).join('');
