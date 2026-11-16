@@ -810,7 +810,7 @@
     <button class="nav-btn" id="tabNavSettings" onclick="switchMainTab('settings')">⚙️ SETTINGS</button>
   </div>
 
-<!-- SETUP VIEW -->
+  <!-- SETUP VIEW -->
   <div class="view-container" id="view-setup">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-shrink:0; gap:8px;">
       <div class="section-title" style="margin-bottom:0;">Workout Mode</div>
@@ -821,7 +821,7 @@
         <button type="button" onclick="clearLoadedWorkout()" style="background:none; border:none; color:var(--muted); font-size:15px; line-height:1; cursor:pointer; padding:0 2px;" title="Detach">×</button>
       </div>
     </div>
-    
+
     <div class="modes-grid">
       <div class="mode-tab active" data-mode="fortime" style="--active-color: var(--accent-fortime)" onclick="selectMode('fortime')">
         <span class="name">FOR TIME</span>
@@ -866,7 +866,7 @@
         <button class="demo-stop-tv-btn" onclick="stopTvDemo()">⏹ STOP TV</button>
       </div>
 
-      <input type="text" id="demoSearchInput" class="text-input" placeholder="🔍 Search movement (e.g. HSW, HSPU, Snatch...)" oninput="renderDemoList()" style="margin-bottom:10px; flex-shrink:0;">
+      <input type="text" id="demoSearchInput" class="text-input" placeholder="🔍 Search movement or playlist..." oninput="renderDemoList()" style="margin-bottom:10px; flex-shrink:0;">
 
       <div id="demoListContainer" class="demo-list-scroll"></div>
 
@@ -881,7 +881,21 @@
         </div>
       </div>
 
-      <button class="btn-add-iv" id="btnShowDemoForm" onclick="toggleDemoForm(true)" style="flex-shrink:0;">+ ADD YOUTUBE DEMO</button>
+      <div id="playlistAddBox" style="display:none; background:var(--bg); border:1px solid var(--accent-purple); border-radius:10px; padding:10px; margin-bottom:8px; flex-shrink:0;">
+        <div id="playlistFormTitle" class="editor-title" style="margin-bottom:6px;">NEW PLAYLIST</div>
+        <input type="text" id="playlistTitleInput" class="text-input" placeholder="Playlist name (e.g. Monday WOD - Snatch + T2B)" style="margin-bottom:6px;">
+        <div id="playlistSelectedPreview" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:6px; min-height:22px;"></div>
+        <div id="playlistVideoPicker" style="max-height:135px; overflow-y:auto; display:flex; flex-direction:column; gap:5px; margin-bottom:8px; padding-right:2px;"></div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-cancel" style="flex:1;" onclick="togglePlaylistForm(false)">CANCEL</button>
+          <button class="btn-save-iv" style="flex:1;" onclick="savePlaylist()">SAVE PLAYLIST</button>
+        </div>
+      </div>
+
+      <div id="demoBottomBtns" style="display:flex; gap:8px; flex-shrink:0;">
+        <button class="btn-add-iv" id="btnShowDemoForm" onclick="toggleDemoForm(true)" style="flex:1;">+ YOUTUBE DEMO</button>
+        <button class="btn-add-iv" id="btnShowPlaylistForm" onclick="togglePlaylistForm(true)" style="flex:1; border-color:rgba(140,82,255,0.55); color:#fff;">📋 + PLAYLIST</button>
+      </div>
     </div>
   </div>
 
@@ -953,7 +967,6 @@
   </div>
 
   <!-- LIVE TIMER / REMOTE VIEW -->
-  <!-- LIVE TIMER / REMOTE VIEW -->
   <div id="view-live">
     <div class="live-card">
       <div class="live-mode-badge" id="liveBadge">FOR TIME</div>
@@ -993,7 +1006,7 @@
     const prefix = isTestMode ? "test_" : "";
 
     const timerRef = db.ref(prefix + "timer_state");
-    const CURRENT_VERSION = "v1.5.1";
+    const CURRENT_VERSION = "v1.6";
     document.getElementById("remoteVersionBadge").textContent = CURRENT_VERSION;
     const versionRef = db.ref("app_version");
 
@@ -1013,7 +1026,7 @@
 
     const settingsRef = db.ref(prefix + "timer_settings");
 
-// Gym Wi-Fi Verification (Public IP - Dynamic)
+    // Gym Wi-Fi Verification (Public IP - Dynamic)
     const gymIpRef = db.ref("gym_ip");
     let gymIp = null;
     let myIp = null;
@@ -1543,11 +1556,16 @@
       renderForm();
     }
 
-    // Shared YouTube Movement Demos
+    // Shared YouTube Movement Demos & Playlists
     const demoVideosRef = db.ref(prefix + "timer_settings/demo_videos");
+    const demoPlaylistsRef = db.ref(prefix + "timer_settings/demo_playlists");
     const activeDemoRef = db.ref(prefix + "timer_settings/active_demo");
     let sharedDemos = [];
+    let sharedPlaylists = [];
     let currentActiveDemo = null;
+    let editingDemoId = null;
+    let editingPlaylistId = null;
+    let draftPlaylistDemoIds = [];
 
     function extractYouTubeId(url) {
       if (!url) return null;
@@ -1563,6 +1581,22 @@
       } else {
         const list = Array.isArray(val) ? val : Object.values(val);
         sharedDemos = list.filter(Boolean).sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+      }
+      if (document.getElementById('playlistAddBox')?.style.display === 'block') {
+        renderPlaylistPicker();
+      }
+      if (document.getElementById('tabNavDemos')?.classList.contains('active')) {
+        renderDemoList();
+      }
+    });
+
+    demoPlaylistsRef.on("value", (snap) => {
+      const val = snap.val();
+      if (!val) {
+        sharedPlaylists = [];
+      } else {
+        const list = Array.isArray(val) ? val : Object.values(val);
+        sharedPlaylists = list.filter(Boolean).sort((a, b) => (b.id || 0) - (a.id || 0));
       }
       if (document.getElementById('tabNavDemos')?.classList.contains('active')) {
         renderDemoList();
@@ -1586,11 +1620,10 @@
       }
     });
 
-    let editingDemoId = null;
-
     function toggleDemoForm(show) {
+      document.getElementById('playlistAddBox').style.display = 'none';
       document.getElementById('demoAddBox').style.display = show ? 'block' : 'none';
-      document.getElementById('btnShowDemoForm').style.display = show ? 'none' : 'block';
+      document.getElementById('demoBottomBtns').style.display = show ? 'none' : 'flex';
       if (show) {
         editingDemoId = null;
         document.getElementById('demoFormTitle').textContent = 'NEW DEMO';
@@ -1607,12 +1640,13 @@
       const demo = sharedDemos.find(d => d.id === id);
       if (!demo) return;
       editingDemoId = demo.id;
+      document.getElementById('playlistAddBox').style.display = 'none';
       document.getElementById('demoFormTitle').textContent = 'EDIT DEMO';
       document.getElementById('demoTitleInput').value = demo.title || '';
       document.getElementById('demoCatInput').value = demo.category || '';
       document.getElementById('demoUrlInput').value = demo.videoId ? `https://youtu.be/${demo.videoId}` : '';
       document.getElementById('demoAddBox').style.display = 'block';
-      document.getElementById('btnShowDemoForm').style.display = 'none';
+      document.getElementById('demoBottomBtns').style.display = 'none';
       document.getElementById('demoTitleInput').focus();
     }
 
@@ -1654,6 +1688,166 @@
       });
     }
 
+    function togglePlaylistForm(show) {
+      if (show && sharedDemos.length < 2) {
+        alert("Add at least 2 demo videos first to create a playlist.");
+        return;
+      }
+      document.getElementById('demoAddBox').style.display = 'none';
+      document.getElementById('playlistAddBox').style.display = show ? 'block' : 'none';
+      document.getElementById('demoBottomBtns').style.display = show ? 'none' : 'flex';
+
+      if (show) {
+        editingPlaylistId = null;
+        draftPlaylistDemoIds = [];
+        document.getElementById('playlistFormTitle').textContent = 'NEW PLAYLIST';
+        document.getElementById('playlistTitleInput').value = '';
+        renderPlaylistPicker();
+        document.getElementById('playlistTitleInput').focus();
+      } else {
+        editingPlaylistId = null;
+        draftPlaylistDemoIds = [];
+      }
+    }
+
+    function editPlaylist(id) {
+      const pl = sharedPlaylists.find(p => p.id === id);
+      if (!pl) return;
+      editingPlaylistId = pl.id;
+      const storedIds = pl.demoIds ? (Array.isArray(pl.demoIds) ? pl.demoIds : Object.values(pl.demoIds)) : [];
+      draftPlaylistDemoIds = storedIds.filter(vidDemoId => sharedDemos.some(d => d.id === vidDemoId));
+
+      document.getElementById('demoAddBox').style.display = 'none';
+      document.getElementById('playlistFormTitle').textContent = 'EDIT PLAYLIST';
+      document.getElementById('playlistTitleInput').value = pl.title || '';
+      document.getElementById('playlistAddBox').style.display = 'block';
+      document.getElementById('demoBottomBtns').style.display = 'none';
+      renderPlaylistPicker();
+      document.getElementById('playlistTitleInput').focus();
+    }
+
+    function togglePlaylistVideo(demoId) {
+      const idx = draftPlaylistDemoIds.indexOf(demoId);
+      if (idx >= 0) {
+        draftPlaylistDemoIds.splice(idx, 1);
+      } else {
+        draftPlaylistDemoIds.push(demoId);
+      }
+      renderPlaylistPicker();
+    }
+
+    function renderPlaylistPicker() {
+      const previewEl = document.getElementById('playlistSelectedPreview');
+      const pickerEl = document.getElementById('playlistVideoPicker');
+      if (!previewEl || !pickerEl) return;
+
+      if (!draftPlaylistDemoIds.length) {
+        previewEl.innerHTML = `<span style="font-family:'DM Mono',monospace; font-size:10px; color:var(--muted);">Tap videos below in playback order:</span>`;
+      } else {
+        previewEl.innerHTML = draftPlaylistDemoIds.map((dId, i) => {
+          const d = sharedDemos.find(x => x.id === dId);
+          if (!d) return '';
+          return `
+            <span onclick="togglePlaylistVideo(${dId})" style="display:inline-flex; align-items:center; gap:4px; background:rgba(140,82,255,0.22); border:1px solid var(--accent-purple); color:#fff; font-family:'DM Mono',monospace; font-size:10px; font-weight:700; padding:2px 7px; border-radius:6px; cursor:pointer;">
+              ${i + 1}. ${d.title} ×
+            </span>
+          `;
+        }).join('');
+      }
+
+      pickerEl.innerHTML = sharedDemos.map(d => {
+        const orderIdx = draftPlaylistDemoIds.indexOf(d.id);
+        const isSelected = orderIdx >= 0;
+        return `
+          <div onclick="togglePlaylistVideo(${d.id})" style="display:flex; align-items:center; gap:8px; background:${isSelected ? 'rgba(140,82,255,0.16)' : 'var(--surface)'}; border:1px solid ${isSelected ? 'var(--accent-purple)' : 'var(--border)'}; border-radius:8px; padding:6px 9px; cursor:pointer;">
+            <span style="width:20px; height:20px; border-radius:50%; background:${isSelected ? 'var(--accent-purple)' : 'var(--bg)'}; color:#fff; font-family:'DM Mono',monospace; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              ${isSelected ? (orderIdx + 1) : '+'}
+            </span>
+            <span style="font-size:12px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${d.title}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function savePlaylist() {
+      const title = document.getElementById('playlistTitleInput').value.trim();
+      if (!title) {
+        alert("Please enter a playlist name.");
+        return;
+      }
+      if (draftPlaylistDemoIds.length < 2) {
+        alert("Select at least 2 videos for the playlist.");
+        return;
+      }
+
+      const id = editingPlaylistId || Date.now();
+      const itemsSnapshot = draftPlaylistDemoIds
+        .map(dId => sharedDemos.find(d => d.id === dId))
+        .filter(Boolean)
+        .map(d => ({ demoId: d.id, videoId: d.videoId, title: d.title, category: d.category || "DEMO" }));
+
+      demoPlaylistsRef.child(String(id)).set({
+        id: id,
+        title: title,
+        demoIds: draftPlaylistDemoIds,
+        items: itemsSnapshot
+      }).then(() => {
+        togglePlaylistForm(false);
+      });
+    }
+
+    function resolvePlaylistItems(pl) {
+      const rawIds = pl.demoIds ? (Array.isArray(pl.demoIds) ? pl.demoIds : Object.values(pl.demoIds)) : [];
+      const fallbackItems = pl.items ? (Array.isArray(pl.items) ? pl.items : Object.values(pl.items)) : [];
+      const resolved = [];
+
+      rawIds.forEach(dId => {
+        const liveDemo = sharedDemos.find(d => d.id === dId);
+        if (liveDemo) {
+          resolved.push({
+            demoId: liveDemo.id,
+            videoId: liveDemo.videoId,
+            title: liveDemo.title,
+            category: liveDemo.category || "DEMO"
+          });
+        } else {
+          const fb = fallbackItems.find(x => x && x.demoId === dId);
+          if (fb && fb.videoId) resolved.push(fb);
+        }
+      });
+
+      return resolved.length ? resolved : fallbackItems.filter(x => x && x.videoId);
+    }
+
+    function playPlaylistOnTv(id) {
+      if (!canControlTV()) return;
+      const pl = sharedPlaylists.find(p => p.id === id);
+      if (!pl) return;
+      const items = resolvePlaylistItems(pl);
+      if (!items.length) {
+        alert("This playlist has no valid videos.");
+        return;
+      }
+      activeDemoRef.set({
+        id: pl.id,
+        isPlaylist: true,
+        title: pl.title,
+        category: `${items.length} VIDEOS`,
+        videoId: items[0].videoId,
+        playlistItems: items,
+        startedAt: Date.now()
+      });
+    }
+
+    function deletePlaylist(id) {
+      if (!confirm("Delete this playlist for all coaches?")) return;
+      if (editingPlaylistId === id) togglePlaylistForm(false);
+      if (currentActiveDemo && currentActiveDemo.id === id) {
+        activeDemoRef.remove();
+      }
+      demoPlaylistsRef.child(String(id)).remove();
+    }
+
     function playDemoOnTv(id) {
       if (!canControlTV()) return;
       const demo = sharedDemos.find(d => d.id === id);
@@ -1683,17 +1877,45 @@
     function renderDemoList() {
       const c = document.getElementById('demoListContainer');
       const query = (document.getElementById('demoSearchInput')?.value || '').toLowerCase().trim();
-      const filtered = sharedDemos.filter(d =>
+
+      const filteredPlaylists = sharedPlaylists.filter(pl => {
+        const items = resolvePlaylistItems(pl);
+        return (pl.title || '').toLowerCase().includes(query) ||
+               items.some(it => (it.title || '').toLowerCase().includes(query));
+      });
+
+      const filteredDemos = sharedDemos.filter(d =>
         (d.title || '').toLowerCase().includes(query) ||
         (d.category || '').toLowerCase().includes(query)
       );
 
-      if (!filtered.length) {
-        c.innerHTML = `<div style="text-align:center;color:var(--muted);margin-top:30px;font-size:13px;">${sharedDemos.length ? 'No matching movements.' : 'No demo videos yet. Tap + ADD YOUTUBE DEMO below.'}</div>`;
+      if (!filteredPlaylists.length && !filteredDemos.length) {
+        c.innerHTML = `<div style="text-align:center;color:var(--muted);margin-top:30px;font-size:13px;">${(sharedDemos.length || sharedPlaylists.length) ? 'No matching movements or playlists.' : 'No demo videos yet. Tap + YOUTUBE DEMO below.'}</div>`;
         return;
       }
 
-      c.innerHTML = filtered.map(item => {
+      const playlistsHtml = filteredPlaylists.map(pl => {
+        const isPlaying = currentActiveDemo && currentActiveDemo.id === pl.id;
+        const items = resolvePlaylistItems(pl);
+        const namesPreview = items.map(it => it.title).join(' → ');
+        return `
+          <div class="demo-card ${isPlaying ? 'playing' : ''}" style="border-color:${isPlaying ? 'var(--accent-purple)' : 'rgba(140,82,255,0.4)'};">
+            <div onclick="editPlaylist(${pl.id})" style="min-width:0; flex:1; cursor:pointer;" title="Tap to edit playlist">
+              <div class="saved-info-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📋 ${pl.title}</div>
+              <div class="saved-info-meta" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${items.length} VIDEOS · ${namesPreview}</div>
+            </div>
+            <div class="saved-btns">
+              ${isPlaying
+                ? `<button class="demo-stop-tv-btn" onclick="stopTvDemo()">⏹ STOP</button>`
+                : `<button class="demo-play-btn" onclick="playPlaylistOnTv(${pl.id})">▶ TV</button>`
+              }
+              <button class="saved-del-btn" onclick="deletePlaylist(${pl.id})">🗑️</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const demosHtml = filteredDemos.map(item => {
         const isPlaying = currentActiveDemo && currentActiveDemo.id === item.id;
         return `
           <div class="demo-card ${isPlaying ? 'playing' : ''}">
@@ -1711,9 +1933,11 @@
           </div>
         `;
       }).join('');
+
+      c.innerHTML = playlistsHtml + demosHtml;
     }
-    
-   // Shared Firebase Saved Workouts
+
+    // Shared Firebase Saved Workouts
     const savedWorkoutsRef = db.ref(prefix + "timer_settings/saved_workouts");
     let sharedSavedWorkouts = [];
     let loadedWorkout = null;
@@ -1967,12 +2191,12 @@
       } else if (currentMode === 'amrap') {
         payload.config = { mins: config.amrapMins };
       } else if (currentMode === 'emom') {
-        payload.config = { 
-          mins: config.emomMins, 
-          rounds: config.emomRounds, 
-          ivMin: config.emomIvMin, 
-          ivSec: config.emomIvSec, 
-          intervalMs: getEmomIntervalSec() * 1000 
+        payload.config = {
+          mins: config.emomMins,
+          rounds: config.emomRounds,
+          ivMin: config.emomIvMin,
+          ivSec: config.emomIvSec,
+          intervalMs: getEmomIntervalSec() * 1000
         };
       } else if (currentMode === 'tabata') {
         payload.config = { rounds: config.tabRounds, workSec: config.tabWork, tabRestSec: config.tabRest };
@@ -2102,7 +2326,7 @@
 
     // Init
     renderForm();
-    
+
     const promoRef = db.ref(prefix + "promo_banner");
     let promoData = { images: [], interval: 10 };
 
@@ -2220,7 +2444,6 @@
         });
       }
     }
-    
   </script>
 </body>
 </html>
