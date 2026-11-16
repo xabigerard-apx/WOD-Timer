@@ -810,9 +810,17 @@
     <button class="nav-btn" id="tabNavSettings" onclick="switchMainTab('settings')">⚙️ SETTINGS</button>
   </div>
 
-  <!-- SETUP VIEW -->
+<!-- SETUP VIEW -->
   <div class="view-container" id="view-setup">
-    <div class="section-title">Workout Mode</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-shrink:0; gap:8px;">
+      <div class="section-title" style="margin-bottom:0;">Workout Mode</div>
+      <div id="loadedWorkoutBanner" style="display:none; align-items:center; gap:6px; background:rgba(140,82,255,0.16); border:1px solid var(--accent-purple); border-radius:8px; padding:3px 8px; max-width:68%;">
+        <span style="font-size:11px;">📌</span>
+        <span id="loadedWorkoutNameText" onclick="renameLoadedWorkout()" style="font-family:'DM Mono',monospace; font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer;" title="Tap to rename"></span>
+        <button type="button" onclick="renameLoadedWorkout()" style="background:none; border:none; color:var(--accent-purple); font-size:12px; cursor:pointer; padding:0 2px;" title="Rename">✏️</button>
+        <button type="button" onclick="clearLoadedWorkout()" style="background:none; border:none; color:var(--muted); font-size:15px; line-height:1; cursor:pointer; padding:0 2px;" title="Detach">×</button>
+      </div>
+    </div>
     
     <div class="modes-grid">
       <div class="mode-tab active" data-mode="fortime" style="--active-color: var(--accent-fortime)" onclick="selectMode('fortime')">
@@ -838,7 +846,7 @@
     <!-- Dynamic Form Card -->
     <div class="config-card" id="form-container"></div>
 
-    <div class="action-row">
+    <div class="action-row" id="setupActionRow">
       <button class="btn-save-w" onclick="promptSaveWorkout()">⭐ SAVE</button>
       <button class="btn-launch" onclick="launchWorkoutOnTV()">START ON TV</button>
     </div>
@@ -945,9 +953,11 @@
   </div>
 
   <!-- LIVE TIMER / REMOTE VIEW -->
+  <!-- LIVE TIMER / REMOTE VIEW -->
   <div id="view-live">
     <div class="live-card">
       <div class="live-mode-badge" id="liveBadge">FOR TIME</div>
+      <div id="liveWorkoutName" style="display:none; font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:1.5px; color:var(--accent-purple); margin-bottom:4px;"></div>
       <div class="live-timer-digits" id="liveDigits">00:00</div>
       <div class="live-status-sub" id="liveSub">RUNNING</div>
     </div>
@@ -1335,7 +1345,13 @@
             <span class="step-unit">×</span>
             <button class="step-btn" onclick="adj('customLoops', 1, 1, 30)">+</button>
           </div>
-          <label class="field-label">Interval Sequence ${config.customIntervals.length ? '(tap to edit)' : ''}</label>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-shrink:0;">
+            <label class="field-label" style="margin-bottom:0;">Interval Sequence ${config.customIntervals.length ? '(tap to edit)' : ''}</label>
+            ${config.customIntervals.length > 0
+              ? `<button type="button" onclick="clearCustomIntervals()" style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.4); color:var(--danger); font-family:'DM Mono',monospace; font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px; cursor:pointer;">🗑️ CLEAR</button>`
+              : ''
+            }
+          </div>
           <div class="custom-list-scroll">
             ${listHtml || '<div style="color:var(--muted);font-size:12px;padding:6px 0;">No intervals added yet</div>'}
           </div>
@@ -1697,9 +1713,78 @@
       }).join('');
     }
     
-    // Shared Firebase Saved Workouts
+   // Shared Firebase Saved Workouts
     const savedWorkoutsRef = db.ref(prefix + "timer_settings/saved_workouts");
     let sharedSavedWorkouts = [];
+    let loadedWorkout = null;
+
+    function updateLoadedWorkoutUI() {
+      const banner = document.getElementById('loadedWorkoutBanner');
+      const nameText = document.getElementById('loadedWorkoutNameText');
+      const actionRow = document.getElementById('setupActionRow');
+
+      if (banner && nameText) {
+        if (loadedWorkout) {
+          banner.style.display = 'flex';
+          nameText.textContent = loadedWorkout.name;
+        } else {
+          banner.style.display = 'none';
+          nameText.textContent = '';
+        }
+      }
+
+      if (actionRow) {
+        if (loadedWorkout) {
+          actionRow.innerHTML = `
+            <button class="btn-save-w" style="border-color:var(--accent-purple); color:#fff;" onclick="updateSavedWorkout()">💾 UPDATE</button>
+            <button class="btn-save-w" style="flex:0.75;" onclick="promptSaveWorkout()">+ NEW</button>
+            <button class="btn-launch" onclick="launchWorkoutOnTV()">START ON TV</button>
+          `;
+        } else {
+          actionRow.innerHTML = `
+            <button class="btn-save-w" onclick="promptSaveWorkout()">⭐ SAVE</button>
+            <button class="btn-launch" onclick="launchWorkoutOnTV()">START ON TV</button>
+          `;
+        }
+      }
+    }
+
+    function renameLoadedWorkout() {
+      if (!loadedWorkout) return;
+      const nextName = prompt("Rename workout:", loadedWorkout.name);
+      if (!nextName || !nextName.trim()) return;
+      loadedWorkout.name = nextName.trim();
+      updateLoadedWorkoutUI();
+    }
+
+    function clearLoadedWorkout() {
+      loadedWorkout = null;
+      updateLoadedWorkoutUI();
+    }
+
+    function clearCustomIntervals() {
+      if (!confirm("Clear all intervals and start from zero?")) return;
+      config.customIntervals = [];
+      config.customLoops = 1;
+      editingIdx = null;
+      clearLoadedWorkout();
+      renderForm();
+    }
+
+    function formatSavedWorkoutSummary(item) {
+      const cfg = item.config || {};
+      const m = (item.mode || '').toUpperCase();
+      if (item.mode === 'fortime') return `${m} · ${cfg.ftCap > 0 ? cfg.ftCap + ' MIN CAP' : 'NO CAP'}`;
+      if (item.mode === 'amrap') return `${m} · ${cfg.amrapMins || 10} MIN`;
+      if (item.mode === 'emom') return `${m} · ${cfg.emomMins || 10} MIN (${cfg.emomRounds || 10}×)`;
+      if (item.mode === 'tabata') return `${m} · ${cfg.tabRounds || 8} RDS (${cfg.tabWork || 20}S/${cfg.tabRest || 10}S)`;
+      if (item.mode === 'sets') return `${m} · ${cfg.setsCount || 5} SETS`;
+      if (item.mode === 'custom') {
+        const ivs = cfg.customIntervals ? (Array.isArray(cfg.customIntervals) ? cfg.customIntervals : Object.values(cfg.customIntervals)) : [];
+        return `${m} · ${ivs.length} INTERVAL${ivs.length > 1 ? 'S' : ''} × ${cfg.customLoops || 1}`;
+      }
+      return m;
+    }
 
     savedWorkoutsRef.on("value", (snap) => {
       const val = snap.val();
@@ -1708,6 +1793,12 @@
       } else {
         const list = Array.isArray(val) ? val : Object.values(val);
         sharedSavedWorkouts = list.filter(Boolean).sort((a, b) => (b.id || 0) - (a.id || 0));
+      }
+      if (loadedWorkout) {
+        const stillExists = sharedSavedWorkouts.find(s => s.id === loadedWorkout.id);
+        if (!stillExists) {
+          clearLoadedWorkout();
+        }
       }
       if (document.getElementById('tabNavSaved')?.classList.contains('active')) {
         renderSavedList();
@@ -1719,19 +1810,40 @@
         alert("Add at least one interval before saving.");
         return;
       }
-      const name = prompt("Workout name (e.g. Wednesday - EMOM 1:30 x 20, Fran, etc.):");
-      if (!name) return;
+      const defaultName = loadedWorkout ? `${loadedWorkout.name} (Copy)` : "";
+      const name = prompt("Workout name (e.g. Wednesday - EMOM 1:30 x 20, Fran, etc.):", defaultName);
+      if (!name || !name.trim()) return;
 
       const id = Date.now();
+      const cleanName = name.trim();
       const entry = {
         id: id,
-        name: name.trim(),
+        name: cleanName,
         mode: currentMode,
         config: JSON.parse(JSON.stringify(config))
       };
 
       savedWorkoutsRef.child(String(id)).set(entry).then(() => {
+        loadedWorkout = { id: id, name: cleanName };
+        updateLoadedWorkoutUI();
         alert("Workout saved and shared with all coaches!");
+      });
+    }
+
+    function updateSavedWorkout() {
+      if (!loadedWorkout) return;
+      if (currentMode === 'custom' && config.customIntervals.length === 0) {
+        alert("Add at least one interval before saving.");
+        return;
+      }
+      const entry = {
+        id: loadedWorkout.id,
+        name: loadedWorkout.name,
+        mode: currentMode,
+        config: JSON.parse(JSON.stringify(config))
+      };
+      savedWorkoutsRef.child(String(loadedWorkout.id)).set(entry).then(() => {
+        alert(`"${loadedWorkout.name}" updated for all coaches!`);
       });
     }
 
@@ -1743,12 +1855,12 @@
       }
       c.innerHTML = sharedSavedWorkouts.map(item => `
         <div class="saved-card">
-          <div>
+          <div onclick="loadSavedWorkout(${item.id})" style="min-width:0; flex:1; cursor:pointer;">
             <div class="saved-info-name">${item.name}</div>
-            <div class="saved-info-meta">${item.mode.toUpperCase()}</div>
+            <div class="saved-info-meta">${formatSavedWorkoutSummary(item)}</div>
           </div>
           <div class="saved-btns">
-            <button class="saved-load-btn" onclick="loadSavedWorkout(${item.id})">LOAD</button>
+            <button class="saved-load-btn" onclick="loadSavedWorkout(${item.id})">LOAD / EDIT</button>
             <button class="saved-del-btn" onclick="deleteSavedWorkout(${item.id})">🗑️</button>
           </div>
         </div>
@@ -1766,12 +1878,17 @@
         loadedCfg.customIntervals = [];
       }
       config = { ...config, ...loadedCfg };
+      loadedWorkout = { id: found.id, name: found.name };
+      updateLoadedWorkoutUI();
       switchMainTab('setup');
       selectMode(currentMode);
     }
 
     function deleteSavedWorkout(id) {
       if (!confirm("Delete this saved workout for all coaches?")) return;
+      if (loadedWorkout && loadedWorkout.id === id) {
+        clearLoadedWorkout();
+      }
       savedWorkoutsRef.child(String(id)).remove();
     }
 
@@ -1841,6 +1958,7 @@
       let payload = {
         command: "CONFIG_AND_START",
         mode: currentMode,
+        workoutName: loadedWorkout ? loadedWorkout.name : "",
         timestamp: Date.now()
       };
 
@@ -1902,6 +2020,16 @@
 
         liveDigitsEl.innerText = data.timeFormatted || "00:00";
         document.getElementById('liveBadge').innerText = data.mode || currentMode.toUpperCase();
+        const liveNameEl = document.getElementById('liveWorkoutName');
+        const activeWName = data.workoutName || (loadedWorkout ? loadedWorkout.name : "");
+        if (liveNameEl) {
+          if (activeWName) {
+            liveNameEl.style.display = "block";
+            liveNameEl.innerText = activeWName;
+          } else {
+            liveNameEl.style.display = "none";
+          }
+        }
 
         if (isCountdown) {
           liveDigitsEl.style.color = "var(--accent-amrap)";
