@@ -291,7 +291,7 @@
     }
     .beep-overlay.flash { opacity: 1; }
 
-    /* BANNIÈRE TIME! (3 MINUTES) */
+    /* BANNIÈRE TIME! */
     .finish-banner {
       position: fixed;
       inset: 0;
@@ -341,7 +341,8 @@
     .standby-banner-img.visible {
       opacity: 1;
     }
-    
+
+    /* OVERLAY DÉMOS VIDÉO & PLAYLISTS */
     #demoOverlay {
       position: fixed;
       inset: 0;
@@ -356,6 +357,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 20px;
       margin-bottom: 16px;
     }
     .demo-tv-badge {
@@ -367,6 +369,7 @@
       padding: 6px 16px;
       border-radius: 8px;
       text-transform: uppercase;
+      flex-shrink: 0;
     }
     .demo-tv-title {
       font-size: 38px;
@@ -374,6 +377,9 @@
       color: #fff;
       letter-spacing: 1px;
       text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .demo-tv-frame-wrap {
       flex: 1;
@@ -383,13 +389,13 @@
       border: 2px solid rgba(140, 82, 255, 0.4);
       background: #000;
     }
-    .demo-tv-frame-wrap iframe {
+    .demo-tv-frame-wrap iframe,
+    .demo-tv-frame-wrap > div {
       width: 100%;
       height: 100%;
       border: 0;
       pointer-events: none;
     }
-    
   </style>
 
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -434,15 +440,14 @@
     </div>
   </div>
 
+  <!-- ÉCRAN DÉMO YOUTUBE / PLAYLIST -->
   <div id="demoOverlay">
-      <div class="demo-tv-header">
-        <div class="demo-tv-title" id="demoTvTitle">MOVEMENT DEMO</div>
-        <div class="demo-tv-badge" id="demoTvBadge">DEMO</div>
-      </div>
-      <div class="demo-tv-frame-wrap">
-        <iframe id="demoTvIframe" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-      </div>
+    <div class="demo-tv-header">
+      <div class="demo-tv-title" id="demoTvTitle">MOVEMENT DEMO</div>
+      <div class="demo-tv-badge" id="demoTvBadge">DEMO</div>
     </div>
+    <div class="demo-tv-frame-wrap" id="demoTvFrameWrap"></div>
+  </div>
 
   <!-- ÉCRAN PRINCIPAL WORKOUT -->
   <div id="display-container">
@@ -488,7 +493,7 @@
     const prefix = isTestMode ? "test_" : "";
 
     const timerRef = db.ref(prefix + "timer_state");
-    const CURRENT_VERSION = "v1.5.1";
+    const CURRENT_VERSION = "v1.6";
     const vBadge = document.createElement("div");
     vBadge.textContent = CURRENT_VERSION;
     vBadge.style.cssText = "position:fixed; bottom:6px; right:10px; font-family:'DM Mono',monospace; font-size:11px; color:rgba(255,255,255,0.18); letter-spacing:1px; pointer-events:none; z-index:9999;";
@@ -522,27 +527,177 @@
         .catch(err => console.error("Erreur détection IP:", err));
     }
 
+    // --- CHARGEMENT API YOUTUBE IFRAME (VIDÉOS + PLAYLISTS BACK-TO-BACK) ---
+    let ytApiReady = !!(window.YT && window.YT.Player);
+    (function loadYtApi() {
+      if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.head.appendChild(tag);
+      }
+    })();
+
     const activeDemoRef = db.ref(prefix + "timer_settings/active_demo");
-    let currentTvVideoId = null;
+    let currentDemoSessionKey = null;
+    let activeQueue = [];
+    let activeQueueIdx = 0;
+    let activeIsPlaylist = false;
+    let activePlaylistTitle = "";
+    let ytPlayer = null;
+    let ytFallbackTimeout = null;
+
+    function updateDemoHeaderUI() {
+      const titleEl = document.getElementById("demoTvTitle");
+      const badgeEl = document.getElementById("demoTvBadge");
+      const item = activeQueue[activeQueueIdx];
+      if (!item || !titleEl || !badgeEl) return;
+
+      if (activeIsPlaylist && activeQueue.length > 1) {
+        titleEl.innerText = `${activeQueueIdx + 1}/${activeQueue.length} · ${item.title || "MOVEMENT DEMO"}`;
+        badgeEl.innerText = activePlaylistTitle || "PLAYLIST";
+      } else {
+        titleEl.innerText = item.title || "MOVEMENT DEMO";
+        badgeEl.innerText = item.category || "DEMO";
+      }
+    }
+
+    function advancePlaylistVideo() {
+      if (!activeQueue.length) return;
+      if (activeQueue.length === 1) {
+        if (ytPlayer && typeof ytPlayer.seekTo === "function") {
+          ytPlayer.seekTo(0, true);
+          ytPlayer.playVideo();
+        }
+        return;
+      }
+      activeQueueIdx = (activeQueueIdx + 1) % activeQueue.length;
+      updateDemoHeaderUI();
+      const nextItem = activeQueue[activeQueueIdx];
+      if (ytPlayer && typeof ytPlayer.loadVideoById === "function" && nextItem) {
+        ytPlayer.loadVideoById(nextItem.videoId);
+      }
+    }
+
+    function renderFallbackIframe() {
+      const wrap = document.getElementById("demoTvFrameWrap");
+      if (!wrap || !activeQueue.length) return;
+      const ids = activeQueue.map(x => x.videoId).filter(Boolean);
+      const firstId = ids[0];
+      const playlistParam = ids.join(",");
+      wrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${firstId}?autoplay=1&mute=1&loop=1&playlist=${playlistParam}&controls=0&modestbranding=1&rel=0&playsinline=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    }
+
+    function startTvDemoPlayer() {
+      const wrap = document.getElementById("demoTvFrameWrap");
+      if (!wrap || !activeQueue.length) return;
+
+      if (ytFallbackTimeout) {
+        clearTimeout(ytFallbackTimeout);
+        ytFallbackTimeout = null;
+      }
+
+      if (ytPlayer && typeof ytPlayer.destroy === "function") {
+        try { ytPlayer.destroy(); } catch (e) {}
+        ytPlayer = null;
+      }
+
+      updateDemoHeaderUI();
+
+      if (!ytApiReady || !(window.YT && window.YT.Player)) {
+        renderFallbackIframe();
+        return;
+      }
+
+      wrap.innerHTML = `<div id="demoTvPlayerMount"></div>`;
+      const firstId = activeQueue[0].videoId;
+
+      ytFallbackTimeout = setTimeout(() => {
+        if (!ytPlayer || typeof ytPlayer.getPlayerState !== "function") {
+          renderFallbackIframe();
+        }
+      }, 4500);
+
+      ytPlayer = new YT.Player("demoTvPlayerMount", {
+        videoId: firstId,
+        playerVars: {
+          autoplay: 1,
+          mute: 1,
+          controls: 0,
+          modestbranding: 1,
+          rel: 0,
+          playsinline: 1,
+          iv_load_policy: 3
+        },
+        events: {
+          onReady: (e) => {
+            if (ytFallbackTimeout) {
+              clearTimeout(ytFallbackTimeout);
+              ytFallbackTimeout = null;
+            }
+            e.target.mute();
+            e.target.playVideo();
+          },
+          onStateChange: (e) => {
+            if (e.data === YT.PlayerState.ENDED) {
+              advancePlaylistVideo();
+            }
+          },
+          onError: () => {
+            if (activeQueue.length > 1) {
+              setTimeout(advancePlaylistVideo, 800);
+            }
+          }
+        }
+      });
+    }
+
+    window.onYouTubeIframeAPIReady = function() {
+      ytApiReady = true;
+      if (activeQueue.length > 0 && document.getElementById("demoOverlay").style.display === "flex") {
+        startTvDemoPlayer();
+      }
+    };
 
     activeDemoRef.on("value", (snap) => {
       const demo = snap.val();
       const overlay = document.getElementById("demoOverlay");
-      const iframe = document.getElementById("demoTvIframe");
-      const titleEl = document.getElementById("demoTvTitle");
-      const badgeEl = document.getElementById("demoTvBadge");
+      const wrap = document.getElementById("demoTvFrameWrap");
 
       if (demo && demo.videoId) {
-        if (currentTvVideoId !== demo.videoId) {
-          currentTvVideoId = demo.videoId;
-          titleEl.innerText = demo.title || "MOVEMENT DEMO";
-          badgeEl.innerText = demo.category || "DEMO";
-          iframe.src = `https://www.youtube.com/embed/${demo.videoId}?autoplay=1&mute=1&loop=1&playlist=${demo.videoId}&controls=0&modestbranding=1&rel=0&playsinline=1`;
-        }
+        const rawItems = (demo.isPlaylist && demo.playlistItems)
+          ? (Array.isArray(demo.playlistItems) ? demo.playlistItems : Object.values(demo.playlistItems))
+          : [];
+        const validItems = rawItems.filter(x => x && x.videoId);
+
+        const queue = validItems.length > 0
+          ? validItems
+          : [{ videoId: demo.videoId, title: demo.title || "MOVEMENT DEMO", category: demo.category || "DEMO" }];
+
+        const sessionKey = `${demo.startedAt || ""}_${demo.id || demo.videoId}_${queue.map(q => q.videoId).join(",")}`;
+
         overlay.style.display = "flex";
+        if (currentDemoSessionKey !== sessionKey) {
+          currentDemoSessionKey = sessionKey;
+          activeQueue = queue;
+          activeQueueIdx = 0;
+          activeIsPlaylist = !!(demo.isPlaylist && queue.length > 1);
+          activePlaylistTitle = demo.title || "PLAYLIST";
+          startTvDemoPlayer();
+        }
       } else {
-        currentTvVideoId = null;
-        iframe.src = "";
+        currentDemoSessionKey = null;
+        activeQueue = [];
+        activeQueueIdx = 0;
+        activeIsPlaylist = false;
+        if (ytFallbackTimeout) {
+          clearTimeout(ytFallbackTimeout);
+          ytFallbackTimeout = null;
+        }
+        if (ytPlayer && typeof ytPlayer.destroy === "function") {
+          try { ytPlayer.destroy(); } catch (e) {}
+          ytPlayer = null;
+        }
+        if (wrap) wrap.innerHTML = "";
         overlay.style.display = "none";
       }
     });
@@ -633,11 +788,11 @@
       const h = String(now.getHours()).padStart(2, '0');
       const m = String(now.getMinutes()).padStart(2, '0');
       const s = String(now.getSeconds()).padStart(2, '0');
-      
+
       const digits = document.getElementById('clockDigits');
       const secs = document.getElementById('clockSecs');
       const dateEl = document.getElementById('clockDate');
-      
+
       if (digits) digits.textContent = `${h}:${m}`;
       if (secs) secs.textContent = s;
       if (dateEl) {
@@ -665,7 +820,6 @@
       }
     }
 
-    // Déverrouillage automatique au premier contact ou événement global
     function initAudioUserGesture() {
       getAudio();
       requestWakeLock();
@@ -718,6 +872,7 @@
 
     // --- ÉTATS DU WORKOUT ---
     let currentMode = 'fortime';
+    let currentWorkoutName = '';
     let workoutConfig = {};
     let timerInterval = null;
     let countdownInterval = null;
@@ -756,6 +911,7 @@
 
       if (cmd === "CONFIG_AND_START") {
         currentMode = data.mode ? data.mode.toLowerCase().replace(' ', '') : 'fortime';
+        currentWorkoutName = (data.workoutName || '').trim();
         workoutConfig = data.config || {};
         startCountdown();
       } else if (cmd === "START") {
@@ -790,6 +946,10 @@
       document.getElementById('display-container').style.display = 'flex';
     }
 
+    function formatHeaderModeLabel(baseLabel) {
+      return currentWorkoutName ? `${baseLabel} · ${currentWorkoutName}` : baseLabel;
+    }
+
     function startCountdown() {
       getAudio();
       requestWakeLock();
@@ -808,7 +968,7 @@
         return;
       }
 
-const overlay = document.getElementById('countdownOverlay');
+      const overlay = document.getElementById('countdownOverlay');
       const numEl = document.getElementById('countdownNum');
       overlay.style.display = 'flex';
       numEl.textContent = count;
@@ -854,7 +1014,7 @@ const overlay = document.getElementById('countdownOverlay');
 
       if (currentMode === 'amrap') {
         totalDuration = (cfg.mins || 10) * 60 * 1000;
-        modeLabel.textContent = 'AMRAP';
+        modeLabel.textContent = formatHeaderModeLabel('AMRAP');
         phase.textContent = 'AMRAP';
         phase.style.background = 'var(--accent)';
         phase.style.color = '#000';
@@ -865,7 +1025,7 @@ const overlay = document.getElementById('countdownOverlay');
         const ivMs = cfg.intervalMs || 60000;
         const totalRds = cfg.rounds || Math.floor(((cfg.mins || 10) * 60 * 1000) / ivMs);
         totalDuration = totalRds * ivMs;
-        modeLabel.textContent = 'EMOM';
+        modeLabel.textContent = formatHeaderModeLabel('EMOM');
         phase.textContent = 'EMOM';
         phase.style.background = 'var(--accent3)';
         phase.style.color = '#000';
@@ -874,7 +1034,7 @@ const overlay = document.getElementById('countdownOverlay');
         sub.textContent = 'RUNNING';
       } else if (currentMode === 'fortime') {
         totalDuration = (cfg.cap > 0) ? cfg.cap * 60 * 1000 : 0;
-        modeLabel.textContent = 'FOR TIME';
+        modeLabel.textContent = formatHeaderModeLabel('FOR TIME');
         phase.textContent = 'FOR TIME';
         phase.style.background = 'var(--accent2)';
         phase.style.color = '#fff';
@@ -884,7 +1044,7 @@ const overlay = document.getElementById('countdownOverlay');
       } else if (currentMode === 'tabata') {
         const cycle = ((cfg.workSec || 20) + (cfg.tabRestSec || 10)) * 1000;
         totalDuration = (cfg.rounds || 8) * cycle;
-        modeLabel.textContent = 'TABATA';
+        modeLabel.textContent = formatHeaderModeLabel('TABATA');
         phase.textContent = 'WORK';
         phase.style.background = 'var(--accent)';
         phase.style.color = '#000';
@@ -897,7 +1057,7 @@ const overlay = document.getElementById('countdownOverlay');
         workoutConfig.intervals = intervals;
         const singleLoop = intervals.reduce((s, iv) => s + (parseInt(iv.duration) || 0), 0);
         totalDuration = singleLoop * (parseInt(cfg.loops) || 1);
-        modeLabel.textContent = 'CUSTOM';
+        modeLabel.textContent = formatHeaderModeLabel('CUSTOM');
         roundInfo.textContent = `LOOP 1 / ${cfg.loops || 1}`;
         if (intervals.length > 0) {
           phase.textContent = intervals[0].name;
@@ -912,7 +1072,7 @@ const overlay = document.getElementById('countdownOverlay');
         setsCurrentSet = 1;
         setsSetStart = Date.now();
         setsTimeOffset = 0;
-        modeLabel.textContent = 'SETS';
+        modeLabel.textContent = formatHeaderModeLabel('SETS');
         phase.textContent = 'SET 1';
         phase.style.background = 'var(--success)';
         phase.style.color = '#000';
@@ -1136,7 +1296,7 @@ const overlay = document.getElementById('countdownOverlay');
       broadcastState(document.getElementById('displayDigits').textContent, true, currentMode.toUpperCase(), false);
     }
 
-function resetToStandby() {
+    function resetToStandby() {
       const wasWorkoutActive = isRunning || isPaused;
       if (finishBannerTimeout) clearTimeout(finishBannerTimeout);
       clearInterval(timerInterval);
@@ -1164,21 +1324,19 @@ function resetToStandby() {
       }
     }
 
-    // --- FIN DE WORKOUT (TIME! PENDANT 3 MINUTES -> RETOUR HORLOGE APX) ---
+    // --- FIN DE WORKOUT ---
     function finishWorkout() {
       clearInterval(timerInterval);
       isRunning = false;
       goBeep();
       broadcastState("00:00", false, currentMode.toUpperCase(), false);
 
-      // Affichage direct de l'écran TIME!
       const banner = document.getElementById('finishBanner');
       banner.querySelector('.finish-text').textContent = "TIME!";
       banner.classList.add('active');
 
       if (finishBannerTimeout) clearTimeout(finishBannerTimeout);
-      
-      // 3 minutes = 180 000 ms
+
       finishBannerTimeout = setTimeout(() => {
         banner.classList.remove('active');
         showStandbyClock();
