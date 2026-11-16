@@ -545,6 +545,7 @@
     let activePlaylistTitle = "";
     let ytPlayer = null;
     let ytFallbackTimeout = null;
+    let lastDemoNavTimestamp = 0;
 
     function updateDemoHeaderUI() {
       const titleEl = document.getElementById("demoTvTitle");
@@ -555,13 +556,14 @@
       if (activeIsPlaylist && activeQueue.length > 1) {
         titleEl.innerText = `${activeQueueIdx + 1}/${activeQueue.length} · ${item.title || "MOVEMENT DEMO"}`;
         badgeEl.innerText = activePlaylistTitle || "PLAYLIST";
+        activeDemoRef.update({ currentIndex: activeQueueIdx }).catch(() => {});
       } else {
         titleEl.innerText = item.title || "MOVEMENT DEMO";
         badgeEl.innerText = item.category || "DEMO";
       }
     }
 
-    function advancePlaylistVideo() {
+    function navigatePlaylistVideo(direction = "next") {
       if (!activeQueue.length) return;
       if (activeQueue.length === 1) {
         if (ytPlayer && typeof ytPlayer.seekTo === "function") {
@@ -570,18 +572,28 @@
         }
         return;
       }
-      activeQueueIdx = (activeQueueIdx + 1) % activeQueue.length;
+      if (direction === "prev") {
+        activeQueueIdx = (activeQueueIdx - 1 + activeQueue.length) % activeQueue.length;
+      } else {
+        activeQueueIdx = (activeQueueIdx + 1) % activeQueue.length;
+      }
       updateDemoHeaderUI();
-      const nextItem = activeQueue[activeQueueIdx];
-      if (ytPlayer && typeof ytPlayer.loadVideoById === "function" && nextItem) {
-        ytPlayer.loadVideoById(nextItem.videoId);
+      const targetItem = activeQueue[activeQueueIdx];
+      if (ytPlayer && typeof ytPlayer.loadVideoById === "function" && targetItem) {
+        ytPlayer.loadVideoById(targetItem.videoId);
+      } else {
+        renderFallbackIframe();
       }
     }
 
     function renderFallbackIframe() {
       const wrap = document.getElementById("demoTvFrameWrap");
       if (!wrap || !activeQueue.length) return;
-      const ids = activeQueue.map(x => x.videoId).filter(Boolean);
+      const rotated = [
+        ...activeQueue.slice(activeQueueIdx),
+        ...activeQueue.slice(0, activeQueueIdx)
+      ];
+      const ids = rotated.map(x => x.videoId).filter(Boolean);
       const firstId = ids[0];
       const playlistParam = ids.join(",");
       wrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${firstId}?autoplay=1&mute=1&loop=1&playlist=${playlistParam}&controls=0&modestbranding=1&rel=0&playsinline=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
@@ -639,12 +651,12 @@
           },
           onStateChange: (e) => {
             if (e.data === YT.PlayerState.ENDED) {
-              advancePlaylistVideo();
+              navigatePlaylistVideo("next");
             }
           },
           onError: () => {
             if (activeQueue.length > 1) {
-              setTimeout(advancePlaylistVideo, 800);
+              setTimeout(() => navigatePlaylistVideo("next"), 800);
             }
           }
         }
@@ -678,11 +690,15 @@
         overlay.style.display = "flex";
         if (currentDemoSessionKey !== sessionKey) {
           currentDemoSessionKey = sessionKey;
+          lastDemoNavTimestamp = demo.navTimestamp || 0;
           activeQueue = queue;
           activeQueueIdx = 0;
           activeIsPlaylist = !!(demo.isPlaylist && queue.length > 1);
           activePlaylistTitle = demo.title || "PLAYLIST";
           startTvDemoPlayer();
+        } else if (demo.navTimestamp && demo.navTimestamp > lastDemoNavTimestamp) {
+          lastDemoNavTimestamp = demo.navTimestamp;
+          navigatePlaylistVideo(demo.navDirection || "next");
         }
       } else {
         currentDemoSessionKey = null;
