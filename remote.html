@@ -1002,11 +1002,12 @@
 
     const settingsRef = db.ref(prefix + "timer_settings");
 
-    // Gym Wi-Fi Verification (Public IP)
+// Gym Wi-Fi Verification (Public IP - Dynamic)
     const gymIpRef = db.ref("gym_ip");
     let gymIp = null;
     let myIp = null;
     let isAtGym = false;
+    let wifiChecked = false;
 
     function updateGymConnectionStatus() {
       const pill = document.getElementById('connPill');
@@ -1017,9 +1018,16 @@
         pill.style.borderColor = "#8c52ff";
         return;
       }
-      if (!gymIp || !myIp) return;
+      if (!gymIp) {
+        isAtGym = true;
+        pill.innerText = "TV Connected";
+        pill.classList.add('online');
+        pill.style.color = "";
+        pill.style.borderColor = "";
+        return;
+      }
 
-      if (myIp === gymIp) {
+      if (myIp && myIp === gymIp) {
         isAtGym = true;
         pill.innerText = "TV Connected";
         pill.classList.add('online');
@@ -1027,11 +1035,28 @@
         pill.style.borderColor = "";
       } else {
         isAtGym = false;
-        pill.innerText = "🔒 Off-Site";
+        pill.innerText = wifiChecked ? "🔒 Off-Site" : "⏳ Checking Wi-Fi...";
         pill.classList.remove('online');
         pill.style.color = "#f59e0b";
         pill.style.borderColor = "#f59e0b";
       }
+    }
+
+    function checkGymWifi() {
+      if (isTestMode) return;
+      fetch("https://api.ipify.org?format=json", { cache: "no-store" })
+        .then(res => res.json())
+        .then(data => {
+          wifiChecked = true;
+          myIp = (data && data.ip) ? data.ip : null;
+          updateGymConnectionStatus();
+        })
+        .catch(() => {
+          wifiChecked = true;
+          myIp = null;
+          isAtGym = false;
+          updateGymConnectionStatus();
+        });
     }
 
     updateGymConnectionStatus();
@@ -1041,17 +1066,12 @@
       updateGymConnectionStatus();
     });
 
-    fetch("https://api.ipify.org?format=json")
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.ip) {
-          myIp = data.ip;
-          updateGymConnectionStatus();
-        }
-      })
-      .catch(() => {
-        isAtGym = true;
-      });
+    checkGymWifi();
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") checkGymWifi();
+    });
+    window.addEventListener("focus", checkGymWifi);
+    window.addEventListener("online", checkGymWifi);
 
     function canControlTV() {
       if (isTestMode || !gymIp) return true;
@@ -1994,7 +2014,6 @@
     }
 
     async function handlePromoUpload(input) {
-      if (!canControlTV()) return;
       const files = Array.from(input.files || []);
       if (!files.length) return;
 
@@ -2008,7 +2027,6 @@
     }
 
     function removeSinglePromo(idx) {
-      if (!canControlTV()) return;
       promoData.images.splice(idx, 1);
       if (promoData.images.length === 0) {
         promoRef.remove();
@@ -2018,7 +2036,6 @@
     }
 
     function adjPromoInterval(delta) {
-      if (!canControlTV()) return;
       promoData.interval = Math.max(2, Math.min(120, (promoData.interval || 10) + delta));
       const el = document.getElementById("val-promoInterval");
       if (el) el.value = promoData.interval;
@@ -2026,7 +2043,7 @@
     }
 
     function manualSetPromoInterval(rawVal) {
-      if (!canControlTV() || rawVal === "") return;
+      if (rawVal === "") return;
       let parsed = parseInt(rawVal);
       if (isNaN(parsed)) parsed = 10;
       promoData.interval = Math.max(2, Math.min(120, parsed));
@@ -2034,13 +2051,13 @@
     }
 
     function removePromoBanner() {
-      if (!canControlTV()) return;
       if (confirm("Remove all promo banners from TV?")) {
         promoRef.remove().then(() => {
           alert("Banners removed. Clock centered.");
         });
       }
     }
+    
   </script>
 </body>
 </html>
