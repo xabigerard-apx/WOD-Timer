@@ -493,7 +493,7 @@
     const prefix = isTestMode ? "test_" : "";
 
     const timerRef = db.ref(prefix + "timer_state");
-    const CURRENT_VERSION = "v1.6";
+    const CURRENT_VERSION = "v1.6.1";
     const vBadge = document.createElement("div");
     vBadge.textContent = CURRENT_VERSION;
     vBadge.style.cssText = "position:fixed; bottom:6px; right:10px; font-family:'DM Mono',monospace; font-size:11px; color:rgba(255,255,255,0.18); letter-spacing:1px; pointer-events:none; z-index:9999;";
@@ -543,9 +543,11 @@
     let activeQueueIdx = 0;
     let activeIsPlaylist = false;
     let activePlaylistTitle = "";
+    let activeDemoPaused = false;
     let ytPlayer = null;
     let ytFallbackTimeout = null;
     let lastDemoNavTimestamp = 0;
+    let lastDemoPlaybackTimestamp = 0;
 
     function updateDemoHeaderUI() {
       const titleEl = document.getElementById("demoTvTitle");
@@ -553,23 +555,41 @@
       const item = activeQueue[activeQueueIdx];
       if (!item || !titleEl || !badgeEl) return;
 
+      const pausePrefix = activeDemoPaused ? "⏸ PAUSED · " : "";
+
       if (activeIsPlaylist && activeQueue.length > 1) {
-        titleEl.innerText = `${activeQueueIdx + 1}/${activeQueue.length} · ${item.title || "MOVEMENT DEMO"}`;
+        titleEl.innerText = `${pausePrefix}${activeQueueIdx + 1}/${activeQueue.length} · ${item.title || "MOVEMENT DEMO"}`;
         badgeEl.innerText = activePlaylistTitle || "PLAYLIST";
         activeDemoRef.update({ currentIndex: activeQueueIdx }).catch(() => {});
       } else {
-        titleEl.innerText = item.title || "MOVEMENT DEMO";
+        titleEl.innerText = `${pausePrefix}${item.title || "MOVEMENT DEMO"}`;
         badgeEl.innerText = item.category || "DEMO";
       }
     }
 
+    function applyDemoPlaybackState(paused) {
+      activeDemoPaused = !!paused;
+      updateDemoHeaderUI();
+      if (!ytPlayer) return;
+      try {
+        if (activeDemoPaused && typeof ytPlayer.pauseVideo === "function") {
+          ytPlayer.pauseVideo();
+        } else if (!activeDemoPaused && typeof ytPlayer.playVideo === "function") {
+          ytPlayer.mute();
+          ytPlayer.playVideo();
+        }
+      } catch (e) {}
+    }
+
     function navigatePlaylistVideo(direction = "next") {
       if (!activeQueue.length) return;
+      activeDemoPaused = false;
       if (activeQueue.length === 1) {
         if (ytPlayer && typeof ytPlayer.seekTo === "function") {
           ytPlayer.seekTo(0, true);
           ytPlayer.playVideo();
         }
+        updateDemoHeaderUI();
         return;
       }
       if (direction === "prev") {
@@ -647,10 +667,14 @@
               ytFallbackTimeout = null;
             }
             e.target.mute();
-            e.target.playVideo();
+            if (activeDemoPaused) {
+              e.target.pauseVideo();
+            } else {
+              e.target.playVideo();
+            }
           },
           onStateChange: (e) => {
-            if (e.data === YT.PlayerState.ENDED) {
+            if (e.data === YT.PlayerState.ENDED && !activeDemoPaused) {
               navigatePlaylistVideo("next");
             }
           },
@@ -691,20 +715,31 @@
         if (currentDemoSessionKey !== sessionKey) {
           currentDemoSessionKey = sessionKey;
           lastDemoNavTimestamp = demo.navTimestamp || 0;
+          lastDemoPlaybackTimestamp = demo.playbackTimestamp || 0;
           activeQueue = queue;
           activeQueueIdx = 0;
           activeIsPlaylist = !!(demo.isPlaylist && queue.length > 1);
           activePlaylistTitle = demo.title || "PLAYLIST";
+          activeDemoPaused = !!demo.isPaused;
           startTvDemoPlayer();
-        } else if (demo.navTimestamp && demo.navTimestamp > lastDemoNavTimestamp) {
-          lastDemoNavTimestamp = demo.navTimestamp;
-          navigatePlaylistVideo(demo.navDirection || "next");
+        } else {
+          if (demo.navTimestamp && demo.navTimestamp > lastDemoNavTimestamp) {
+            lastDemoNavTimestamp = demo.navTimestamp;
+            navigatePlaylistVideo(demo.navDirection || "next");
+          }
+          if (demo.playbackTimestamp && demo.playbackTimestamp > lastDemoPlaybackTimestamp) {
+            lastDemoPlaybackTimestamp = demo.playbackTimestamp;
+            applyDemoPlaybackState(!!demo.isPaused);
+          } else if (typeof demo.isPaused === "boolean" && demo.isPaused !== activeDemoPaused) {
+            applyDemoPlaybackState(demo.isPaused);
+          }
         }
       } else {
         currentDemoSessionKey = null;
         activeQueue = [];
         activeQueueIdx = 0;
         activeIsPlaylist = false;
+        activeDemoPaused = false;
         if (ytFallbackTimeout) {
           clearTimeout(ytFallbackTimeout);
           ytFallbackTimeout = null;
