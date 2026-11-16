@@ -553,16 +553,16 @@
       display: none;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
       background: rgba(239, 68, 68, 0.15);
       border: 1px solid #ef4444;
       border-radius: 10px;
-      padding: 10px 12px;
+      padding: 9px 10px;
       margin-bottom: 10px;
       flex-shrink: 0;
     }
     .demo-active-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: #fff;
       white-space: nowrap;
@@ -574,10 +574,10 @@
       color: #fff;
       border: none;
       border-radius: 8px;
-      padding: 7px 12px;
+      padding: 7px 10px;
       font-weight: 800;
-      font-size: 12px;
-      letter-spacing: 0.8px;
+      font-size: 11px;
+      letter-spacing: 0.6px;
       cursor: pointer;
       flex-shrink: 0;
     }
@@ -862,8 +862,12 @@
   <div id="view-demos">
     <div class="config-card" style="flex:1; min-height:0; display:flex; flex-direction:column; margin-bottom:0;">
       <div id="demoActiveBanner" class="demo-active-banner">
-        <div class="demo-active-title" id="demoActiveLabel">📺 Playing on TV</div>
-        <button class="demo-stop-tv-btn" onclick="stopTvDemo()">⏹ STOP TV</button>
+        <div class="demo-active-title" id="demoActiveLabel" style="flex:1; min-width:0;">📺 Playing on TV</div>
+        <div style="display:flex; gap:5px; flex-shrink:0;">
+          <button id="demoPrevTvBtn" class="demo-play-btn" style="display:none; padding:7px 10px; background:var(--surface-card); border:1px solid var(--accent-purple);" onclick="navigateTvDemo('prev')" title="Previous video">⏮</button>
+          <button id="demoNextTvBtn" class="demo-play-btn" style="display:none; padding:7px 10px;" onclick="navigateTvDemo('next')" title="Next video">⏭</button>
+          <button class="demo-stop-tv-btn" onclick="stopTvDemo()">⏹ STOP</button>
+        </div>
       </div>
 
       <input type="text" id="demoSearchInput" class="text-input" placeholder="🔍 Search movement or playlist..." oninput="renderDemoList()" style="margin-bottom:10px; flex-shrink:0;">
@@ -1616,12 +1620,29 @@
       currentActiveDemo = snap.val() || null;
       const banner = document.getElementById('demoActiveBanner');
       const label = document.getElementById('demoActiveLabel');
+      const prevBtn = document.getElementById('demoPrevTvBtn');
+      const nextBtn = document.getElementById('demoNextTvBtn');
       if (banner && label) {
         if (currentActiveDemo && currentActiveDemo.videoId) {
           banner.style.display = 'flex';
-          label.innerText = `📺 On TV: ${currentActiveDemo.title}`;
+          const items = currentActiveDemo.playlistItems
+            ? (Array.isArray(currentActiveDemo.playlistItems) ? currentActiveDemo.playlistItems : Object.values(currentActiveDemo.playlistItems)).filter(Boolean)
+            : [];
+          const isPl = !!(currentActiveDemo.isPlaylist && items.length > 1);
+          if (prevBtn) prevBtn.style.display = isPl ? 'inline-block' : 'none';
+          if (nextBtn) nextBtn.style.display = isPl ? 'inline-block' : 'none';
+
+          if (isPl) {
+            const idx = typeof currentActiveDemo.currentIndex === 'number' ? currentActiveDemo.currentIndex : 0;
+            const curItem = items[idx] || items[0];
+            label.innerText = `📺 ${idx + 1}/${items.length} · ${curItem ? curItem.title : currentActiveDemo.title}`;
+          } else {
+            label.innerText = `📺 On TV: ${currentActiveDemo.title}`;
+          }
         } else {
           banner.style.display = 'none';
+          if (prevBtn) prevBtn.style.display = 'none';
+          if (nextBtn) nextBtn.style.display = 'none';
         }
       }
       if (document.getElementById('tabNavDemos')?.classList.contains('active')) {
@@ -1870,6 +1891,7 @@
         category: `${items.length} VIDEOS`,
         videoId: items[0].videoId,
         playlistItems: items,
+        currentIndex: 0,
         startedAt: Date.now()
       });
     }
@@ -1893,6 +1915,14 @@
         category: demo.category || "",
         videoId: demo.videoId,
         startedAt: Date.now()
+      });
+    }
+
+    function navigateTvDemo(direction) {
+      if (!canControlTV() || !currentActiveDemo || !currentActiveDemo.isPlaylist) return;
+      activeDemoRef.update({
+        navDirection: direction,
+        navTimestamp: Date.now()
       });
     }
 
